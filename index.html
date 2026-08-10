@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TigerHub</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+<!-- Icônes intégrées directement dans le fichier, aucune dépendance externe -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -32,6 +32,7 @@
   --th-shadow-lg:0 20px 48px -16px rgba(26,21,35,0.22);
 }
 *{box-sizing:border-box;margin:0;padding:0}
+.icon{display:inline-block;vertical-align:-3px;flex-shrink:0}
 body{
   font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   background:
@@ -330,15 +331,13 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
   <div class="logo">
     <div class="logo-mark">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="2.4" fill="white"/>
-        <circle cx="5" cy="5" r="1.6" fill="white" opacity="0.9"/>
-        <circle cx="19" cy="5" r="1.6" fill="white" opacity="0.9"/>
-        <circle cx="19" cy="19" r="1.6" fill="white" opacity="0.45"/>
-        <circle cx="5" cy="19" r="1.6" fill="white" opacity="0.45"/>
-        <line x1="12" y1="12" x2="5" y2="5" stroke="white" stroke-width="1.2"/>
-        <line x1="12" y1="12" x2="19" y2="5" stroke="white" stroke-width="1.2"/>
-        <line x1="12" y1="12" x2="19" y2="19" stroke="white" stroke-width="1.2" opacity="0.45"/>
-        <line x1="12" y1="12" x2="5" y2="19" stroke="white" stroke-width="1.2" opacity="0.45"/>
+        <line x1="12" y1="12" x2="6" y2="7" stroke="white" stroke-width="1.3" opacity="0.9"/>
+        <line x1="12" y1="12" x2="18" y2="9" stroke="white" stroke-width="1.3" opacity="0.9"/>
+        <line x1="12" y1="12" x2="16" y2="18" stroke="white" stroke-width="1.3" opacity="0.55"/>
+        <circle cx="12" cy="12" r="2.6" fill="white"/>
+        <circle cx="6" cy="7" r="1.5" fill="white" opacity="0.95"/>
+        <circle cx="18" cy="9" r="1.9" fill="white" opacity="0.95"/>
+        <circle cx="16" cy="18" r="1.4" fill="white" opacity="0.55"/>
       </svg>
     </div>
     Tiger<span>Hub</span>
@@ -359,6 +358,112 @@ async function loadKey(k){ try{ const r = await window.storage.get(k); return r?
 async function saveKey(k,v){ try{ await window.storage.set(k, JSON.stringify(v)); }catch(e){ console.error(e); } }
 function fmtDate(iso){ const d=new Date(iso); return d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}); }
 function fmtDateTime(iso){ const d=new Date(iso); return d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})+' à '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }
+
+/* ---------- Icônes SVG intégrées (aucune dépendance réseau) ---------- */
+const ICONS = {
+'ad-2':'<rect x="3" y="6" width="18" height="12" rx="2"/><line x1="7" y1="10" x2="10" y2="10"/><line x1="7" y1="14" x2="13" y2="14"/>',
+'address-book':'<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="2"/><path d="M8 16c0-2 1.5-3 4-3s4 1 4 3"/>',
+'alert-octagon':'<path d="M8 3h8l5 5v8l-5 5H8l-5-5V8z"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16.3" r="0.9" fill="currentColor" stroke="none"/>',
+'alert-triangle':'<path d="M12 3 L22 20 H2 Z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/>',
+'archive':'<rect x="3" y="4" width="18" height="4" rx="1"/><rect x="4" y="8" width="16" height="12" rx="1"/><line x1="10" y1="12" x2="14" y2="12"/>',
+'bell':'<path d="M6 9a6 6 0 0112 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 004 0"/>',
+'bolt':'<path d="M13 2 L4 14h6l-1 8 9-12h-6z"/>',
+'book':'<path d="M12 5c-2-1-5-1-8 0v13c3-1 6-1 8 0 2-1 5-1 8 0V5c-3-1-6-1-8 0z"/><line x1="12" y1="5" x2="12" y2="18"/>',
+'books':'<path d="M4 4h4v16H4z"/><path d="M10 5c2-1 5-1 8 0v13c-3-1-6-1-8 0z"/>',
+'brand-wikipedia':'<circle cx="12" cy="12" r="9"/><path d="M4 9h16M4 15h16"/>',
+'briefcase':'<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2"/>',
+'bug':'<rect x="8" y="8" width="8" height="10" rx="4"/><line x1="12" y1="4" x2="12" y2="8"/><line x1="5" y1="10" x2="8" y2="12"/><line x1="19" y1="10" x2="16" y2="12"/><line x1="5" y1="16" x2="8" y2="15"/><line x1="19" y1="16" x2="16" y2="15"/>',
+'building':'<rect x="5" y="3" width="14" height="18" rx="1"/><rect x="8" y="7" width="2" height="2"/><rect x="14" y="7" width="2" height="2"/><rect x="8" y="12" width="2" height="2"/><rect x="14" y="12" width="2" height="2"/>',
+'building-bank':'<path d="M3 10 12 4 21 10"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="6" y1="10" x2="6" y2="18"/><line x1="10" y1="10" x2="10" y2="18"/><line x1="14" y1="10" x2="14" y2="18"/><line x1="18" y1="10" x2="18" y2="18"/><line x1="4" y1="20" x2="20" y2="20"/>',
+'bulb':'<circle cx="12" cy="10" r="6"/><line x1="10" y1="18" x2="14" y2="18"/><line x1="10" y1="21" x2="14" y2="21"/>',
+'calendar':'<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/>',
+'calendar-event':'<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"/>',
+'calendar-week':'<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="6" y1="14" x2="18" y2="14"/>',
+'category':'<rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/>',
+'chart-bar':'<line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/>',
+'chart-donut-3':'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/>',
+'chart-histogram':'<line x1="4" y1="20" x2="4" y2="10"/><line x1="9" y1="20" x2="9" y2="5"/><line x1="14" y1="20" x2="14" y2="14"/><line x1="19" y1="20" x2="19" y2="8"/>',
+'chart-line':'<polyline points="3,17 9,10 13,14 21,5"/>',
+'checklist':'<path d="M4 6l2 2 3-3"/><line x1="11" y1="6" x2="20" y2="6"/><path d="M4 12l2 2 3-3"/><line x1="11" y1="12" x2="20" y2="12"/><path d="M4 18l2 2 3-3"/><line x1="11" y1="18" x2="20" y2="18"/>',
+'chevron-down':'<polyline points="6,9 12,15 18,9"/>',
+'circle-check':'<circle cx="12" cy="12" r="9"/><polyline points="8,12 11,15 16,9"/>',
+'circle-x':'<circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>',
+'code':'<polyline points="9,7 4,12 9,17"/><polyline points="15,7 20,12 15,17"/>',
+'coin':'<circle cx="12" cy="12" r="8"/><line x1="8" y1="12" x2="16" y2="12"/>',
+'currency-euro':'<path d="M17 8a6 6 0 100 8"/><line x1="6" y1="10" x2="14" y2="10"/><line x1="6" y1="14" x2="13" y2="14"/>',
+'eye':'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+'file-certificate':'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><circle cx="9.5" cy="17" r="1.8"/>',
+'file-description':'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="16" x2="13" y2="16"/>',
+'file-invoice':'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="18" x2="12" y2="18"/>',
+'file-text':'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="16" x2="15" y2="16"/>',
+'filter-off':'<path d="M4 5h16l-6 7v6l-4 2v-8z"/><line x1="3" y1="3" x2="21" y2="21"/>',
+'flag':'<line x1="5" y1="3" x2="5" y2="21"/><path d="M5 4h13l-3 4 3 4H5"/>',
+'flame':'<path d="M12 2c2 4-3 5-3 9a3 3 0 006 0c0-2-1-3-1-3s3 1 3 5a6 6 0 01-12 0c0-6 5-7 7-11z"/>',
+'folder':'<path d="M3 6h6l2 2h10v11H3z"/>',
+'handshake':'<path d="M8 12l3 3 6-6"/><circle cx="12" cy="12" r="9"/>',
+'heart':'<path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 5a5.5 5.5 0 019.5 7c-2.5 4.5-9.5 9-9.5 9z"/>',
+'history':'<circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 16,14"/>',
+'home':'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+'inbox':'<path d="M3 12h5l2 3h4l2-3h5"/><path d="M3 12V6h18v6"/><path d="M3 12v6h18v-6"/>',
+'layout-dashboard':'<rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="5"/><rect x="13" y="10" width="8" height="11"/><rect x="3" y="13" width="8" height="8"/>',
+'layout-grid':'<rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/>',
+'layout-grid-add':'<rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/>',
+'link':'<path d="M10 14a4 4 0 005 0l3-3a4 4 0 00-5-5l-1 1"/><path d="M14 10a4 4 0 00-5 0l-3 3a4 4 0 005 5l1-1"/>',
+'list':'<line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/>',
+'list-check':'<path d="M4 6l2 2 3-3"/><line x1="11" y1="6" x2="20" y2="6"/><path d="M4 12l2 2 3-3"/><line x1="11" y1="12" x2="20" y2="12"/><path d="M4 18l2 2 3-3"/><line x1="11" y1="18" x2="20" y2="18"/>',
+'lock':'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
+'mail':'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+'map':'<polygon points="3,6 9,4 15,6 21,4 21,18 15,20 9,18 3,20"/><line x1="9" y1="4" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="20"/>',
+'message-2':'<path d="M4 5h16v11H8l-4 4z"/>',
+'message-code':'<path d="M4 5h16v11H8l-4 4z"/><polyline points="10,9 8,11 10,13"/><polyline points="14,9 16,11 14,13"/>',
+'messages':'<path d="M3 5h13v8H9l-3 3v-3H3z"/><path d="M10 9h11v8h-4l-3 3v-3h-4z" opacity="0.5"/>',
+'news':'<rect x="3" y="4" width="18" height="16" rx="1"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/>',
+'note':'<rect x="5" y="3" width="14" height="18" rx="1"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/>',
+'notebook':'<rect x="5" y="3" width="14" height="18" rx="1"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="12" y1="8" x2="17" y2="8"/><line x1="12" y1="12" x2="17" y2="12"/>',
+'pencil':'<path d="M4 20l3-1 10-10-2-2L5 17z"/><line x1="15" y1="6" x2="18" y2="9"/>',
+'percentage':'<circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/><line x1="18" y1="6" x2="6" y2="18"/>',
+'photo':'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M4 18l6-6 4 4 3-3 3 3"/>',
+'plus':'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+'presentation':'<rect x="3" y="4" width="18" height="12" rx="1"/><line x1="12" y1="16" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/><polyline points="7,12 10,9 13,11 17,7"/>',
+'puzzle':'<path d="M9 4h4v2a2 2 0 004 0V4h4v4h-2a2 2 0 000 4h2v4h-4v-2a2 2 0 00-4 0v2H9v-4H7a2 2 0 010-4h2z"/>',
+'repeat':'<path d="M17 2l4 4-4 4"/><path d="M21 6H8a5 5 0 00-5 5"/><path d="M7 22l-4-4 4-4"/><path d="M3 18h13a5 5 0 005-5"/>',
+'robot':'<rect x="5" y="8" width="14" height="10" rx="2"/><line x1="12" y1="4" x2="12" y2="8"/><circle cx="12" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.2" fill="currentColor" stroke="none"/><line x1="9" y1="16" x2="15" y2="16"/>',
+'rocket':'<path d="M12 2c3 2 5 6 5 10 0 3-2 6-5 8-3-2-5-5-5-8 0-4 2-8 5-10z"/><circle cx="12" cy="10" r="2"/><path d="M8 16l-3 5M16 16l3 5"/>',
+'scale':'<line x1="12" y1="3" x2="12" y2="21"/><line x1="5" y1="7" x2="19" y2="7"/><path d="M5 7l-3 6a3 3 0 006 0z"/><path d="M19 7l-3 6a3 3 0 006 0z"/>',
+'search':'<circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/>',
+'server':'<rect x="4" y="4" width="16" height="6" rx="1"/><rect x="4" y="14" width="16" height="6" rx="1"/><circle cx="8" cy="7" r="0.7" fill="currentColor" stroke="none"/><circle cx="8" cy="17" r="0.7" fill="currentColor" stroke="none"/>',
+'settings':'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+'share':'<circle cx="6" cy="12" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="18" cy="18" r="2.2"/><line x1="8" y1="11" x2="16" y2="7"/><line x1="8" y1="13" x2="16" y2="17"/>',
+'sparkles':'<path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>',
+'speakerphone':'<path d="M3 10v4h3l6 4V6l-6 4z"/><path d="M15 9a3 3 0 010 6"/><path d="M17 6a7 7 0 010 12"/>',
+'stamp':'<rect x="7" y="3" width="10" height="6" rx="1"/><path d="M9 9l-2 5h10l-2-5"/><line x1="4" y1="18" x2="20" y2="18"/><line x1="4" y1="21" x2="20" y2="21"/>',
+'star':'<polygon points="12,2 15,9 22,9.5 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.5 9,9"/>',
+'star-filled':'<polygon points="12,2 15,9 22,9.5 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.5 9,9" fill="currentColor"/>',
+'sun':'<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.5" y1="4.5" x2="6.5" y2="6.5"/><line x1="17.5" y1="17.5" x2="19.5" y2="19.5"/><line x1="4.5" y1="19.5" x2="6.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="19.5" y2="4.5"/>',
+'tag':'<path d="M3 12l9-9h7v7l-9 9z"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/>',
+'tags':'<path d="M2 11l8-8h6v6l-8 8z"/><circle cx="13.5" cy="8.5" r="1" fill="currentColor" stroke="none"/><path d="M8 20l9-9" opacity="0.5"/>',
+'target':'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/>',
+'target-arrow':'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/><line x1="19" y1="5" x2="14" y2="10"/><polygon points="19,5 15.5,5 19,8.5" fill="currentColor" stroke="none"/>',
+'thumb-up':'<path d="M7 11v9H4v-9z"/><path d="M7 11l3-7a2 2 0 012 2v4h5a2 2 0 012 2l-1.5 6a2 2 0 01-2 1.5H9"/>',
+'timeline':'<line x1="3" y1="12" x2="21" y2="12"/><circle cx="7" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="14" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
+'tools':'<path d="M21 7a4 4 0 01-5.7 3.6L6 20l-2-2 9.4-9.3A4 4 0 0117 3l-2.5 2.5 1 1L18 4a4 4 0 013 3z"/>',
+'trash':'<line x1="4" y1="7" x2="20" y2="7"/><path d="M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/><path d="M9 7V4h6v3"/>',
+'trending-down':'<polyline points="3,7 10,14 14,10 21,17"/><polyline points="21,10 21,17 14,17"/>',
+'trending-up':'<polyline points="3,17 10,10 14,14 21,7"/><polyline points="15,7 21,7 21,13"/>',
+'trophy':'<path d="M8 4h8v5a4 4 0 01-8 0z"/><path d="M8 5H5a3 3 0 003 3"/><path d="M16 5h3a3 3 0 01-3 3"/><line x1="12" y1="13" x2="12" y2="17"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="17" x2="12" y2="20"/>',
+'truck':'<rect x="2" y="8" width="12" height="8"/><path d="M14 11h4l3 3v2h-7z"/><circle cx="6" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',
+'user-check':'<circle cx="9" cy="8" r="4"/><path d="M3 20c0-4 2.5-6 6-6s6 2 6 6"/><polyline points="15,13 17,15 21,10"/>',
+'user-plus':'<circle cx="9" cy="8" r="4"/><path d="M3 20c0-4 2.5-6 6-6s6 2 6 6"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="15" y1="11" x2="21" y2="11"/>',
+'users':'<circle cx="8" cy="8" r="3.2"/><path d="M2 20c0-3.5 2.5-5.5 6-5.5s6 2 6 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M14.5 14.5c3-0.5 5.5 1.5 6 5.5"/>',
+'versions':'<rect x="5" y="8" width="12" height="10" rx="1"/><path d="M8 8V6a1 1 0 011-1h10a1 1 0 011 1v10a1 1 0 01-1 1h-2"/>',
+'wallet':'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14" r="1.3" fill="currentColor" stroke="none"/>',
+};
+function ic(name, size){
+  const key = String(name||'').replace(/^ti-/,'');
+  const body = ICONS[key] || ICONS['circle-check'];
+  const px = size || 16;
+  return `<svg class="icon" width="${px}" height="${px}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
+}
 
 /* ---------- Données ---------- */
 let tasks=[], ideas=[], campaigns=[], prospects=[], feedbacks=[], features=[], bugs=[], competitors=[], contacts=[], partners=[], notes=[], decisions=[], launchItems=[], revenues=[], expenses=[];
@@ -555,7 +660,7 @@ function buildSidebar(){
     const el = document.createElement('div');
     el.className = 'nav-item' + (idx===0 ? ' active' : '');
     el.dataset.module = m.id;
-    el.innerHTML = `<i class="ti ${m.icon}"></i>${m.label}`;
+    el.innerHTML = `${ic(m.icon,16)}${m.label}`;
     el.addEventListener('click', () => selectModule(m.id));
     sb.appendChild(el);
   });
@@ -586,7 +691,7 @@ function buildApp(){
       const item = document.createElement('div');
       item.className = 'sub-item' + (sIdx===0 ? ' active' : '');
       item.dataset.section = s.id;
-      item.innerHTML = `<i class="ti ${s.icon}"></i>${s.label}` + (!s.kind ? '<span class="soon-dot"></span>' : '');
+      item.innerHTML = `${ic(s.icon,15)}${s.label}` + (!s.kind ? '<span class="soon-dot"></span>' : '');
       item.addEventListener('click', () => selectSection(m.id, s.id));
       submenu.appendChild(item);
     });
@@ -595,13 +700,13 @@ function buildApp(){
     const topbar = document.createElement('div');
     topbar.className = 'topbar';
     topbar.innerHTML = `
-      <div class="topbar-search"><i class="ti ti-search"></i>Rechercher dans TigerHub...<span class="topbar-kbd">⌘K</span></div>
-      <div class="topbar-icon-btn"><i class="ti ti-plus"></i></div>
-      <div class="topbar-icon-btn" style="position:relative"><i class="ti ti-bell"></i><span class="topbar-badge">3</span></div>
+      <div class="topbar-search">${ic('ti-search')}Rechercher dans TigerHub...<span class="topbar-kbd">⌘K</span></div>
+      <div class="topbar-icon-btn">${ic('ti-plus')}</div>
+      <div class="topbar-icon-btn" style="position:relative">${ic('ti-bell')}<span class="topbar-badge">3</span></div>
       <div class="topbar-profile">
         <div class="topbar-avatar">S</div>
         <div class="topbar-profile-text"><div class="name">Sophie</div><div class="role">Owner</div></div>
-        <i class="ti ti-chevron-down" style="font-size:14px;color:var(--th-text-3)"></i>
+        <span style="color:var(--th-text-3);display:inline-flex">${ic("chevron-down",14)}</span>
       </div>
     `;
     mainEl.appendChild(topbar);
@@ -621,7 +726,7 @@ function buildApp(){
 
 function placeholderTemplate(s){
   return `<h1>${s.label}</h1><p class="subtitle">Section pas encore développée</p>
-    <div class="placeholder"><div class="placeholder-icon-wrap"><i class="ti ${s.icon}"></i></div><div class="placeholder-badge">À venir</div><p>${s.desc}</p></div>`;
+    <div class="placeholder"><div class="placeholder-icon-wrap">${ic(s.icon,15)}</div><div class="placeholder-badge">À venir</div><p>${s.desc}</p></div>`;
 }
 
 function panelTemplate(moduleId, s){
@@ -629,13 +734,13 @@ function panelTemplate(moduleId, s){
   switch(s.kind){
     case 'dashboardHome': return `
       <p class="subtitle" id="${p}-dateLabel"></p><h1>Salut Sophie</h1><p class="tone" id="${p}-tone"></p>
-      <div class="card"><div class="card-header"><i class="ti ti-target"></i><span id="${p}-focusTitle">Focus du jour</span></div><div id="${p}-focusContent"></div></div>
-      <div class="card"><div class="card-header"><i class="ti ti-bulb"></i><span>Dernières idées captées</span></div><div id="${p}-ideasContent"></div></div>`;
+      <div class="card"><div class="card-header">${ic('ti-target')}<span id="${p}-focusTitle">Focus du jour</span></div><div id="${p}-focusContent"></div></div>
+      <div class="card"><div class="card-header">${ic('ti-bulb')}<span>Dernières idées captées</span></div><div id="${p}-ideasContent"></div></div>`;
     case 'plannerToday': return `
       <h1>Ta journée</h1><p class="subtitle" id="${p}-subtitle"></p>
       <div class="capture"><div class="capture-row">
         <input type="text" id="${p}-taskInput" placeholder="Ajouter une tâche...">
-        <button class="impact-toggle" id="${p}-impactToggle"><i class="ti ti-star"></i>Prioritaire</button>
+        <button class="impact-toggle" id="${p}-impactToggle">${ic('ti-star')}Prioritaire</button>
         <button class="add-btn" id="${p}-addBtn">Ajouter</button>
       </div></div><div id="${p}-content"></div>`;
     case 'ideaInbox': return `
@@ -645,16 +750,16 @@ function panelTemplate(moduleId, s){
         <button class="add-btn" id="${p}-addBtn">Capturer</button>
       </div></div><div id="${p}-content"></div>`;
     case 'mktgDashboard': return `<h1>Dashboard Marketing</h1><p class="subtitle">Vue d'ensemble de tes campagnes</p><div class="stats-grid" id="${p}-statsGrid"></div>
-      <div class="card"><div class="card-header"><i class="ti ti-chart-bar"></i><span>Leads par canal</span></div><div id="${p}-channelChart"></div></div>`;
+      <div class="card"><div class="card-header">${ic('ti-chart-bar')}<span>Leads par canal</span></div><div id="${p}-channelChart"></div></div>`;
     case 'mktgCampaigns': return `
       <h1>Campagnes</h1><p class="subtitle">Quelles actions génèrent le plus de prospects et de clients ?</p>
       <div class="capture"><div class="capture-row">
         <input type="text" id="${p}-actionInput" placeholder="Nom de la campagne...">
         <select id="${p}-channelSelect"><option>Réseaux sociaux</option><option>Email</option><option>SEO</option><option>Publicité payante</option><option>Partenariat</option><option>Autre</option></select>
         <button class="add-btn" id="${p}-addBtn">Ajouter</button>
-        <button class="import-btn" id="${p}-importBtn"><i class="ti ti-bulb"></i>Depuis une idée</button>
+        <button class="import-btn" id="${p}-importBtn">${ic('ti-bulb')}Depuis une idée</button>
       </div></div>
-      <div class="search-bar"><i class="ti ti-search"></i><input type="text" id="${p}-searchInput" placeholder="Rechercher une campagne..." oninput="setCampaignSearch(this.value)"></div>
+      <div class="search-bar">${ic('ti-search')}<input type="text" id="${p}-searchInput" placeholder="Rechercher une campagne..." oninput="setCampaignSearch(this.value)"></div>
       <div id="${p}-content"></div>`;
     case 'salesDashboard': return `<h1>Dashboard Commercial</h1><p class="subtitle">Vue d'ensemble de ton activité commerciale</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
     case 'salesProspects': return `
@@ -663,9 +768,9 @@ function panelTemplate(moduleId, s){
         <input type="text" id="${p}-prospectInput" placeholder="Nom du prospect...">
         <input type="number" id="${p}-valueInput" placeholder="Valeur €">
         <button class="add-btn" id="${p}-addBtn">Ajouter</button>
-        <button class="import-btn" id="${p}-importBtn"><i class="ti ti-speakerphone"></i>Depuis une campagne</button>
+        <button class="import-btn" id="${p}-importBtn">${ic('ti-speakerphone')}Depuis une campagne</button>
       </div></div>
-      <div class="search-bar"><i class="ti ti-search"></i><input type="text" id="${p}-searchInput" placeholder="Rechercher un prospect..." oninput="setProspectSearch(this.value)"></div>
+      <div class="search-bar">${ic('ti-search')}<input type="text" id="${p}-searchInput" placeholder="Rechercher un prospect..." oninput="setProspectSearch(this.value)"></div>
       <div id="${p}-content"></div>`;
     case 'salesPipeline': return `<h1>Pipeline</h1><p class="subtitle">Où en sont tes prospects, étape par étape</p><div class="kanban" id="${p}-kanbanGrid"></div>`;
     case 'fbDashboard': return `<h1>Tableau de bord</h1><p class="subtitle">Que demandent réellement mes clients ?</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
@@ -676,7 +781,7 @@ function panelTemplate(moduleId, s){
         <input type="text" id="${p}-requesterInput" class="fixed" placeholder="Nom du client (optionnel)">
         <button class="add-btn" id="${p}-addBtn">Ajouter</button>
       </div></div>
-      <div class="search-bar"><i class="ti ti-search"></i><input type="text" id="${p}-searchInput" placeholder="Rechercher une demande..." oninput="setFeedbackSearch(this.value)"></div>
+      <div class="search-bar">${ic('ti-search')}<input type="text" id="${p}-searchInput" placeholder="Rechercher une demande..." oninput="setFeedbackSearch(this.value)"></div>
       <div id="${p}-content"></div>`;
     case 'pmRoadmap': return `<h1>Roadmap</h1><p class="subtitle">Que devons-nous développer ensuite ?</p><div class="kanban" id="${p}-kanbanGrid"></div>`;
     case 'pmBacklog': return `
@@ -684,7 +789,7 @@ function panelTemplate(moduleId, s){
       <div class="capture"><div class="capture-row">
         <input type="text" id="${p}-featInput" placeholder="Nom de la fonctionnalité...">
         <button class="add-btn" id="${p}-addBtn">Ajouter</button>
-        <button class="import-btn" id="${p}-importBtn"><i class="ti ti-heart"></i>Depuis Retours clients</button>
+        <button class="import-btn" id="${p}-importBtn">${ic('ti-heart')}Depuis Retours clients</button>
       </div></div><div id="${p}-content"></div>`;
     case 'bugsDashboard': return `<h1>Tableau de bord</h1><p class="subtitle">Quels problèmes empêchent mes clients d'être satisfaits ?</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
     case 'bugsOpen': return `
@@ -809,14 +914,14 @@ let pendingImpact = false;
 function renderPlanner(){
   const content = document.getElementById('planner-content');
   if(!content) return;
-  if(tasks.length === 0){ content.innerHTML = `<div class="empty"><i class="ti ti-sparkles"></i>Aucune tâche pour l'instant. Ajoute la première chose à faire aujourd'hui.</div>`; return; }
+  if(tasks.length === 0){ content.innerHTML = `<div class="empty">${ic('ti-sparkles',24)}Aucune tâche pour l'instant. Ajoute la première chose à faire aujourd'hui.</div>`; return; }
   const active = tasks.filter(t=>!t.done), done = tasks.filter(t=>t.done);
   const priority = active.filter(t=>t.impact), normal = active.filter(t=>!t.impact);
   const row = t => `<div class="row-card ${t.done?'':''}" style="${t.done?'opacity:.5':''}">
     <input type="checkbox" ${t.done?'checked':''} onchange="toggleTaskDone('${t.id}')" style="width:18px;height:18px;accent-color:var(--th-orange)">
     <span class="row-main" style="${t.done?'text-decoration:line-through':''}">${esc(t.title)}</span>
-    <button class="delete-btn" style="opacity:1;color:${t.impact?'#F97316':'#D1D5DB'}" onclick="toggleTaskImpact('${t.id}')"><i class="ti ti-star${t.impact?'-filled':''}"></i></button>
-    <button class="delete-btn" style="opacity:1" onclick="deleteTask('${t.id}')"><i class="ti ti-trash"></i></button>
+    <button class="delete-btn" style="opacity:1;color:${t.impact?'#F97316':'#D1D5DB'}" onclick="toggleTaskImpact('${t.id}')">${ic(t.impact?"star-filled":"star",17)}</button>
+    <button class="delete-btn" style="opacity:1" onclick="deleteTask('${t.id}')">${ic('ti-trash')}</button>
   </div>`;
   let html = '';
   if(priority.length) html += `<p class="section-label">Prioritaire</p><div class="row-list">${priority.map(row).join('')}</div>`;
@@ -838,12 +943,12 @@ function deleteTask(id){ tasks=tasks.filter(t=>t.id!==id); saveKey('daily-planne
 function renderIdeaBox(){
   const content = document.getElementById('ideabox-content');
   if(!content) return;
-  if(ideas.length === 0){ content.innerHTML = `<div class="empty"><i class="ti ti-bulb"></i>Aucune idée pour l'instant. Note la prochaine dès qu'elle arrive.</div>`; return; }
+  if(ideas.length === 0){ content.innerHTML = `<div class="empty">${ic('ti-bulb',24)}Aucune idée pour l'instant. Note la prochaine dès qu'elle arrive.</div>`; return; }
   const toExplore = ideas.filter(i=>!i.explored), explored = ideas.filter(i=>i.explored);
   const row = i => `<div class="row-card" style="${i.explored?'opacity:.55':''}">
     <div class="row-main"><div>${esc(i.text)}</div><div class="row-meta">${fmtDateTime(i.createdAt)}</div></div>
     <button class="explore-btn ${i.explored?'active':''}" onclick="toggleIdeaExplored('${i.id}')">${i.explored?'Explorée':'À explorer'}</button>
-    <button class="delete-btn" style="opacity:1" onclick="deleteIdea('${i.id}')"><i class="ti ti-trash"></i></button>
+    <button class="delete-btn" style="opacity:1" onclick="deleteIdea('${i.id}')">${ic('ti-trash')}</button>
   </div>`;
   let html = '';
   if(toExplore.length) html += `<p class="section-label">À explorer</p><div class="row-list">${toExplore.map(row).join('')}</div>`;
@@ -868,10 +973,10 @@ function renderMktgStats(){
   let bestChannel='—', bestLeads=-1;
   Object.entries(byChannel).forEach(([ch,leads])=>{ if(leads>bestLeads){bestLeads=leads;bestChannel=ch;} });
   grid.innerHTML = `
-    <div class="stat-card"><div class="stat-card-icon"><i class="ti ti-target-arrow"></i></div><div class="val">${campaigns.length}</div><div class="label">Campagnes</div></div>
-    <div class="stat-card blue"><div class="stat-card-icon"><i class="ti ti-users"></i></div><div class="val">${totalLeads}</div><div class="label">Leads générés</div></div>
-    <div class="stat-card"><div class="stat-card-icon"><i class="ti ti-wallet"></i></div><div class="val">${costPerLead === '—' ? costPerLead : costPerLead + ' €'}</div><div class="label">Coût par lead</div></div>
-    <div class="stat-card purple"><div class="stat-card-icon"><i class="ti ti-trophy"></i></div><div class="val">${esc(bestChannel)}</div><div class="label">Meilleur canal</div></div>`;
+    <div class="stat-card"><div class="stat-card-icon">${ic('ti-target-arrow')}</div><div class="val">${campaigns.length}</div><div class="label">Campagnes</div></div>
+    <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-users')}</div><div class="val">${totalLeads}</div><div class="label">Leads générés</div></div>
+    <div class="stat-card"><div class="stat-card-icon">${ic('ti-wallet')}</div><div class="val">${costPerLead === '—' ? costPerLead : costPerLead + ' €'}</div><div class="label">Coût par lead</div></div>
+    <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-trophy')}</div><div class="val">${esc(bestChannel)}</div><div class="label">Meilleur canal</div></div>`;
 
   const chartWrap = document.getElementById('marketing-channelChart');
   if(chartWrap){
@@ -900,7 +1005,7 @@ function setCampaignSearch(v){ campaignSearch = v.toLowerCase(); renderCampaigns
 
 function renderCampaigns(){
   const c = document.getElementById('marketing-content'); if(!c) return;
-  if(campaigns.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-target-arrow"></i>Aucune campagne pour l'instant.</div>`; return; }
+  if(campaigns.length===0){ c.innerHTML = `<div class="empty">${ic('ti-target-arrow',24)}Aucune campagne pour l'instant.</div>`; return; }
 
   const channels = [...new Set(campaigns.map(a=>a.channel))];
   const filterBar = `<div class="filter-bar">
@@ -912,7 +1017,7 @@ function renderCampaigns(){
   const sorted = [...filtered].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
 
   if(sorted.length === 0){
-    c.innerHTML = filterBar + `<div class="empty"><i class="ti ti-filter-off"></i>Aucune campagne ne correspond.</div>`;
+    c.innerHTML = filterBar + `<div class="empty">${ic('ti-filter-off',24)}Aucune campagne ne correspond.</div>`;
     return;
   }
 
@@ -922,7 +1027,7 @@ function renderCampaigns(){
     const done = a.status === 'Terminée';
     const statusColor = a.status === 'En cours' ? 'blue' : a.status === 'Terminée' ? 'green' : a.status === 'Planifiée' ? 'purple' : '';
     return `<tr class="${done?'done':''}">
-      <td><div class="dt-title">${esc(a.title)}</div>${origin?`<span class="badge origin" style="margin-top:4px;display:inline-flex"><i class="ti ti-bulb"></i>Depuis Boîte à idées</span>`:''}</td>
+      <td><div class="dt-title">${esc(a.title)}</div>${origin?`<span class="badge origin" style="margin-top:4px;display:inline-flex">${ic('ti-bulb',12)}Depuis Boîte à idées</span>`:''}</td>
       <td><span class="badge">${esc(a.channel)}</span></td>
       <td><span class="badge ${statusColor}" style="${statusColor==='blue'?'color:var(--th-blue);background:var(--th-blue-bg)':statusColor==='green'?'color:var(--th-green);background:var(--th-green-bg)':statusColor==='purple'?'color:var(--th-purple);background:var(--th-purple-bg)':''}">${a.status}</span></td>
       <td><input class="stat-input" type="number" value="${a.cost}" onchange="updateCampaign('${a.id}','cost',Number(this.value))"> €</td>
@@ -930,7 +1035,7 @@ function renderCampaigns(){
       <td>${costPerLead}</td>
       <td class="dt-actions">
         <select class="status-select" onchange="updateCampaign('${a.id}','status',this.value)">${['Idée','Planifiée','En cours','Terminée'].map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}</select>
-        <button class="delete-btn" style="opacity:1" onclick="deleteCampaign('${a.id}')"><i class="ti ti-trash"></i></button>
+        <button class="delete-btn" style="opacity:1" onclick="deleteCampaign('${a.id}')">${ic('ti-trash')}</button>
       </td>
     </tr>`;
   }).join('');
@@ -960,10 +1065,10 @@ function renderSalesStats(){
   const conv = total ? Math.round((won/total)*100) : 0;
   const pipelineValue = prospects.filter(p=>p.stage!=='Gagné').reduce((s,p)=>s+(p.value||0),0);
   grid.innerHTML = `
-    <div class="stat-card"><div class="stat-card-icon"><i class="ti ti-user-plus"></i></div><div class="val">${total}</div><div class="label">Prospects</div></div>
-    <div class="stat-card green"><div class="stat-card-icon"><i class="ti ti-circle-check"></i></div><div class="val">${won}</div><div class="label">Clients gagnés</div></div>
-    <div class="stat-card blue"><div class="stat-card-icon"><i class="ti ti-percentage"></i></div><div class="val">${conv}%</div><div class="label">Taux de conversion</div></div>
-    <div class="stat-card purple"><div class="stat-card-icon"><i class="ti ti-coin"></i></div><div class="val">${pipelineValue} €</div><div class="label">Valeur en pipeline</div></div>`;
+    <div class="stat-card"><div class="stat-card-icon">${ic('ti-user-plus')}</div><div class="val">${total}</div><div class="label">Prospects</div></div>
+    <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${won}</div><div class="label">Clients gagnés</div></div>
+    <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-percentage')}</div><div class="val">${conv}%</div><div class="label">Taux de conversion</div></div>
+    <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-coin')}</div><div class="val">${pipelineValue} €</div><div class="label">Valeur en pipeline</div></div>`;
 }
 let prospectFilter = 'Toutes';
 let prospectSearch = '';
@@ -972,7 +1077,7 @@ function setProspectSearch(v){ prospectSearch = v.toLowerCase(); renderProspects
 
 function renderProspects(){
   const c = document.getElementById('sales-content'); if(!c) return;
-  if(prospects.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-user-plus"></i>Aucun prospect pour l'instant.</div>`; return; }
+  if(prospects.length===0){ c.innerHTML = `<div class="empty">${ic('ti-user-plus',24)}Aucun prospect pour l'instant.</div>`; return; }
 
   const filterBar = `<div class="filter-bar">
     ${['Toutes', ...SALES_STAGES].map(s => `<button class="filter-chip${prospectFilter===s?' active':''}" onclick="setProspectFilter('${s}')">${esc(s)}</button>`).join('')}
@@ -983,18 +1088,18 @@ function renderProspects(){
   const sorted = [...filtered].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
 
   if(sorted.length === 0){
-    c.innerHTML = filterBar + `<div class="empty"><i class="ti ti-filter-off"></i>Aucun prospect ne correspond.</div>`;
+    c.innerHTML = filterBar + `<div class="empty">${ic('ti-filter-off',24)}Aucun prospect ne correspond.</div>`;
     return;
   }
 
   const rows = sorted.map(pr=>{
     const origin = pr.sourceCampaignId ? campaigns.find(c=>c.id===pr.sourceCampaignId) : null;
     return `<tr>
-      <td><div class="dt-title">${esc(pr.name)}</div>${origin?`<span class="badge origin" style="margin-top:4px;display:inline-flex"><i class="ti ti-speakerphone"></i>Depuis ${esc(origin.title)}</span>`:''}</td>
+      <td><div class="dt-title">${esc(pr.name)}</div>${origin?`<span class="badge origin" style="margin-top:4px;display:inline-flex">${ic('ti-speakerphone',12)}Depuis ${esc(origin.title)}</span>`:''}</td>
       <td>${pr.value||0} €</td>
       <td class="dt-actions">
         <select class="status-select" onchange="updateProspectStage('${pr.id}',this.value)">${SALES_STAGES.map(s=>`<option ${pr.stage===s?'selected':''}>${s}</option>`).join('')}</select>
-        <button class="delete-btn" style="opacity:1" onclick="deleteProspect('${pr.id}')"><i class="ti ti-trash"></i></button>
+        <button class="delete-btn" style="opacity:1" onclick="deleteProspect('${pr.id}')">${ic('ti-trash')}</button>
       </td>
     </tr>`;
   }).join('');
@@ -1027,21 +1132,21 @@ function renderFbStats(){
   const totalVotes = feedbacks.reduce((s,f)=>s+(f.votes||0),0);
   const top = [...feedbacks].sort((a,b)=>(b.votes||0)-(a.votes||0))[0];
   grid.innerHTML = `
-    <div class="stat-card"><div class="stat-card-icon"><i class="ti ti-messages"></i></div><div class="val">${feedbacks.length}</div><div class="label">Demandes reçues</div></div>
-    <div class="stat-card"><div class="stat-card-icon"><i class="ti ti-thumb-up"></i></div><div class="val">${totalVotes}</div><div class="label">Votes cumulés</div></div>
-    <div class="stat-card purple" style="grid-column:span 2"><div class="stat-card-icon"><i class="ti ti-flame"></i></div><div class="val" style="font-size:14px">${top?esc(top.text):'—'}</div><div class="label">Demande la plus votée</div></div>`;
+    <div class="stat-card"><div class="stat-card-icon">${ic('ti-messages')}</div><div class="val">${feedbacks.length}</div><div class="label">Demandes reçues</div></div>
+    <div class="stat-card"><div class="stat-card-icon">${ic('ti-thumb-up')}</div><div class="val">${totalVotes}</div><div class="label">Votes cumulés</div></div>
+    <div class="stat-card purple" style="grid-column:span 2"><div class="stat-card-icon">${ic('ti-flame')}</div><div class="val" style="font-size:14px">${top?esc(top.text):'—'}</div><div class="label">Demande la plus votée</div></div>`;
 }
 let feedbackSearch = '';
 function setFeedbackSearch(v){ feedbackSearch = v.toLowerCase(); renderFeedbacks(); }
 
 function renderFeedbacks(){
   const c = document.getElementById('feedback-content'); if(!c) return;
-  if(feedbacks.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-heart"></i>Aucune demande pour l'instant.</div>`; return; }
+  if(feedbacks.length===0){ c.innerHTML = `<div class="empty">${ic('ti-heart',24)}Aucune demande pour l'instant.</div>`; return; }
 
   let filtered = feedbackSearch ? feedbacks.filter(f => f.text.toLowerCase().includes(feedbackSearch)) : feedbacks;
   const sorted = [...filtered].sort((a,b)=>(b.votes||0)-(a.votes||0));
 
-  if(sorted.length === 0){ c.innerHTML = `<div class="empty"><i class="ti ti-filter-off"></i>Aucune demande ne correspond.</div>`; return; }
+  if(sorted.length === 0){ c.innerHTML = `<div class="empty">${ic('ti-filter-off',24)}Aucune demande ne correspond.</div>`; return; }
 
   const rows = sorted.map(f=>`
     <tr>
@@ -1052,7 +1157,7 @@ function renderFeedbacks(){
         <div class="vote-group" style="display:inline-flex">
           <button class="vote-btn" onclick="voteFeedback('${f.id}',-1)">−</button><span class="vote-count">${f.votes||0}</span><button class="vote-btn" onclick="voteFeedback('${f.id}',1)">+</button>
         </div>
-        <button class="delete-btn" style="opacity:1" onclick="deleteFeedback('${f.id}')"><i class="ti ti-trash"></i></button>
+        <button class="delete-btn" style="opacity:1" onclick="deleteFeedback('${f.id}')">${ic('ti-trash')}</button>
       </td>
     </tr>`).join('');
 
@@ -1077,7 +1182,7 @@ function setBacklogFilter(v){ backlogFilter = v; renderBacklog(); }
 
 function renderBacklog(){
   const c = document.getElementById('pm-content'); if(!c) return;
-  if(features.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-tools"></i>Backlog vide.</div>`; return; }
+  if(features.length===0){ c.innerHTML = `<div class="empty">${ic('ti-tools',24)}Backlog vide.</div>`; return; }
 
   const filterBar = `<div class="filter-bar">
     ${['Tous', ...PM_STATUSES].map(s => `<button class="filter-chip${backlogFilter===s?' active':''}" onclick="setBacklogFilter('${s}')">${esc(s)}</button>`).join('')}
@@ -1086,16 +1191,16 @@ function renderBacklog(){
   const filtered = backlogFilter === 'Tous' ? features : features.filter(f => f.status === backlogFilter);
   const sorted = [...filtered].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
 
-  if(sorted.length === 0){ c.innerHTML = filterBar + `<div class="empty"><i class="ti ti-filter-off"></i>Aucune fonctionnalité pour ce filtre.</div>`; return; }
+  if(sorted.length === 0){ c.innerHTML = filterBar + `<div class="empty">${ic('ti-filter-off',24)}Aucune fonctionnalité pour ce filtre.</div>`; return; }
 
   const rows = sorted.map(f=>{
     const origin = f.sourceFeedbackId ? feedbacks.find(fb=>fb.id===f.sourceFeedbackId) : null;
     return `<tr>
-      <td><div class="dt-title">${esc(f.title)}</div>${origin?`<span class="badge origin" style="margin-top:4px;display:inline-flex"><i class="ti ti-heart"></i>Depuis Retours clients</span>`:''}</td>
+      <td><div class="dt-title">${esc(f.title)}</div>${origin?`<span class="badge origin" style="margin-top:4px;display:inline-flex">${ic('ti-heart',12)}Depuis Retours clients</span>`:''}</td>
       <td>${f.votes?f.votes+' votes':'—'}</td>
       <td class="dt-actions">
         <select class="status-select" onchange="updateFeature('${f.id}','status',this.value)">${PM_STATUSES.map(s=>`<option ${f.status===s?'selected':''}>${s}</option>`).join('')}</select>
-        <button class="delete-btn" style="opacity:1" onclick="deleteFeature('${f.id}')"><i class="ti ti-trash"></i></button>
+        <button class="delete-btn" style="opacity:1" onclick="deleteFeature('${f.id}')">${ic('ti-trash')}</button>
       </td>
     </tr>`;
   }).join('');
@@ -1124,9 +1229,9 @@ function renderBugsStats(){
   const critical = bugs.filter(b=>b.severity==='Critique' && b.status!=='Corrigé').length;
   const fixed = bugs.filter(b=>b.status==='Corrigé').length;
   grid.innerHTML = `
-    <div class="stat-card"><div class="stat-card-icon"><i class="ti ti-bug"></i></div><div class="val">${open}</div><div class="label">Bugs ouverts</div></div>
-    <div class="stat-card red"><div class="stat-card-icon"><i class="ti ti-alert-triangle"></i></div><div class="val">${critical}</div><div class="label">Critiques non résolus</div></div>
-    <div class="stat-card green"><div class="stat-card-icon"><i class="ti ti-circle-check"></i></div><div class="val">${fixed}</div><div class="label">Corrigés</div></div>`;
+    <div class="stat-card"><div class="stat-card-icon">${ic('ti-bug')}</div><div class="val">${open}</div><div class="label">Bugs ouverts</div></div>
+    <div class="stat-card red"><div class="stat-card-icon">${ic('ti-alert-triangle')}</div><div class="val">${critical}</div><div class="label">Critiques non résolus</div></div>
+    <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${fixed}</div><div class="label">Corrigés</div></div>`;
 }
 function bugRowTr(b){
   return `<tr>
@@ -1134,7 +1239,7 @@ function bugRowTr(b){
     <td><span class="badge ${b.severity==='Critique'?'critique':''}">${b.severity}</span></td>
     <td class="dt-actions">
       <select class="status-select" onchange="updateBug('${b.id}','status',this.value)">${BUG_STATUSES.map(s=>`<option ${b.status===s?'selected':''}>${s}</option>`).join('')}</select>
-      <button class="delete-btn" style="opacity:1" onclick="deleteBug('${b.id}')"><i class="ti ti-trash"></i></button>
+      <button class="delete-btn" style="opacity:1" onclick="deleteBug('${b.id}')">${ic('ti-trash')}</button>
     </td>
   </tr>`;
 }
@@ -1143,7 +1248,7 @@ function setBugFilter(v){ bugFilter = v; renderBugsOpen(); }
 
 function renderBugsOpen(){
   const c = document.getElementById('bugs-content'); if(!c) return;
-  if(bugs.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-bug"></i>Aucun bug signalé.</div>`; return; }
+  if(bugs.length===0){ c.innerHTML = `<div class="empty">${ic('ti-bug',24)}Aucun bug signalé.</div>`; return; }
 
   const filterBar = `<div class="filter-bar">
     ${['Tous','Normal','Critique'].map(s => `<button class="filter-chip${bugFilter===s?' active':''}" onclick="setBugFilter('${s}')">${esc(s)}</button>`).join('')}
@@ -1151,14 +1256,14 @@ function renderBugsOpen(){
   const filtered = bugFilter === 'Tous' ? bugs : bugs.filter(b => b.severity === bugFilter);
   const sorted = [...filtered].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
 
-  if(sorted.length === 0){ c.innerHTML = filterBar + `<div class="empty"><i class="ti ti-filter-off"></i>Aucun bug pour ce filtre.</div>`; return; }
+  if(sorted.length === 0){ c.innerHTML = filterBar + `<div class="empty">${ic('ti-filter-off',24)}Aucun bug pour ce filtre.</div>`; return; }
 
   c.innerHTML = filterBar + `<table class="data-table"><thead><tr><th>Bug</th><th>Gravité</th><th></th></tr></thead><tbody>${sorted.map(bugRowTr).join('')}</tbody></table>`;
 }
 function renderBugsCritical(){
   const c = document.getElementById('bugs-criticalContent'); if(!c) return;
   const critical = bugs.filter(b=>b.severity==='Critique' && b.status!=='Corrigé');
-  c.innerHTML = critical.length===0 ? `<div class="empty"><i class="ti ti-alert-triangle"></i>Aucun bug critique ouvert.</div>` : `<table class="data-table"><thead><tr><th>Bug</th><th>Gravité</th><th></th></tr></thead><tbody>${critical.map(bugRowTr).join('')}</tbody></table>`;
+  c.innerHTML = critical.length===0 ? `<div class="empty">${ic('ti-alert-triangle',24)}Aucun bug critique ouvert.</div>` : `<table class="data-table"><thead><tr><th>Bug</th><th>Gravité</th><th></th></tr></thead><tbody>${critical.map(bugRowTr).join('')}</tbody></table>`;
 }
 function addBug(title, severity){
   bugs.unshift({ id:'bug_'+Date.now(), title, severity, status:'Ouvert', createdAt:new Date().toISOString() });
@@ -1175,17 +1280,17 @@ function renderFinDashboard(){
   const manualRevenue = revenues.reduce((s,r)=>s+(r.amount||0),0);
   const wonValue = prospects.filter(p=>p.stage==='Gagné').reduce((s,p)=>s+(p.value||0),0);
   grid.innerHTML = `
-    <div class="stat-card green"><div class="stat-card-icon"><i class="ti ti-trending-up"></i></div><div class="val">${manualRevenue+wonValue} €</div><div class="label">Revenus totaux</div></div>
-    <div class="stat-card red"><div class="stat-card-icon"><i class="ti ti-trending-down"></i></div><div class="val">${manualExpenses+marketingCost} €</div><div class="label">Dépenses totales</div></div>
-    <div class="stat-card"><div class="stat-card-icon"><i class="ti ti-speakerphone"></i></div><div class="val">${marketingCost} €</div><div class="label">Dont budget marketing</div></div>
-    <div class="stat-card blue"><div class="stat-card-icon"><i class="ti ti-trophy"></i></div><div class="val">${wonValue} €</div><div class="label">Dont clients gagnés</div></div>`;
+    <div class="stat-card green"><div class="stat-card-icon">${ic('ti-trending-up')}</div><div class="val">${manualRevenue+wonValue} €</div><div class="label">Revenus totaux</div></div>
+    <div class="stat-card red"><div class="stat-card-icon">${ic('ti-trending-down')}</div><div class="val">${manualExpenses+marketingCost} €</div><div class="label">Dépenses totales</div></div>
+    <div class="stat-card"><div class="stat-card-icon">${ic('ti-speakerphone')}</div><div class="val">${marketingCost} €</div><div class="label">Dont budget marketing</div></div>
+    <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-trophy')}</div><div class="val">${wonValue} €</div><div class="label">Dont clients gagnés</div></div>`;
 }
 function entryRow(e, kind){
   return `<div class="row-card"><span class="row-main">${esc(e.label)}</span><span style="font-weight:500;color:${kind==='rev'?'var(--th-green)':'var(--th-red)'}">${kind==='rev'?'+':'−'}${e.amount} €</span>
-    <button class="delete-btn" style="opacity:1" onclick="deleteFinEntry('${kind}','${e.id}')"><i class="ti ti-trash"></i></button></div>`;
+    <button class="delete-btn" style="opacity:1" onclick="deleteFinEntry('${kind}','${e.id}')">${ic('ti-trash')}</button></div>`;
 }
-function renderRevenue(){ const c=document.getElementById('finance-revenueContent'); if(!c) return; c.innerHTML = revenues.length===0?`<div class="empty"><i class="ti ti-trending-up"></i>Aucun revenu manuel.</div>`:`<div class="row-list">${revenues.map(r=>entryRow(r,'rev')).join('')}</div>`; }
-function renderExpenses(){ const c=document.getElementById('finance-expenseContent'); if(!c) return; c.innerHTML = expenses.length===0?`<div class="empty"><i class="ti ti-trending-down"></i>Aucune dépense manuelle.</div>`:`<div class="row-list">${expenses.map(e=>entryRow(e,'exp')).join('')}</div>`; }
+function renderRevenue(){ const c=document.getElementById('finance-revenueContent'); if(!c) return; c.innerHTML = revenues.length===0?`<div class="empty">${ic('ti-trending-up',24)}Aucun revenu manuel.</div>`:`<div class="row-list">${revenues.map(r=>entryRow(r,'rev')).join('')}</div>`; }
+function renderExpenses(){ const c=document.getElementById('finance-expenseContent'); if(!c) return; c.innerHTML = expenses.length===0?`<div class="empty">${ic('ti-trending-down',24)}Aucune dépense manuelle.</div>`:`<div class="row-list">${expenses.map(e=>entryRow(e,'exp')).join('')}</div>`; }
 function addRevenue(label, amount){ revenues.unshift({id:'rev_'+Date.now(),label,amount,createdAt:new Date().toISOString()}); saveKey('finance:revenues',revenues); renderRevenue(); renderFinDashboard(); }
 function addExpense(label, amount){ expenses.unshift({id:'exp_'+Date.now(),label,amount,createdAt:new Date().toISOString()}); saveKey('finance:expenses',expenses); renderExpenses(); renderFinDashboard(); }
 function deleteFinEntry(kind, id){
@@ -1197,17 +1302,17 @@ function deleteFinEntry(kind, id){
 /* ================= COMPETITOR WATCH ================= */
 function renderCwStats(){
   const grid = document.getElementById('competitor-statsGrid'); if(!grid) return;
-  grid.innerHTML = `<div class="stat-card"><div class="stat-card-icon"><i class="ti ti-building"></i></div><div class="val">${competitors.length}</div><div class="label">Concurrents suivis</div></div>
-    <div class="stat-card purple"><div class="stat-card-icon"><i class="ti ti-bulb"></i></div><div class="val">0</div><div class="label">Opportunités identifiées</div></div>
-    <div class="stat-card blue"><div class="stat-card-icon"><i class="ti ti-bell"></i></div><div class="val">0</div><div class="label">Alertes récentes</div></div>`;
+  grid.innerHTML = `<div class="stat-card"><div class="stat-card-icon">${ic('ti-building')}</div><div class="val">${competitors.length}</div><div class="label">Concurrents suivis</div></div>
+    <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-bulb')}</div><div class="val">0</div><div class="label">Opportunités identifiées</div></div>
+    <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-bell')}</div><div class="val">0</div><div class="label">Alertes récentes</div></div>`;
 }
 function renderCompetitors(){
   const c = document.getElementById('competitor-content'); if(!c) return;
-  if(competitors.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-building"></i>Aucun concurrent suivi.</div>`; return; }
+  if(competitors.length===0){ c.innerHTML = `<div class="empty">${ic('ti-building',24)}Aucun concurrent suivi.</div>`; return; }
   const rows = competitors.map(cp=>`<tr>
     <td><div class="dt-title">${esc(cp.name)}</div></td>
     <td>${cp.notes?esc(cp.notes):'—'}</td>
-    <td class="dt-actions"><button class="delete-btn" style="opacity:1" onclick="deleteCompetitor('${cp.id}')"><i class="ti ti-trash"></i></button></td>
+    <td class="dt-actions"><button class="delete-btn" style="opacity:1" onclick="deleteCompetitor('${cp.id}')">${ic('ti-trash')}</button></td>
   </tr>`).join('');
   c.innerHTML = `<table class="data-table"><thead><tr><th>Concurrent</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
@@ -1217,18 +1322,18 @@ function deleteCompetitor(id){ competitors=competitors.filter(c=>c.id!==id); sav
 /* ================= SMART CONTACTS ================= */
 function renderContacts(){
   const c = document.getElementById('contacts-content'); if(!c) return;
-  if(contacts.length===0 && prospects.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-address-book"></i>Aucun contact pour l'instant.</div>`; return; }
+  if(contacts.length===0 && prospects.length===0){ c.innerHTML = `<div class="empty">${ic('ti-address-book',24)}Aucun contact pour l'instant.</div>`; return; }
   const salesRows = prospects.map(p => `<tr>
     <td><div class="dt-title">${esc(p.name)}</div></td>
     <td><span class="badge">Prospect</span></td>
-    <td><span class="badge origin"><i class="ti ti-briefcase"></i>Développement commercial</span></td>
+    <td><span class="badge origin">${ic('ti-briefcase',12)}Développement commercial</span></td>
     <td></td>
   </tr>`).join('');
   const manualRows = contacts.map(ct => `<tr>
     <td><div class="dt-title">${esc(ct.name)}</div></td>
     <td><span class="badge">${esc(ct.type)}</span></td>
     <td>—</td>
-    <td class="dt-actions"><button class="delete-btn" style="opacity:1" onclick="deleteContact('${ct.id}')"><i class="ti ti-trash"></i></button></td>
+    <td class="dt-actions"><button class="delete-btn" style="opacity:1" onclick="deleteContact('${ct.id}')">${ic('ti-trash')}</button></td>
   </tr>`).join('');
   c.innerHTML = `<table class="data-table"><thead><tr><th>Contact</th><th>Type</th><th>Origine</th><th></th></tr></thead><tbody>${salesRows}${manualRows}</tbody></table>`;
 }
@@ -1238,11 +1343,11 @@ function deleteContact(id){ contacts=contacts.filter(c=>c.id!==id); saveKey('sma
 /* ================= PARTNERS ================= */
 function renderPartners(){
   const c = document.getElementById('partners-content'); if(!c) return;
-  if(partners.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-handshake"></i>Aucun partenaire pour l'instant.</div>`; return; }
+  if(partners.length===0){ c.innerHTML = `<div class="empty">${ic('ti-handshake',24)}Aucun partenaire pour l'instant.</div>`; return; }
   const rows = partners.map(p=>`<tr>
     <td><div class="dt-title">${esc(p.name)}</div></td>
     <td>${p.notes?esc(p.notes):'—'}</td>
-    <td class="dt-actions"><button class="delete-btn" style="opacity:1" onclick="deletePartner('${p.id}')"><i class="ti ti-trash"></i></button></td>
+    <td class="dt-actions"><button class="delete-btn" style="opacity:1" onclick="deletePartner('${p.id}')">${ic('ti-trash')}</button></td>
   </tr>`).join('');
   c.innerHTML = `<table class="data-table"><thead><tr><th>Partenaire</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
@@ -1252,8 +1357,8 @@ function deletePartner(id){ partners=partners.filter(p=>p.id!==id); saveKey('par
 /* ================= KNOWLEDGE CENTER ================= */
 function renderNotes(){
   const c = document.getElementById('knowledge-content'); if(!c) return;
-  c.innerHTML = notes.length===0 ? `<div class="empty"><i class="ti ti-note"></i>Aucune note pour l'instant.</div>` :
-    notes.map(n=>`<div class="note-card"><div class="note-title">${esc(n.title)}</div>${n.body?`<div class="note-body">${esc(n.body)}</div>`:''}<div class="note-footer"><span class="note-date">${fmtDate(n.createdAt)}</span><button class="delete-btn" style="opacity:1" onclick="deleteNote('${n.id}')"><i class="ti ti-trash"></i></button></div></div>`).join('');
+  c.innerHTML = notes.length===0 ? `<div class="empty">${ic('ti-note',24)}Aucune note pour l'instant.</div>` :
+    notes.map(n=>`<div class="note-card"><div class="note-title">${esc(n.title)}</div>${n.body?`<div class="note-body">${esc(n.body)}</div>`:''}<div class="note-footer"><span class="note-date">${fmtDate(n.createdAt)}</span><button class="delete-btn" style="opacity:1" onclick="deleteNote('${n.id}')">${ic('ti-trash')}</button></div></div>`).join('');
 }
 function addNote(title, body){ notes.unshift({id:'note_'+Date.now(),title,body,createdAt:new Date().toISOString()}); saveKey('knowledge-center:notes',notes); renderNotes(); }
 function deleteNote(id){ notes=notes.filter(n=>n.id!==id); saveKey('knowledge-center:notes',notes); renderNotes(); }
@@ -1261,8 +1366,8 @@ function deleteNote(id){ notes=notes.filter(n=>n.id!==id); saveKey('knowledge-ce
 /* ================= DECISION JOURNAL ================= */
 function renderDecisions(){
   const c = document.getElementById('decision-content'); if(!c) return;
-  c.innerHTML = decisions.length===0 ? `<div class="empty"><i class="ti ti-notebook"></i>Aucune décision enregistrée.</div>` :
-    decisions.map(d=>`<div class="note-card"><div class="note-title">${esc(d.title)}</div>${d.body?`<div class="note-body">${esc(d.body)}</div>`:''}<div class="note-footer"><span class="note-date">${fmtDate(d.createdAt)}</span><button class="delete-btn" style="opacity:1" onclick="deleteDecision('${d.id}')"><i class="ti ti-trash"></i></button></div></div>`).join('');
+  c.innerHTML = decisions.length===0 ? `<div class="empty">${ic('ti-notebook',24)}Aucune décision enregistrée.</div>` :
+    decisions.map(d=>`<div class="note-card"><div class="note-title">${esc(d.title)}</div>${d.body?`<div class="note-body">${esc(d.body)}</div>`:''}<div class="note-footer"><span class="note-date">${fmtDate(d.createdAt)}</span><button class="delete-btn" style="opacity:1" onclick="deleteDecision('${d.id}')">${ic('ti-trash')}</button></div></div>`).join('');
 }
 function addDecision(title, body){ decisions.unshift({id:'dec_'+Date.now(),title,body,createdAt:new Date().toISOString()}); saveKey('decision-journal:decisions',decisions); renderDecisions(); }
 function deleteDecision(id){ decisions=decisions.filter(d=>d.id!==id); saveKey('decision-journal:decisions',decisions); renderDecisions(); }
@@ -1270,8 +1375,8 @@ function deleteDecision(id){ decisions=decisions.filter(d=>d.id!==id); saveKey('
 /* ================= LAUNCH MANAGER ================= */
 function renderLaunch(){
   const c = document.getElementById('launch-content'); if(!c) return;
-  c.innerHTML = launchItems.length===0 ? `<div class="empty"><i class="ti ti-rocket"></i>Aucune étape pour l'instant.</div>` :
-    `<div class="task-flat-list">${launchItems.map(it=>`<div class="task-flat ${it.done?'done':''}"><input type="checkbox" ${it.done?'checked':''} onchange="toggleLaunchDone('${it.id}')"><span>${esc(it.title)}</span><button class="delete-btn" style="opacity:1" onclick="deleteLaunchItem('${it.id}')"><i class="ti ti-trash"></i></button></div>`).join('')}</div>`;
+  c.innerHTML = launchItems.length===0 ? `<div class="empty">${ic('ti-rocket',24)}Aucune étape pour l'instant.</div>` :
+    `<div class="task-flat-list">${launchItems.map(it=>`<div class="task-flat ${it.done?'done':''}"><input type="checkbox" ${it.done?'checked':''} onchange="toggleLaunchDone('${it.id}')"><span>${esc(it.title)}</span><button class="delete-btn" style="opacity:1" onclick="deleteLaunchItem('${it.id}')">${ic('ti-trash')}</button></div>`).join('')}</div>`;
 }
 function addLaunchItem(title){ launchItems.push({id:'launch_'+Date.now(),title,done:false}); saveKey('launch-manager:checklist',launchItems); renderLaunch(); }
 function toggleLaunchDone(id){ const it=launchItems.find(i=>i.id===id); if(it) it.done=!it.done; saveKey('launch-manager:checklist',launchItems); renderLaunch(); }
