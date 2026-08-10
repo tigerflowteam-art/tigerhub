@@ -45,6 +45,8 @@ body{
 }
 ::selection{background:var(--th-orange-bg);color:var(--th-orange)}
 
+#app{flex:1;min-width:0;display:flex}
+
 /* Sidebar */
 #sidebar{
   width:216px;flex-shrink:0;
@@ -65,10 +67,16 @@ body{
 .logo-mark svg{width:14px;height:14px}
 .logo span{color:var(--th-orange-2)}
 .nav-group-title{
-  font-size:10px;color:rgba(255,255,255,0.32);font-weight:700;
-  padding:0 10px;margin:18px 0 7px;text-transform:uppercase;letter-spacing:.08em;
+  display:flex;align-items:center;gap:7px;
+  font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;
+  padding:0 10px;margin:20px 0 8px;text-transform:uppercase;letter-spacing:.06em;
 }
 .nav-group-title:first-of-type{margin-top:2px}
+.nav-group-title::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:var(--th-orange-2);flex-shrink:0;
+  box-shadow:0 0 0 3px rgba(249,115,22,0.18);
+}
 .nav-item{
   display:flex;align-items:center;gap:9px;padding:8.5px 10px;border-radius:9px;
   font-size:13px;color:rgba(255,255,255,0.62);margin-bottom:1px;cursor:pointer;
@@ -116,7 +124,7 @@ body{
 .sub-item i{font-size:15px}
 .soon-dot{width:5px;height:5px;border-radius:50%;background:#D8D5E0;margin-left:auto}
 
-main{flex:1;padding:30px 40px 60px;min-width:0;max-width:960px;overflow-y:auto}
+main{flex:1;min-width:0;padding:30px 40px 60px;max-width:1280px;overflow-y:auto}
 h1{font-size:22px;font-weight:800;margin-bottom:4px;letter-spacing:-0.02em}
 .subtitle{color:var(--th-text-2);font-size:13.5px;margin-bottom:4px;font-weight:500}
 .tone{color:var(--th-text-3);font-size:13px;margin-bottom:26px}
@@ -497,7 +505,7 @@ function buildSidebar(){
     if(m.group && m.group !== lastGroup){
       const title = document.createElement('div');
       title.className = 'nav-group-title';
-      title.textContent = m.group;
+      title.textContent = m.group.replace(/^\S+\s/, '');
       sb.appendChild(title);
       lastGroup = m.group;
     }
@@ -588,7 +596,8 @@ function panelTemplate(moduleId, s){
         <input type="text" id="${p}-ideaInput" placeholder="Note une idée...">
         <button class="add-btn" id="${p}-addBtn">Capturer</button>
       </div></div><div id="${p}-content"></div>`;
-    case 'mktgDashboard': return `<h1>Dashboard Marketing</h1><p class="subtitle">Vue d'ensemble de tes campagnes</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
+    case 'mktgDashboard': return `<h1>Dashboard Marketing</h1><p class="subtitle">Vue d'ensemble de tes campagnes</p><div class="stats-grid" id="${p}-statsGrid"></div>
+      <div class="card"><div class="card-header"><i class="ti ti-chart-bar"></i><span>Leads par canal</span></div><div id="${p}-channelChart"></div></div>`;
     case 'mktgCampaigns': return `
       <h1>Campagnes</h1><p class="subtitle">Quelles actions génèrent le plus de prospects et de clients ?</p>
       <div class="capture"><div class="capture-row">
@@ -800,25 +809,65 @@ function renderMktgStats(){
   const grid = document.getElementById('marketing-statsGrid'); if(!grid) return;
   const totalLeads = campaigns.reduce((s,c)=>s+(c.leads||0),0);
   const totalCost = campaigns.reduce((s,c)=>s+(c.cost||0),0);
+  const costPerLead = totalLeads > 0 ? (totalCost/totalLeads).toFixed(0) : '—';
   const byChannel = {}; campaigns.forEach(c=>{ byChannel[c.channel]=(byChannel[c.channel]||0)+(c.leads||0); });
   let bestChannel='—', bestLeads=-1;
   Object.entries(byChannel).forEach(([ch,leads])=>{ if(leads>bestLeads){bestLeads=leads;bestChannel=ch;} });
   grid.innerHTML = `
     <div class="stat-card"><div class="stat-card-icon"><i class="ti ti-target-arrow"></i></div><div class="val">${campaigns.length}</div><div class="label">Campagnes</div></div>
     <div class="stat-card blue"><div class="stat-card-icon"><i class="ti ti-users"></i></div><div class="val">${totalLeads}</div><div class="label">Leads générés</div></div>
-    <div class="stat-card"><div class="stat-card-icon"><i class="ti ti-wallet"></i></div><div class="val">${totalCost} €</div><div class="label">Budget engagé</div></div>
+    <div class="stat-card"><div class="stat-card-icon"><i class="ti ti-wallet"></i></div><div class="val">${costPerLead === '—' ? costPerLead : costPerLead + ' €'}</div><div class="label">Coût par lead</div></div>
     <div class="stat-card purple"><div class="stat-card-icon"><i class="ti ti-trophy"></i></div><div class="val">${esc(bestChannel)}</div><div class="label">Meilleur canal</div></div>`;
+
+  const chartWrap = document.getElementById('marketing-channelChart');
+  if(chartWrap){
+    const entries = Object.entries(byChannel).sort((a,b)=>b[1]-a[1]);
+    if(entries.length === 0){
+      chartWrap.innerHTML = `<p class="empty-hint">Le graphique apparaît dès que des campagnes ont des leads renseignés.</p>`;
+    }else{
+      const max = Math.max(...entries.map(([,v])=>v)) || 1;
+      chartWrap.innerHTML = entries.map(([ch,leads]) => `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+          <span style="width:120px;font-size:12.5px;color:var(--th-text-2);font-weight:600;flex-shrink:0">${esc(ch)}</span>
+          <div style="flex:1;background:var(--th-bg-alt);border-radius:8px;height:10px;overflow:hidden">
+            <div style="width:${(leads/max*100)}%;height:100%;background:linear-gradient(90deg,var(--th-orange-2),var(--th-orange));border-radius:8px"></div>
+          </div>
+          <span style="width:34px;text-align:right;font-size:12.5px;font-weight:700">${leads}</span>
+        </div>
+      `).join('');
+    }
+  }
 }
+
+let campaignFilter = 'Tous';
+function setCampaignFilter(v){ campaignFilter = v; renderCampaigns(); }
+
 function renderCampaigns(){
   const c = document.getElementById('marketing-content'); if(!c) return;
   if(campaigns.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-target-arrow"></i>Aucune campagne pour l'instant.</div>`; return; }
-  const sorted = [...campaigns].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  c.innerHTML = `<div class="row-list">${sorted.map(a=>{
+
+  const channels = [...new Set(campaigns.map(a=>a.channel))];
+  const filterBar = `<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    ${['Tous', ...channels].map(ch => `<button onclick="setCampaignFilter('${ch}')" style="border:1px solid var(--th-border);background:${campaignFilter===ch?'var(--th-orange-bg)':'var(--th-card)'};color:${campaignFilter===ch?'var(--th-orange)':'var(--th-text-2)'};border-radius:9px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">${esc(ch)}</button>`).join('')}
+  </div>`;
+
+  const filtered = campaignFilter === 'Tous' ? campaigns : campaigns.filter(a => a.channel === campaignFilter);
+  const sorted = [...filtered].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+
+  if(sorted.length === 0){
+    c.innerHTML = filterBar + `<div class="empty"><i class="ti ti-filter-off"></i>Aucune campagne pour ce filtre.</div>`;
+    return;
+  }
+
+  c.innerHTML = filterBar + `<div class="row-list">${sorted.map(a=>{
     const origin = a.sourceIdeaId ? ideas.find(i=>i.id===a.sourceIdeaId) : null;
-    return `<div class="row-card">
+    const costPerLead = a.leads > 0 ? (a.cost/a.leads).toFixed(0) + ' €/lead' : null;
+    const done = a.status === 'Terminée';
+    return `<div class="row-card"${done ? ' style="opacity:.55"' : ''}>
       <div class="row-main"><div class="row-title">${esc(a.title)}</div><div class="row-meta">
         <span class="badge">${esc(a.channel)}</span>
         ${origin?`<span class="badge origin"><i class="ti ti-bulb"></i>Depuis Boîte à idées</span>`:''}
+        ${costPerLead?`<span class="badge">${costPerLead}</span>`:''}
         Coût <input class="stat-input" type="number" value="${a.cost}" onchange="updateCampaign('${a.id}','cost',Number(this.value))">€
         Leads <input class="stat-input" type="number" value="${a.leads}" onchange="updateCampaign('${a.id}','leads',Number(this.value))">
       </div></div>
