@@ -144,6 +144,22 @@ h1{font-size:22px;font-weight:800;margin-bottom:4px;letter-spacing:-0.02em}
   display:flex;align-items:center;justify-content:center;color:var(--th-text-2);flex-shrink:0;box-shadow:var(--th-shadow-sm);
 }
 .topbar-icon-btn i{font-size:16px}
+.topbar-badge{
+  position:absolute;top:-4px;right:-4px;background:var(--th-red);color:#fff;
+  font-size:9.5px;font-weight:700;width:16px;height:16px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;border:2px solid var(--th-bg);
+}
+.topbar-profile{
+  display:flex;align-items:center;gap:9px;background:var(--th-card);border:1px solid var(--th-border);
+  border-radius:11px;padding:6px 12px 6px 6px;box-shadow:var(--th-shadow-sm);cursor:pointer;flex-shrink:0;
+}
+.topbar-avatar{
+  width:28px;height:28px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,#FDBA74,var(--th-orange));color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;
+}
+.topbar-profile-text .name{font-size:12.5px;font-weight:700;line-height:1.2}
+.topbar-profile-text .role{font-size:10.5px;color:var(--th-text-3);line-height:1.2}
 
 .placeholder{
   background:var(--th-card);border-radius:20px;padding:52px 32px;text-align:center;
@@ -230,6 +246,33 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .delete-btn{background:none;border:none;cursor:pointer;color:var(--th-text-3);padding:4px;flex-shrink:0;opacity:0;transition:opacity .12s ease,color .12s ease}
 .row-card:hover .delete-btn{opacity:1}
 .delete-btn:hover{color:var(--th-red)}
+.search-bar{
+  display:flex;align-items:center;gap:8px;background:var(--th-card);border:1px solid var(--th-border);
+  border-radius:11px;padding:9px 13px;margin-bottom:14px;box-shadow:var(--th-shadow-sm);color:var(--th-text-3);
+}
+.search-bar i{font-size:15px}
+.search-bar input{flex:1;border:none;outline:none;font-size:13.5px;background:transparent;color:var(--th-text);font-family:inherit}
+.filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-chip{
+  border:1px solid var(--th-border);background:var(--th-card);color:var(--th-text-2);border-radius:9px;
+  padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s ease;font-family:inherit;
+}
+.filter-chip.active{background:var(--th-orange-bg);color:var(--th-orange);border-color:var(--th-orange)}
+.data-table{
+  width:100%;border-collapse:collapse;background:var(--th-card);border-radius:16px;overflow:hidden;
+  box-shadow:var(--th-shadow);border:1px solid var(--th-border);
+}
+.data-table thead th{
+  text-align:left;font-size:10.5px;font-weight:700;color:var(--th-text-3);text-transform:uppercase;
+  letter-spacing:.05em;padding:12px 16px;background:var(--th-bg-alt);border-bottom:1px solid var(--th-border);
+}
+.data-table tbody td{padding:13px 16px;font-size:13px;border-bottom:1px solid var(--th-border);vertical-align:middle}
+.data-table tbody tr:last-child td{border-bottom:none}
+.data-table tbody tr{transition:background .1s ease}
+.data-table tbody tr:hover{background:var(--th-bg-alt)}
+.data-table tbody tr.done{opacity:.5}
+.dt-title{font-weight:600}
+.dt-actions{text-align:right;white-space:nowrap}
 .delete-btn i{font-size:16px}
 .empty{
   text-align:center;padding:44px 20px;color:var(--th-text-2);font-size:13.5px;
@@ -553,8 +596,13 @@ function buildApp(){
     topbar.className = 'topbar';
     topbar.innerHTML = `
       <div class="topbar-search"><i class="ti ti-search"></i>Rechercher dans TigerHub...<span class="topbar-kbd">⌘K</span></div>
-      <div class="topbar-icon-btn"><i class="ti ti-bell"></i></div>
       <div class="topbar-icon-btn"><i class="ti ti-plus"></i></div>
+      <div class="topbar-icon-btn" style="position:relative"><i class="ti ti-bell"></i><span class="topbar-badge">3</span></div>
+      <div class="topbar-profile">
+        <div class="topbar-avatar">S</div>
+        <div class="topbar-profile-text"><div class="name">Sophie</div><div class="role">Owner</div></div>
+        <i class="ti ti-chevron-down" style="font-size:14px;color:var(--th-text-3)"></i>
+      </div>
     `;
     mainEl.appendChild(topbar);
     m.sections.forEach((s, sIdx) => {
@@ -605,7 +653,9 @@ function panelTemplate(moduleId, s){
         <select id="${p}-channelSelect"><option>Réseaux sociaux</option><option>Email</option><option>SEO</option><option>Publicité payante</option><option>Partenariat</option><option>Autre</option></select>
         <button class="add-btn" id="${p}-addBtn">Ajouter</button>
         <button class="import-btn" id="${p}-importBtn"><i class="ti ti-bulb"></i>Depuis une idée</button>
-      </div></div><div id="${p}-content"></div>`;
+      </div></div>
+      <div class="search-bar"><i class="ti ti-search"></i><input type="text" id="${p}-searchInput" placeholder="Rechercher une campagne..." oninput="setCampaignSearch(this.value)"></div>
+      <div id="${p}-content"></div>`;
     case 'salesDashboard': return `<h1>Dashboard Commercial</h1><p class="subtitle">Vue d'ensemble de ton activité commerciale</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
     case 'salesProspects': return `
       <h1>Prospects</h1><p class="subtitle">Comment transformer davantage de prospects en clients ?</p>
@@ -614,7 +664,9 @@ function panelTemplate(moduleId, s){
         <input type="number" id="${p}-valueInput" placeholder="Valeur €">
         <button class="add-btn" id="${p}-addBtn">Ajouter</button>
         <button class="import-btn" id="${p}-importBtn"><i class="ti ti-speakerphone"></i>Depuis une campagne</button>
-      </div></div><div id="${p}-content"></div>`;
+      </div></div>
+      <div class="search-bar"><i class="ti ti-search"></i><input type="text" id="${p}-searchInput" placeholder="Rechercher un prospect..." oninput="setProspectSearch(this.value)"></div>
+      <div id="${p}-content"></div>`;
     case 'salesPipeline': return `<h1>Pipeline</h1><p class="subtitle">Où en sont tes prospects, étape par étape</p><div class="kanban" id="${p}-kanbanGrid"></div>`;
     case 'fbDashboard': return `<h1>Tableau de bord</h1><p class="subtitle">Que demandent réellement mes clients ?</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
     case 'fbRequests': return `
@@ -623,7 +675,9 @@ function panelTemplate(moduleId, s){
         <input type="text" id="${p}-reqInput" placeholder="Ce que demande le client...">
         <input type="text" id="${p}-requesterInput" class="fixed" placeholder="Nom du client (optionnel)">
         <button class="add-btn" id="${p}-addBtn">Ajouter</button>
-      </div></div><div id="${p}-content"></div>`;
+      </div></div>
+      <div class="search-bar"><i class="ti ti-search"></i><input type="text" id="${p}-searchInput" placeholder="Rechercher une demande..." oninput="setFeedbackSearch(this.value)"></div>
+      <div id="${p}-content"></div>`;
     case 'pmRoadmap': return `<h1>Roadmap</h1><p class="subtitle">Que devons-nous développer ensuite ?</p><div class="kanban" id="${p}-kanbanGrid"></div>`;
     case 'pmBacklog': return `
       <h1>Backlog</h1><p class="subtitle">Toutes les fonctionnalités envisagées</p>
@@ -840,41 +894,50 @@ function renderMktgStats(){
 }
 
 let campaignFilter = 'Tous';
+let campaignSearch = '';
 function setCampaignFilter(v){ campaignFilter = v; renderCampaigns(); }
+function setCampaignSearch(v){ campaignSearch = v.toLowerCase(); renderCampaigns(); }
 
 function renderCampaigns(){
   const c = document.getElementById('marketing-content'); if(!c) return;
   if(campaigns.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-target-arrow"></i>Aucune campagne pour l'instant.</div>`; return; }
 
   const channels = [...new Set(campaigns.map(a=>a.channel))];
-  const filterBar = `<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-    ${['Tous', ...channels].map(ch => `<button onclick="setCampaignFilter('${ch}')" style="border:1px solid var(--th-border);background:${campaignFilter===ch?'var(--th-orange-bg)':'var(--th-card)'};color:${campaignFilter===ch?'var(--th-orange)':'var(--th-text-2)'};border-radius:9px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">${esc(ch)}</button>`).join('')}
+  const filterBar = `<div class="filter-bar">
+    ${['Tous', ...channels].map(ch => `<button class="filter-chip${campaignFilter===ch?' active':''}" onclick="setCampaignFilter('${ch}')">${esc(ch)}</button>`).join('')}
   </div>`;
 
-  const filtered = campaignFilter === 'Tous' ? campaigns : campaigns.filter(a => a.channel === campaignFilter);
+  let filtered = campaignFilter === 'Tous' ? campaigns : campaigns.filter(a => a.channel === campaignFilter);
+  if(campaignSearch) filtered = filtered.filter(a => a.title.toLowerCase().includes(campaignSearch));
   const sorted = [...filtered].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
 
   if(sorted.length === 0){
-    c.innerHTML = filterBar + `<div class="empty"><i class="ti ti-filter-off"></i>Aucune campagne pour ce filtre.</div>`;
+    c.innerHTML = filterBar + `<div class="empty"><i class="ti ti-filter-off"></i>Aucune campagne ne correspond.</div>`;
     return;
   }
 
-  c.innerHTML = filterBar + `<div class="row-list">${sorted.map(a=>{
+  const rows = sorted.map(a=>{
     const origin = a.sourceIdeaId ? ideas.find(i=>i.id===a.sourceIdeaId) : null;
-    const costPerLead = a.leads > 0 ? (a.cost/a.leads).toFixed(0) + ' €/lead' : null;
+    const costPerLead = a.leads > 0 ? (a.cost/a.leads).toFixed(0) + ' €' : '—';
     const done = a.status === 'Terminée';
-    return `<div class="row-card"${done ? ' style="opacity:.55"' : ''}>
-      <div class="row-main"><div class="row-title">${esc(a.title)}</div><div class="row-meta">
-        <span class="badge">${esc(a.channel)}</span>
-        ${origin?`<span class="badge origin"><i class="ti ti-bulb"></i>Depuis Boîte à idées</span>`:''}
-        ${costPerLead?`<span class="badge">${costPerLead}</span>`:''}
-        Coût <input class="stat-input" type="number" value="${a.cost}" onchange="updateCampaign('${a.id}','cost',Number(this.value))">€
-        Leads <input class="stat-input" type="number" value="${a.leads}" onchange="updateCampaign('${a.id}','leads',Number(this.value))">
-      </div></div>
-      <select class="status-select" onchange="updateCampaign('${a.id}','status',this.value)">${['Idée','Planifiée','En cours','Terminée'].map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}</select>
-      <button class="delete-btn" style="opacity:1" onclick="deleteCampaign('${a.id}')"><i class="ti ti-trash"></i></button>
-    </div>`;
-  }).join('')}</div>`;
+    const statusColor = a.status === 'En cours' ? 'blue' : a.status === 'Terminée' ? 'green' : a.status === 'Planifiée' ? 'purple' : '';
+    return `<tr class="${done?'done':''}">
+      <td><div class="dt-title">${esc(a.title)}</div>${origin?`<span class="badge origin" style="margin-top:4px;display:inline-flex"><i class="ti ti-bulb"></i>Depuis Boîte à idées</span>`:''}</td>
+      <td><span class="badge">${esc(a.channel)}</span></td>
+      <td><span class="badge ${statusColor}" style="${statusColor==='blue'?'color:var(--th-blue);background:var(--th-blue-bg)':statusColor==='green'?'color:var(--th-green);background:var(--th-green-bg)':statusColor==='purple'?'color:var(--th-purple);background:var(--th-purple-bg)':''}">${a.status}</span></td>
+      <td><input class="stat-input" type="number" value="${a.cost}" onchange="updateCampaign('${a.id}','cost',Number(this.value))"> €</td>
+      <td><input class="stat-input" type="number" value="${a.leads}" onchange="updateCampaign('${a.id}','leads',Number(this.value))"></td>
+      <td>${costPerLead}</td>
+      <td class="dt-actions">
+        <select class="status-select" onchange="updateCampaign('${a.id}','status',this.value)">${['Idée','Planifiée','En cours','Terminée'].map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}</select>
+        <button class="delete-btn" style="opacity:1" onclick="deleteCampaign('${a.id}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  c.innerHTML = filterBar + `<table class="data-table"><thead><tr>
+    <th>Campagne</th><th>Canal</th><th>Statut</th><th>Coût</th><th>Leads</th><th>Coût/lead</th><th></th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
 }
 function addCampaign(title, channel, sourceIdeaId){
   campaigns.unshift({ id:'mktg_'+Date.now(), title, channel, cost:0, leads:0, status:'Idée', sourceIdeaId:sourceIdeaId||null, createdAt:new Date().toISOString() });
@@ -902,21 +965,41 @@ function renderSalesStats(){
     <div class="stat-card blue"><div class="stat-card-icon"><i class="ti ti-percentage"></i></div><div class="val">${conv}%</div><div class="label">Taux de conversion</div></div>
     <div class="stat-card purple"><div class="stat-card-icon"><i class="ti ti-coin"></i></div><div class="val">${pipelineValue} €</div><div class="label">Valeur en pipeline</div></div>`;
 }
+let prospectFilter = 'Toutes';
+let prospectSearch = '';
+function setProspectFilter(v){ prospectFilter = v; renderProspects(); }
+function setProspectSearch(v){ prospectSearch = v.toLowerCase(); renderProspects(); }
+
 function renderProspects(){
   const c = document.getElementById('sales-content'); if(!c) return;
   if(prospects.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-user-plus"></i>Aucun prospect pour l'instant.</div>`; return; }
-  const sorted = [...prospects].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  c.innerHTML = `<div class="row-list">${sorted.map(pr=>{
+
+  const filterBar = `<div class="filter-bar">
+    ${['Toutes', ...SALES_STAGES].map(s => `<button class="filter-chip${prospectFilter===s?' active':''}" onclick="setProspectFilter('${s}')">${esc(s)}</button>`).join('')}
+  </div>`;
+
+  let filtered = prospectFilter === 'Toutes' ? prospects : prospects.filter(p => p.stage === prospectFilter);
+  if(prospectSearch) filtered = filtered.filter(p => p.name.toLowerCase().includes(prospectSearch));
+  const sorted = [...filtered].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+
+  if(sorted.length === 0){
+    c.innerHTML = filterBar + `<div class="empty"><i class="ti ti-filter-off"></i>Aucun prospect ne correspond.</div>`;
+    return;
+  }
+
+  const rows = sorted.map(pr=>{
     const origin = pr.sourceCampaignId ? campaigns.find(c=>c.id===pr.sourceCampaignId) : null;
-    return `<div class="row-card">
-      <div class="row-main"><div class="row-title">${esc(pr.name)}</div><div class="row-meta">
-        <span class="badge">${pr.value||0} €</span>
-        ${origin?`<span class="badge origin"><i class="ti ti-speakerphone"></i>Depuis ${esc(origin.title)}</span>`:''}
-      </div></div>
-      <select class="status-select" onchange="updateProspectStage('${pr.id}',this.value)">${SALES_STAGES.map(s=>`<option ${pr.stage===s?'selected':''}>${s}</option>`).join('')}</select>
-      <button class="delete-btn" style="opacity:1" onclick="deleteProspect('${pr.id}')"><i class="ti ti-trash"></i></button>
-    </div>`;
-  }).join('')}</div>`;
+    return `<tr>
+      <td><div class="dt-title">${esc(pr.name)}</div>${origin?`<span class="badge origin" style="margin-top:4px;display:inline-flex"><i class="ti ti-speakerphone"></i>Depuis ${esc(origin.title)}</span>`:''}</td>
+      <td>${pr.value||0} €</td>
+      <td class="dt-actions">
+        <select class="status-select" onchange="updateProspectStage('${pr.id}',this.value)">${SALES_STAGES.map(s=>`<option ${pr.stage===s?'selected':''}>${s}</option>`).join('')}</select>
+        <button class="delete-btn" style="opacity:1" onclick="deleteProspect('${pr.id}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  c.innerHTML = filterBar + `<table class="data-table"><thead><tr><th>Prospect</th><th>Valeur</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 function renderPipeline(){
   const grid = document.getElementById('sales-kanbanGrid'); if(!grid) return;
@@ -948,18 +1031,32 @@ function renderFbStats(){
     <div class="stat-card"><div class="stat-card-icon"><i class="ti ti-thumb-up"></i></div><div class="val">${totalVotes}</div><div class="label">Votes cumulés</div></div>
     <div class="stat-card purple" style="grid-column:span 2"><div class="stat-card-icon"><i class="ti ti-flame"></i></div><div class="val" style="font-size:14px">${top?esc(top.text):'—'}</div><div class="label">Demande la plus votée</div></div>`;
 }
+let feedbackSearch = '';
+function setFeedbackSearch(v){ feedbackSearch = v.toLowerCase(); renderFeedbacks(); }
+
 function renderFeedbacks(){
   const c = document.getElementById('feedback-content'); if(!c) return;
   if(feedbacks.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-heart"></i>Aucune demande pour l'instant.</div>`; return; }
-  const sorted = [...feedbacks].sort((a,b)=>(b.votes||0)-(a.votes||0));
-  c.innerHTML = `<div class="row-list">${sorted.map(f=>`
-    <div class="row-card">
-      <div class="row-main"><div class="row-title">${esc(f.text)}</div><div class="row-meta">${f.requester?esc(f.requester)+' · ':''}${fmtDate(f.createdAt)}</div></div>
-      <div class="vote-group">
-        <button class="vote-btn" onclick="voteFeedback('${f.id}',-1)">−</button><span class="vote-count">${f.votes||0}</span><button class="vote-btn" onclick="voteFeedback('${f.id}',1)">+</button>
-      </div>
-      <button class="delete-btn" style="opacity:1" onclick="deleteFeedback('${f.id}')"><i class="ti ti-trash"></i></button>
-    </div>`).join('')}</div>`;
+
+  let filtered = feedbackSearch ? feedbacks.filter(f => f.text.toLowerCase().includes(feedbackSearch)) : feedbacks;
+  const sorted = [...filtered].sort((a,b)=>(b.votes||0)-(a.votes||0));
+
+  if(sorted.length === 0){ c.innerHTML = `<div class="empty"><i class="ti ti-filter-off"></i>Aucune demande ne correspond.</div>`; return; }
+
+  const rows = sorted.map(f=>`
+    <tr>
+      <td><div class="dt-title">${esc(f.text)}</div></td>
+      <td>${f.requester?esc(f.requester):'—'}</td>
+      <td>${fmtDate(f.createdAt)}</td>
+      <td class="dt-actions">
+        <div class="vote-group" style="display:inline-flex">
+          <button class="vote-btn" onclick="voteFeedback('${f.id}',-1)">−</button><span class="vote-count">${f.votes||0}</span><button class="vote-btn" onclick="voteFeedback('${f.id}',1)">+</button>
+        </div>
+        <button class="delete-btn" style="opacity:1" onclick="deleteFeedback('${f.id}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`).join('');
+
+  c.innerHTML = `<table class="data-table"><thead><tr><th>Demande</th><th>Client</th><th>Date</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 function addFeedback(text, requester){
   feedbacks.unshift({ id:'fb_'+Date.now(), text, requester:requester||'', votes:1, createdAt:new Date().toISOString() });
@@ -975,21 +1072,35 @@ function importFeedbackToFeature(feedbackId){
 
 /* ================= PRODUCT MANAGEMENT ================= */
 const PM_STATUSES = ['À faire','En cours','Fait'];
+let backlogFilter = 'Tous';
+function setBacklogFilter(v){ backlogFilter = v; renderBacklog(); }
+
 function renderBacklog(){
   const c = document.getElementById('pm-content'); if(!c) return;
   if(features.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-tools"></i>Backlog vide.</div>`; return; }
-  const sorted = [...features].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  c.innerHTML = `<div class="row-list">${sorted.map(f=>{
+
+  const filterBar = `<div class="filter-bar">
+    ${['Tous', ...PM_STATUSES].map(s => `<button class="filter-chip${backlogFilter===s?' active':''}" onclick="setBacklogFilter('${s}')">${esc(s)}</button>`).join('')}
+  </div>`;
+
+  const filtered = backlogFilter === 'Tous' ? features : features.filter(f => f.status === backlogFilter);
+  const sorted = [...filtered].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+
+  if(sorted.length === 0){ c.innerHTML = filterBar + `<div class="empty"><i class="ti ti-filter-off"></i>Aucune fonctionnalité pour ce filtre.</div>`; return; }
+
+  const rows = sorted.map(f=>{
     const origin = f.sourceFeedbackId ? feedbacks.find(fb=>fb.id===f.sourceFeedbackId) : null;
-    return `<div class="row-card">
-      <div class="row-main"><div class="row-title">${esc(f.title)}</div><div class="row-meta">
-        ${origin?`<span class="badge origin"><i class="ti ti-heart"></i>Depuis Retours clients</span>`:''}
-        ${f.votes?`<span class="badge">${f.votes} votes</span>`:''}
-      </div></div>
-      <select class="status-select" onchange="updateFeature('${f.id}','status',this.value)">${PM_STATUSES.map(s=>`<option ${f.status===s?'selected':''}>${s}</option>`).join('')}</select>
-      <button class="delete-btn" style="opacity:1" onclick="deleteFeature('${f.id}')"><i class="ti ti-trash"></i></button>
-    </div>`;
-  }).join('')}</div>`;
+    return `<tr>
+      <td><div class="dt-title">${esc(f.title)}</div>${origin?`<span class="badge origin" style="margin-top:4px;display:inline-flex"><i class="ti ti-heart"></i>Depuis Retours clients</span>`:''}</td>
+      <td>${f.votes?f.votes+' votes':'—'}</td>
+      <td class="dt-actions">
+        <select class="status-select" onchange="updateFeature('${f.id}','status',this.value)">${PM_STATUSES.map(s=>`<option ${f.status===s?'selected':''}>${s}</option>`).join('')}</select>
+        <button class="delete-btn" style="opacity:1" onclick="deleteFeature('${f.id}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  c.innerHTML = filterBar + `<table class="data-table"><thead><tr><th>Fonctionnalité</th><th>Votes</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 function renderRoadmap(){
   const grid = document.getElementById('pm-kanbanGrid'); if(!grid) return;
@@ -1017,23 +1128,37 @@ function renderBugsStats(){
     <div class="stat-card red"><div class="stat-card-icon"><i class="ti ti-alert-triangle"></i></div><div class="val">${critical}</div><div class="label">Critiques non résolus</div></div>
     <div class="stat-card green"><div class="stat-card-icon"><i class="ti ti-circle-check"></i></div><div class="val">${fixed}</div><div class="label">Corrigés</div></div>`;
 }
-function bugRow(b){
-  return `<div class="row-card">
-    <div class="row-main"><div class="row-title">${esc(b.title)}</div><span class="badge ${b.severity==='Critique'?'critique':''}">${b.severity}</span></div>
-    <select class="status-select" onchange="updateBug('${b.id}','status',this.value)">${BUG_STATUSES.map(s=>`<option ${b.status===s?'selected':''}>${s}</option>`).join('')}</select>
-    <button class="delete-btn" style="opacity:1" onclick="deleteBug('${b.id}')"><i class="ti ti-trash"></i></button>
-  </div>`;
+function bugRowTr(b){
+  return `<tr>
+    <td><div class="dt-title">${esc(b.title)}</div></td>
+    <td><span class="badge ${b.severity==='Critique'?'critique':''}">${b.severity}</span></td>
+    <td class="dt-actions">
+      <select class="status-select" onchange="updateBug('${b.id}','status',this.value)">${BUG_STATUSES.map(s=>`<option ${b.status===s?'selected':''}>${s}</option>`).join('')}</select>
+      <button class="delete-btn" style="opacity:1" onclick="deleteBug('${b.id}')"><i class="ti ti-trash"></i></button>
+    </td>
+  </tr>`;
 }
+let bugFilter = 'Tous';
+function setBugFilter(v){ bugFilter = v; renderBugsOpen(); }
+
 function renderBugsOpen(){
   const c = document.getElementById('bugs-content'); if(!c) return;
   if(bugs.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-bug"></i>Aucun bug signalé.</div>`; return; }
-  const sorted = [...bugs].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  c.innerHTML = `<div class="row-list">${sorted.map(bugRow).join('')}</div>`;
+
+  const filterBar = `<div class="filter-bar">
+    ${['Tous','Normal','Critique'].map(s => `<button class="filter-chip${bugFilter===s?' active':''}" onclick="setBugFilter('${s}')">${esc(s)}</button>`).join('')}
+  </div>`;
+  const filtered = bugFilter === 'Tous' ? bugs : bugs.filter(b => b.severity === bugFilter);
+  const sorted = [...filtered].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+
+  if(sorted.length === 0){ c.innerHTML = filterBar + `<div class="empty"><i class="ti ti-filter-off"></i>Aucun bug pour ce filtre.</div>`; return; }
+
+  c.innerHTML = filterBar + `<table class="data-table"><thead><tr><th>Bug</th><th>Gravité</th><th></th></tr></thead><tbody>${sorted.map(bugRowTr).join('')}</tbody></table>`;
 }
 function renderBugsCritical(){
   const c = document.getElementById('bugs-criticalContent'); if(!c) return;
   const critical = bugs.filter(b=>b.severity==='Critique' && b.status!=='Corrigé');
-  c.innerHTML = critical.length===0 ? `<div class="empty"><i class="ti ti-alert-triangle"></i>Aucun bug critique ouvert.</div>` : `<div class="row-list">${critical.map(bugRow).join('')}</div>`;
+  c.innerHTML = critical.length===0 ? `<div class="empty"><i class="ti ti-alert-triangle"></i>Aucun bug critique ouvert.</div>` : `<table class="data-table"><thead><tr><th>Bug</th><th>Gravité</th><th></th></tr></thead><tbody>${critical.map(bugRowTr).join('')}</tbody></table>`;
 }
 function addBug(title, severity){
   bugs.unshift({ id:'bug_'+Date.now(), title, severity, status:'Ouvert', createdAt:new Date().toISOString() });
@@ -1078,8 +1203,13 @@ function renderCwStats(){
 }
 function renderCompetitors(){
   const c = document.getElementById('competitor-content'); if(!c) return;
-  c.innerHTML = competitors.length===0 ? `<div class="empty"><i class="ti ti-building"></i>Aucun concurrent suivi.</div>` :
-    `<div class="row-list">${competitors.map(cp=>`<div class="row-card"><div class="row-main"><div class="row-title">${esc(cp.name)}</div>${cp.notes?`<div class="row-meta">${esc(cp.notes)}</div>`:''}</div><button class="delete-btn" style="opacity:1" onclick="deleteCompetitor('${cp.id}')"><i class="ti ti-trash"></i></button></div>`).join('')}</div>`;
+  if(competitors.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-building"></i>Aucun concurrent suivi.</div>`; return; }
+  const rows = competitors.map(cp=>`<tr>
+    <td><div class="dt-title">${esc(cp.name)}</div></td>
+    <td>${cp.notes?esc(cp.notes):'—'}</td>
+    <td class="dt-actions"><button class="delete-btn" style="opacity:1" onclick="deleteCompetitor('${cp.id}')"><i class="ti ti-trash"></i></button></td>
+  </tr>`).join('');
+  c.innerHTML = `<table class="data-table"><thead><tr><th>Concurrent</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 function addCompetitor(name, notes){ competitors.unshift({id:'comp_'+Date.now(),name,notes,createdAt:new Date().toISOString()}); saveKey('competitor-watch:competitors',competitors); renderCompetitors(); renderCwStats(); }
 function deleteCompetitor(id){ competitors=competitors.filter(c=>c.id!==id); saveKey('competitor-watch:competitors',competitors); renderCompetitors(); renderCwStats(); }
@@ -1087,9 +1217,20 @@ function deleteCompetitor(id){ competitors=competitors.filter(c=>c.id!==id); sav
 /* ================= SMART CONTACTS ================= */
 function renderContacts(){
   const c = document.getElementById('contacts-content'); if(!c) return;
-  const salesRows = prospects.map(p => `<div class="row-card"><div class="row-main"><div class="row-title">${esc(p.name)}</div></div><span class="badge">Prospect</span><span class="badge origin"><i class="ti ti-briefcase"></i>Depuis Développement commercial</span></div>`).join('');
-  const manualRows = contacts.map(ct => `<div class="row-card"><div class="row-main"><div class="row-title">${esc(ct.name)}</div></div><span class="badge">${esc(ct.type)}</span><button class="delete-btn" style="opacity:1" onclick="deleteContact('${ct.id}')"><i class="ti ti-trash"></i></button></div>`).join('');
-  c.innerHTML = (contacts.length===0 && prospects.length===0) ? `<div class="empty"><i class="ti ti-address-book"></i>Aucun contact pour l'instant.</div>` : `<div class="row-list">${salesRows}${manualRows}</div>`;
+  if(contacts.length===0 && prospects.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-address-book"></i>Aucun contact pour l'instant.</div>`; return; }
+  const salesRows = prospects.map(p => `<tr>
+    <td><div class="dt-title">${esc(p.name)}</div></td>
+    <td><span class="badge">Prospect</span></td>
+    <td><span class="badge origin"><i class="ti ti-briefcase"></i>Développement commercial</span></td>
+    <td></td>
+  </tr>`).join('');
+  const manualRows = contacts.map(ct => `<tr>
+    <td><div class="dt-title">${esc(ct.name)}</div></td>
+    <td><span class="badge">${esc(ct.type)}</span></td>
+    <td>—</td>
+    <td class="dt-actions"><button class="delete-btn" style="opacity:1" onclick="deleteContact('${ct.id}')"><i class="ti ti-trash"></i></button></td>
+  </tr>`).join('');
+  c.innerHTML = `<table class="data-table"><thead><tr><th>Contact</th><th>Type</th><th>Origine</th><th></th></tr></thead><tbody>${salesRows}${manualRows}</tbody></table>`;
 }
 function addContact(name, type){ contacts.unshift({id:'contact_'+Date.now(),name,type,createdAt:new Date().toISOString()}); saveKey('smart-contacts:contacts',contacts); renderContacts(); }
 function deleteContact(id){ contacts=contacts.filter(c=>c.id!==id); saveKey('smart-contacts:contacts',contacts); renderContacts(); }
@@ -1097,8 +1238,13 @@ function deleteContact(id){ contacts=contacts.filter(c=>c.id!==id); saveKey('sma
 /* ================= PARTNERS ================= */
 function renderPartners(){
   const c = document.getElementById('partners-content'); if(!c) return;
-  c.innerHTML = partners.length===0 ? `<div class="empty"><i class="ti ti-handshake"></i>Aucun partenaire pour l'instant.</div>` :
-    `<div class="row-list">${partners.map(p=>`<div class="row-card"><div class="row-main"><div class="row-title">${esc(p.name)}</div>${p.notes?`<div class="row-meta">${esc(p.notes)}</div>`:''}</div><button class="delete-btn" style="opacity:1" onclick="deletePartner('${p.id}')"><i class="ti ti-trash"></i></button></div>`).join('')}</div>`;
+  if(partners.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-handshake"></i>Aucun partenaire pour l'instant.</div>`; return; }
+  const rows = partners.map(p=>`<tr>
+    <td><div class="dt-title">${esc(p.name)}</div></td>
+    <td>${p.notes?esc(p.notes):'—'}</td>
+    <td class="dt-actions"><button class="delete-btn" style="opacity:1" onclick="deletePartner('${p.id}')"><i class="ti ti-trash"></i></button></td>
+  </tr>`).join('');
+  c.innerHTML = `<table class="data-table"><thead><tr><th>Partenaire</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 function addPartner(name, notes){ partners.unshift({id:'partner_'+Date.now(),name,notes,createdAt:new Date().toISOString()}); saveKey('partners:partners',partners); renderPartners(); }
 function deletePartner(id){ partners=partners.filter(p=>p.id!==id); saveKey('partners:partners',partners); renderPartners(); }
