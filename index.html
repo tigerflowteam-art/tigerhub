@@ -367,6 +367,7 @@ function fmtDateTime(iso){ const d=new Date(iso); return d.toLocaleDateString('f
 const ICONS = {
 'ad-2':'<rect x="3" y="6" width="18" height="12" rx="2"/><line x1="7" y1="10" x2="10" y2="10"/><line x1="7" y1="14" x2="13" y2="14"/>',
 'address-book':'<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="2"/><path d="M8 16c0-2 1.5-3 4-3s4 1 4 3"/>',
+'arrow-left':'<line x1="19" y1="12" x2="5" y2="12"/><polyline points="11,6 5,12 11,18"/>',
 'alert-octagon':'<path d="M8 3h8l5 5v8l-5 5H8l-5-5V8z"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16.3" r="0.9" fill="currentColor" stroke="none"/>',
 'alert-triangle':'<path d="M12 3 L22 20 H2 Z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/>',
 'archive':'<rect x="3" y="4" width="18" height="4" rx="1"/><rect x="4" y="8" width="16" height="12" rx="1"/><line x1="10" y1="12" x2="14" y2="12"/>',
@@ -403,6 +404,7 @@ const ICONS = {
 'filter-off':'<path d="M4 5h16l-6 7v6l-4 2v-8z"/><line x1="3" y1="3" x2="21" y2="21"/>',
 'flag':'<line x1="5" y1="3" x2="5" y2="21"/><path d="M5 4h13l-3 4 3 4H5"/>',
 'flame':'<path d="M12 2c2 4-3 5-3 9a3 3 0 006 0c0-2-1-3-1-3s3 1 3 5a6 6 0 01-12 0c0-6 5-7 7-11z"/>',
+'flask':'<path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3"/>',
 'folder':'<path d="M3 6h6l2 2h10v11H3z"/>',
 'handshake':'<path d="M8 12l3 3 6-6"/><circle cx="12" cy="12" r="9"/>',
 'heart':'<path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 5a5.5 5.5 0 019.5 7c-2.5 4.5-9.5 9-9.5 9z"/>',
@@ -509,15 +511,19 @@ const MODULES = [
   { id:'marketing', label:'Marketing', group:'📈 Développement de TigerFlow', icon:'ti-speakerphone', sections:[
     { id:'mktg-dashboard', label:'Dashboard Marketing', icon:'ti-chart-donut-3', kind:'mktgDashboard' },
     { id:'campaigns', label:'Campagnes', icon:'ti-target-arrow', kind:'mktgCampaigns' },
-    { id:'editorial', label:'Calendrier éditorial', icon:'ti-calendar', desc:"Planifier les publications à venir." },
-    { id:'social', label:'Réseaux sociaux', icon:'ti-share', desc:"LinkedIn, TikTok, YouTube, Facebook, Instagram, Reddit." },
-    { id:'seo', label:'SEO', icon:'ti-search', desc:"Mots-clés, positionnement, pages à optimiser." },
-    { id:'sea', label:'SEA', icon:'ti-ad-2', desc:"Campagnes publicitaires payantes." },
-    { id:'emailing', label:'Emailing', icon:'ti-mail', desc:"Emailing et newsletters." },
-    { id:'budget', label:'Budget', icon:'ti-wallet', desc:"Allocation du budget par canal." },
-    { id:'results', label:'Résultats', icon:'ti-chart-line', desc:"Analyse approfondie des conversions." },
-    { id:'library', label:'Bibliothèque de contenus', icon:'ti-photo', desc:"Visuels et gabarits réutilisables." },
-    { id:'ai', label:'IA', icon:'ti-sparkles', desc:"Suggestions de contenu, via le futur Centre IA." },
+    { id:'channels', label:'Canaux', icon:'ti-share', kind:'mktgChannels' },
+    { id:'seo', label:'SEO', icon:'ti-search', kind:'mktgSeo' },
+    { id:'sea', label:'SEA / Publicité', icon:'ti-ad-2', kind:'mktgSea' },
+    { id:'emailing', label:'Emailing', icon:'ti-mail', kind:'mktgEmailing' },
+    { id:'editorial', label:'Calendrier éditorial', icon:'ti-calendar', kind:'mktgCalendar' },
+    { id:'library', label:'Bibliothèque de contenus', icon:'ti-photo', kind:'mktgLibrary' },
+    { id:'budget', label:'Budget', icon:'ti-wallet', kind:'mktgBudget' },
+    { id:'goals', label:'Objectifs', icon:'ti-flag', kind:'mktgGoals' },
+    { id:'funnel', label:'Entonnoir', icon:'ti-filter-off', kind:'mktgFunnel' },
+    { id:'results', label:'Résultats', icon:'ti-chart-line', kind:'mktgResults' },
+    { id:'experiments', label:'Expérimentations', icon:'ti-flask', kind:'mktgExperiments' },
+    { id:'learnings', label:'Apprentissages', icon:'ti-bulb', kind:'mktgLearnings' },
+    { id:'ideas', label:'Idées marketing', icon:'ti-link', kind:'mktgIdeas' },
     { id:'settings', label:'Paramètres', icon:'ti-settings', desc:"Canaux connectés, accès." },
   ]},
   { id:'sales', label:'Développement commercial', icon:'ti-briefcase', sections:[
@@ -722,6 +728,14 @@ function buildApp(){
       mainEl.appendChild(panel);
     });
 
+    if(m.id === 'marketing'){
+      const detailPanel = document.createElement('div');
+      detailPanel.className = 'panel';
+      detailPanel.id = 'panel-marketing-campaign-detail';
+      detailPanel.innerHTML = `<div id="marketing-campaignDetailContent"></div>`;
+      mainEl.appendChild(detailPanel);
+    }
+
     view.appendChild(submenu);
     view.appendChild(mainEl);
     app.appendChild(view);
@@ -762,13 +776,79 @@ function panelTemplate(moduleId, s){
       <h1>Campagnes</h1><p class="subtitle">Quelles actions génèrent le plus de prospects et de clients ?</p>
       <div class="capture"><div class="capture-row">
         <input type="text" id="${p}-actionInput" placeholder="Nom de la campagne...">
-        <select id="${p}-channelSelect"><option>Réseaux sociaux</option><option>Email</option><option>SEO</option><option>Publicité payante</option><option>Partenariat</option><option>Autre</option></select>
+        <select id="${p}-channelSelect"><option>Réseaux sociaux</option><option>Email</option><option>SEO</option><option>Publicité payante</option><option>Partenariat</option><option>Contenu</option><option>Événement</option><option>Autre</option></select>
         <button class="add-btn" id="${p}-addBtn">Ajouter</button>
         <button class="import-btn" id="${p}-importBtn">${ic('ti-bulb')}Depuis une idée</button>
       </div></div>
       <div class="search-bar">${ic('ti-search')}<input type="text" id="${p}-searchInput" placeholder="Rechercher une campagne..." oninput="setCampaignSearch(this.value)"></div>
       <div id="${p}-content"></div>`;
-    case 'salesDashboard': return `<h1>Dashboard Commercial</h1><p class="subtitle">Vue d'ensemble de ton activité commerciale</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
+    case 'mktgChannels': return `<h1>Canaux marketing</h1><p class="subtitle">Comparer la performance de chaque canal d'acquisition</p><div id="${p}-channelsContent"></div>`;
+    case 'mktgSeo': {
+      const totalTraffic = SEO_KEYWORDS.reduce((s,k)=>s+k.trafic,0);
+      const avgPos = (SEO_KEYWORDS.reduce((s,k)=>s+k.position,0)/SEO_KEYWORDS.length).toFixed(1);
+      const totalConv = SEO_KEYWORDS.reduce((s,k)=>s+k.conv,0);
+      const rows = [...SEO_KEYWORDS].sort((a,b)=>a.position-b.position).map(k=>`<tr><td class="dt-title">${esc(k.kw)}</td><td>#${k.position}</td><td><span class="badge ${k.evol>0?'green':k.evol<0?'red':'gray'}">${k.evol>0?'+':''}${k.evol||'='}</span></td><td>${k.trafic}/mois</td><td>${k.conv}</td></tr>`).join('');
+      return `<h1>SEO</h1><p class="subtitle">Mots-clés, positions, trafic organique et opportunités</p>
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px">
+          <div class="stat-card"><div class="val">${totalTraffic}</div><div class="label">Trafic organique mensuel</div></div>
+          <div class="stat-card blue"><div class="val">#${avgPos}</div><div class="label">Position moyenne</div></div>
+          <div class="stat-card green"><div class="val">${totalConv}</div><div class="label">Conversions SEO</div></div>
+        </div>
+        <table class="data-table"><thead><tr><th>Mot-clé</th><th>Position</th><th>Évolution</th><th>Trafic</th><th>Conversions</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+    case 'mktgSea': {
+      const rows = SEA_STATS.map(s=>`<tr><td class="dt-title">${esc(s.name)}</td><td><span class="badge">${esc(s.platform)}</span></td><td>${s.impressions.toLocaleString('fr-FR')}</td><td>${s.clicks.toLocaleString('fr-FR')}</td><td>${s.cpc.toFixed(2)} €</td></tr>`).join('');
+      return `<h1>SEA / Publicité payante</h1><p class="subtitle">Impressions, clics et coût par clic des campagnes payantes</p>
+        <table class="data-table"><thead><tr><th>Campagne</th><th>Plateforme</th><th>Impressions</th><th>Clics</th><th>CPC</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+    case 'mktgEmailing': {
+      const rows = EMAIL_CAMPAIGNS.map(e=>`<tr><td class="dt-title">${esc(e.name)}</td><td>${esc(e.sent)}</td><td>${e.recipients.toLocaleString('fr-FR')}</td><td><span class="badge blue">${e.openRate}%</span></td><td><span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">${e.clickRate}%</span></td><td>${e.conv}</td></tr>`).join('');
+      return `<h1>Emailing</h1><p class="subtitle">Campagnes email et performances d'ouverture, de clic et de conversion</p>
+        <table class="data-table"><thead><tr><th>Campagne</th><th>Envoyé</th><th>Destinataires</th><th>Ouverture</th><th>Clic</th><th>Conversions</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+    case 'mktgCalendar': {
+      const cells = [];
+      for(let i=0;i<5;i++) cells.push(`<div style="background:transparent"></div>`);
+      for(let d=1; d<=31; d++){
+        const items = CALENDAR_ITEMS.filter(it=>it.day===d);
+        cells.push(`<div style="background:var(--th-card);border:1px solid var(--th-border);border-radius:11px;min-height:70px;padding:7px;font-size:11px"><div style="font-size:11px;color:var(--th-text-3);font-weight:700;margin-bottom:4px">${d}</div>${items.map(it=>`<div style="background:var(--th-orange-bg);color:var(--th-orange);border-radius:6px;padding:2px 5px;font-size:9.5px;font-weight:700;margin-bottom:2px">${esc(it.title)}</div>`).join('')}</div>`);
+      }
+      return `<h1>Calendrier éditorial</h1><p class="subtitle">Ce qui est prévu, en rédaction et publié ce mois-ci</p>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">${cells.join('')}</div>`;
+    }
+    case 'mktgLibrary': {
+      const cards = CONTENT_LIBRARY.map(c=>`<div style="background:var(--th-card);border-radius:16px;padding:14px;box-shadow:var(--th-shadow-sm);border:1px solid var(--th-border)">
+        <div style="width:100%;height:70px;border-radius:10px;background:linear-gradient(135deg,var(--th-orange-bg),var(--th-purple-bg));display:flex;align-items:center;justify-content:center;color:var(--th-orange);margin-bottom:10px">${ic('ti-photo',22)}</div>
+        <div style="font-size:12.5px;font-weight:700;margin-bottom:4px">${esc(c.title)}</div><div style="font-size:10.5px;color:var(--th-text-3)">${esc(c.type)}</div></div>`).join('');
+      return `<h1>Bibliothèque de contenus</h1><p class="subtitle">Tous les contenus produits, réutilisables d'une campagne à l'autre</p>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">${cards}</div>`;
+    }
+    case 'mktgBudget': return `<h1>Budget marketing</h1><p class="subtitle">Budget alloué et dépensé, campagne par campagne</p><div class="stats-grid" id="${p}-budgetStats"></div>
+      <table class="data-table" style="margin-top:16px"><thead><tr><th>Campagne</th><th>Budget prévu</th><th>Dépensé</th><th>Écart</th></tr></thead><tbody id="${p}-budgetRows"></tbody></table>`;
+    case 'mktgGoals': {
+      const rows = MKTG_GOALS.map(g=>{
+        const pct = g.more ? Math.min(100,Math.round(g.current/g.target*100)) : Math.min(100, Math.round((g.target/g.current)*100));
+        const ok = g.more ? g.current>=g.target*0.8 : g.current<=g.target*1.1;
+        return `<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:700">${esc(g.name)}</span><span style="font-size:12px;color:var(--th-text-2);font-weight:600">${g.current}${g.unit} / ${g.target}${g.unit}</span></div>
+        <div style="background:var(--th-bg-alt);border-radius:8px;height:9px;overflow:hidden"><div style="height:100%;border-radius:8px;width:${pct}%;background:${ok?'linear-gradient(90deg,#4ADE80,var(--th-green))':'linear-gradient(90deg,#FCA5A5,var(--th-red))'}"></div></div></div>`;
+      }).join('');
+      return `<h1>Objectifs marketing</h1><p class="subtitle">Où en est-on par rapport aux cibles fixées ce mois-ci</p><div class="card">${rows}</div>`;
+    }
+    case 'mktgFunnel': return `<h1>Entonnoir marketing</h1><p class="subtitle">Du visiteur au client, où perd-on le plus de volume ?</p><div id="${p}-funnelContent"></div>`;
+    case 'mktgResults': return `<h1>Résultats & performance</h1><p class="subtitle">Analyse comparée de toutes les campagnes actives et passées</p><div id="${p}-resultsContent"></div>`;
+    case 'mktgExperiments': {
+      const cards = EXPERIMENTS.map(e=>`<div style="border-left:3px solid ${e.status==='Terminé'?'var(--th-green)':'var(--th-orange)'};padding:14px 16px;background:var(--th-bg-alt);border-radius:0 13px 13px 0;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13.5px;font-weight:700">${esc(e.title)}</span><span class="badge ${e.status==='Terminé'?'green':'blue'}">${e.status}</span></div>
+        <div style="font-size:12px;color:var(--th-text-2);line-height:1.6"><b>Hypothèse :</b> ${esc(e.hyp)}</div>
+        <div style="font-size:12px;color:var(--th-text-2);line-height:1.6"><b>Résultat :</b> ${esc(e.result)}</div>
+        ${e.learning?`<div style="font-size:12px;color:var(--th-text-2);line-height:1.6"><b>Enseignement :</b> ${esc(e.learning)}</div>`:''}</div>`).join('');
+      return `<h1>Expérimentations marketing</h1><p class="subtitle">Hypothèses testées et résultats, pour décider avec des faits</p>${cards}`;
+    }
+    case 'mktgLearnings': {
+      const items = LEARNINGS.map((l,i)=>`<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--th-border)"><div style="width:26px;height:26px;border-radius:8px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0">${i+1}</div><div style="font-size:13px;line-height:1.6">${esc(l)}</div></div>`).join('');
+      return `<h1>Apprentissages</h1><p class="subtitle">Ce que les campagnes et les tests nous ont appris jusqu'ici</p><div class="card">${items}</div>`;
+    }
+    case 'mktgIdeas': return `<h1>Idées marketing</h1><p class="subtitle">Idées non explorées provenant de la Boîte à idées — jamais recréées, seulement reliées</p><div id="${p}-ideasContent"></div>`;
     case 'salesProspects': return `
       <h1>Prospects</h1><p class="subtitle">Comment transformer davantage de prospects en clients ?</p>
       <div class="capture"><div class="capture-row">
@@ -1047,14 +1127,14 @@ function renderCampaigns(){
     const costPerLead = a.leads > 0 ? (a.cost/a.leads).toFixed(0) + ' €' : '—';
     const done = a.status === 'Terminée';
     const statusColor = a.status === 'En cours' ? 'blue' : a.status === 'Terminée' ? 'green' : a.status === 'Planifiée' ? 'purple' : '';
-    return `<tr class="${done?'done':''}">
+    return `<tr class="${done?'done':''}" onclick="openCampaignDetail('${a.id}')">
       <td><div class="dt-title">${esc(a.title)}</div>${origin?`<span class="badge origin" style="margin-top:4px;display:inline-flex">${ic('ti-bulb',12)}Depuis Boîte à idées</span>`:''}</td>
       <td><span class="badge">${esc(a.channel)}</span></td>
       <td><span class="badge ${statusColor}" style="${statusColor==='blue'?'color:var(--th-blue);background:var(--th-blue-bg)':statusColor==='green'?'color:var(--th-green);background:var(--th-green-bg)':statusColor==='purple'?'color:var(--th-purple);background:var(--th-purple-bg)':''}">${a.status}</span></td>
-      <td><input class="stat-input" type="number" value="${a.cost}" onchange="updateCampaign('${a.id}','cost',Number(this.value))"> €</td>
-      <td><input class="stat-input" type="number" value="${a.leads}" onchange="updateCampaign('${a.id}','leads',Number(this.value))"></td>
+      <td onclick="event.stopPropagation()"><input class="stat-input" type="number" value="${a.cost}" onchange="updateCampaign('${a.id}','cost',Number(this.value))"> €</td>
+      <td onclick="event.stopPropagation()"><input class="stat-input" type="number" value="${a.leads}" onchange="updateCampaign('${a.id}','leads',Number(this.value))"></td>
       <td>${costPerLead}</td>
-      <td class="dt-actions">
+      <td class="dt-actions" onclick="event.stopPropagation()">
         <select class="status-select" onchange="updateCampaign('${a.id}','status',this.value)">${['Idée','Planifiée','En cours','Terminée'].map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}</select>
         <button class="delete-btn" style="opacity:1" onclick="deleteCampaign('${a.id}')">${ic('ti-trash')}</button>
       </td>
@@ -1066,17 +1146,224 @@ function renderCampaigns(){
   </tr></thead><tbody>${rows}</tbody></table>`;
 }
 function addCampaign(title, channel, sourceIdeaId){
-  campaigns.unshift({ id:'mktg_'+Date.now(), title, channel, cost:0, leads:0, status:'Idée', sourceIdeaId:sourceIdeaId||null, createdAt:new Date().toISOString() });
-  saveKey('marketing-os:actions', campaigns); renderCampaigns(); renderMktgStats();
+  campaigns.unshift({ id:'mktg_'+Date.now(), title, channel, cost:0, leads:0, prospects:0, clients:0, revenue:0, budget:0, desc:'', status:'Idée', sourceIdeaId:sourceIdeaId||null, createdAt:new Date().toISOString() });
+  saveKey('marketing-os:actions', campaigns); renderCampaigns(); renderMktgStats(); refreshMktgDerived();
 }
-function updateCampaign(id, field, value){ const a=campaigns.find(a=>a.id===id); if(a) a[field]=value; saveKey('marketing-os:actions',campaigns); renderMktgStats(); }
-function deleteCampaign(id){ campaigns=campaigns.filter(a=>a.id!==id); saveKey('marketing-os:actions',campaigns); renderCampaigns(); renderMktgStats(); }
+
+const DEMO_CAMPAIGNS = [
+  { title:'Lancement TigerHub V2', channel:'Réseaux sociaux', status:'En cours', cost:2450, budget:3000, leads:145, prospects:52, clients:11, revenue:15400, desc:"Campagne poussant la sortie de TigerHub V2 auprès des dirigeants de PME de services, message centré sur le pilotage centralisé." },
+  { title:'Google Ads — mots-clés génériques', channel:'Publicité payante', status:'En cours', cost:3800, budget:4000, leads:210, prospects:60, clients:9, revenue:9800, desc:"Campagne search sur les requêtes génériques. Volume élevé, qualité de lead plus faible que le SEO." },
+  { title:'SEO — contenu longue traîne', channel:'SEO', status:'En cours', cost:1200, budget:1200, leads:95, prospects:40, clients:14, revenue:18900, desc:"Production régulière d'articles de fond sur les métiers cibles. Le meilleur ratio coût/résultat du portefeuille." },
+  { title:'Email — séquence onboarding', channel:'Email', status:'En cours', cost:300, budget:300, leads:0, prospects:180, clients:22, revenue:21000, desc:"Séquence automatisée de 6 emails envoyée à chaque nouvel inscrit à l'essai gratuit." },
+  { title:'Webinaire — Piloter son SaaS', channel:'Événement', status:'Terminée', cost:800, budget:800, leads:130, prospects:35, clients:5, revenue:6200, desc:"Webinaire de 45 minutes en direct, rejoué en replay." },
+  { title:'Partenariat influenceur tech', channel:'Partenariat', status:'Terminée', cost:1500, budget:1500, leads:60, prospects:18, clients:2, revenue:1800, desc:"Collaboration avec un créateur de contenu B2B. Bon reach mais audience peu qualifiée." },
+  { title:'Content marketing — guide gratuit', channel:'Contenu', status:'En cours', cost:400, budget:400, leads:210, prospects:70, clients:8, revenue:7600, desc:"Guide PDF \"Digitaliser son entreprise de terrain\" en échange d'une adresse email." },
+  { title:'Retargeting Meta Ads', channel:'Publicité payante', status:'En cours', cost:650, budget:900, leads:55, prospects:20, clients:4, revenue:4100, desc:"Retargeting des visiteurs du site n'ayant pas converti." },
+  { title:'Réseaux sociaux organiques', channel:'Réseaux sociaux', status:'En cours', cost:200, budget:200, leads:40, prospects:8, clients:1, revenue:750, desc:"Présence organique Instagram et TikTok, contenu terrain et astuces métier." },
+  { title:'Salon Solutions PME 2026', channel:'Événement', status:'Planifiée', cost:0, budget:5000, leads:0, prospects:0, clients:0, revenue:0, desc:"Stand au salon Solutions PME, 3 jours. Objectif : 150 leads qualifiés." },
+];
+
+async function seedDemoCampaignsIfEmpty(){
+  if(campaigns.length > 0) return;
+  campaigns = DEMO_CAMPAIGNS.map((c,i) => ({ id:'mktg_demo_'+i, sourceIdeaId:null, createdAt:new Date(Date.now() - i*86400000).toISOString(), ...c }));
+  await saveKey('marketing-os:actions', campaigns);
+}
+function refreshMktgDerived(){ renderMktgChannels(); renderMktgBudget(); renderMktgFunnel(); renderMktgResults(); if(openCampaignId) renderCampaignDetail(); }
+function updateCampaign(id, field, value){ const a=campaigns.find(a=>a.id===id); if(a) a[field]=value; saveKey('marketing-os:actions',campaigns); renderMktgStats(); refreshMktgDerived(); }
+function deleteCampaign(id){ campaigns=campaigns.filter(a=>a.id!==id); saveKey('marketing-os:actions',campaigns); renderCampaigns(); renderMktgStats(); refreshMktgDerived(); }
 function importIdeaToCampaign(ideaId){
   const idea = ideas.find(i=>i.id===ideaId); if(!idea) return;
   addCampaign(idea.text, 'Autre', ideaId);
   idea.explored = true; saveKey('idea-box:ideas', ideas); renderIdeaBox();
   closeModal();
 }
+
+/* ---- Fiche détaillée d'une campagne ---- */
+let openCampaignId = null;
+function openCampaignDetail(id){
+  openCampaignId = id;
+  document.querySelectorAll('#view-marketing .panel').forEach(el => el.classList.remove('active'));
+  document.getElementById('panel-marketing-campaign-detail').classList.add('active');
+  renderCampaignDetail();
+}
+function closeCampaignDetail(){
+  openCampaignId = null;
+  document.getElementById('panel-marketing-campaign-detail').classList.remove('active');
+  document.querySelector('#view-marketing .sub-item[data-section="campaigns"]').click();
+}
+function renderCampaignDetail(){
+  const el = document.getElementById('marketing-campaignDetailContent');
+  const a = campaigns.find(c=>c.id===openCampaignId);
+  if(!el || !a) return;
+  const cac = a.clients ? Math.round(a.cost/a.clients) : '—';
+  const roi = a.cost ? Math.round((a.revenue-a.cost)/a.cost*100) : 0;
+  const convRate = a.leads ? Math.round(a.clients/a.leads*100) : 0;
+  const origin = a.sourceIdeaId ? ideas.find(i=>i.id===a.sourceIdeaId) : null;
+  el.innerHTML = `
+    <div class="btn-back" onclick="closeCampaignDetail()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:14px">${ic('ti-arrow-left',14)} Retour aux campagnes</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+      <div><h1>${esc(a.title)}</h1><p class="subtitle" style="margin-bottom:6px">${esc(a.desc||'Aucune description pour cette campagne.')}</p></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <span class="badge">${esc(a.channel)}</span><span class="badge">${esc(a.status)}</span>
+      ${origin?`<span class="badge origin">${ic('ti-bulb',12)}Depuis Boîte à idées</span>`:''}
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-card"><div class="val">${a.leads}</div><div class="label">Leads</div></div>
+      <div class="stat-card blue"><div class="val">${a.prospects||0}</div><div class="label">Prospects</div></div>
+      <div class="stat-card green"><div class="val">${a.clients||0}</div><div class="label">Clients</div></div>
+      <div class="stat-card red"><div class="val">${a.cost} €</div><div class="label">Dépensé / ${a.budget||0} €</div></div>
+      <div class="stat-card purple"><div class="val">${cac==='—'?cac:cac+' €'}</div><div class="label">CAC</div></div>
+      <div class="stat-card ${roi>=0?'green':'red'}"><div class="val">${roi>=0?'+':''}${roi}%</div><div class="label">ROI</div></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><div class="card-title">${ic('ti-timeline',17)}Tunnel de la campagne</div></div>
+      <div style="max-width:600px;margin:10px auto 0">
+        <div style="height:44px;border-radius:10px;background:linear-gradient(90deg,#FB8B3D,var(--th-orange));display:flex;align-items:center;padding:0 16px;color:#fff;margin-bottom:6px;width:100%"><b>${a.leads}</b>&nbsp;leads</div>
+        <div style="height:44px;border-radius:10px;background:linear-gradient(90deg,#FB8B3D,var(--th-orange));display:flex;align-items:center;padding:0 16px;color:#fff;margin-bottom:6px;opacity:0.8;width:${a.leads?Math.max(30,a.prospects/a.leads*100):40}%"><b>${a.prospects||0}</b>&nbsp;prospects</div>
+        <div style="height:44px;border-radius:10px;background:linear-gradient(90deg,#FB8B3D,var(--th-orange));display:flex;align-items:center;padding:0 16px;color:#fff;opacity:0.6;width:${a.prospects?Math.max(20,a.clients/a.prospects*100):20}%"><b>${a.clients||0}</b>&nbsp;clients</div>
+      </div>
+      <p style="text-align:center;font-size:12px;color:var(--th-text-2);margin-top:14px">Taux de conversion lead → client : <b>${convRate}%</b></p>
+    </div>
+  `;
+}
+
+/* ---- Budget ---- */
+function renderMktgBudget(){
+  const statsEl = document.getElementById('marketing-budgetStats');
+  const rowsEl = document.getElementById('marketing-budgetRows');
+  if(!statsEl || !rowsEl) return;
+  const totalBudget = campaigns.reduce((s,c)=>s+(c.budget||0),0);
+  const totalSpent = campaigns.reduce((s,c)=>s+c.cost,0);
+  statsEl.innerHTML = `
+    <div class="stat-card"><div class="val">${totalBudget} €</div><div class="label">Budget total alloué</div></div>
+    <div class="stat-card red"><div class="val">${totalSpent} €</div><div class="label">Dépensé à date</div></div>
+    <div class="stat-card green"><div class="val">${totalBudget-totalSpent} €</div><div class="label">Disponible</div></div>`;
+  rowsEl.innerHTML = campaigns.map(c => {
+    const ecart = c.cost - (c.budget||0);
+    return `<tr><td class="dt-title">${esc(c.title)}</td><td>${c.budget||0} €</td><td>${c.cost} €</td><td><span class="badge ${ecart<=0?'green':'red'}">${ecart>0?'+':''}${ecart} €</span></td></tr>`;
+  }).join('') || `<tr><td colspan="4" style="text-align:center;color:var(--th-text-2)">Aucune campagne pour l'instant.</td></tr>`;
+}
+
+/* ---- Canaux ---- */
+function renderMktgChannels(){
+  const el = document.getElementById('marketing-channelsContent'); if(!el) return;
+  const byChannel = {};
+  campaigns.forEach(c => {
+    if(!byChannel[c.channel]) byChannel[c.channel] = { leads:0, prospects:0, clients:0, cost:0, revenue:0 };
+    const ch = byChannel[c.channel];
+    ch.leads+=c.leads; ch.prospects+=(c.prospects||0); ch.clients+=(c.clients||0); ch.cost+=c.cost; ch.revenue+=(c.revenue||0);
+  });
+  const entries = Object.entries(byChannel).sort((a,b)=>b[1].revenue-a[1].revenue);
+  if(entries.length === 0){ el.innerHTML = `<div class="empty">${ic('ti-share',24)}Aucune campagne pour l'instant.</div>`; return; }
+  const rows = entries.map(([ch,d]) => {
+    const cac = d.clients ? Math.round(d.cost/d.clients) : '—';
+    const roi = d.cost ? Math.round((d.revenue-d.cost)/d.cost*100) : 0;
+    return `<tr><td class="dt-title">${esc(ch)}</td><td>${d.leads}</td><td>${d.prospects}</td><td>${d.clients}</td><td>${d.cost} €</td><td>${cac==='—'?cac:cac+' €'}</td><td><span class="badge ${roi>=0?'green':'red'}">${roi>=0?'+':''}${roi}%</span></td></tr>`;
+  }).join('');
+  el.innerHTML = `<table class="data-table"><thead><tr><th>Canal</th><th>Leads</th><th>Prospects</th><th>Clients</th><th>Dépensé</th><th>CAC</th><th>ROI</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+/* ---- Entonnoir ---- */
+function renderMktgFunnel(){
+  const el = document.getElementById('marketing-funnelContent'); if(!el) return;
+  const visitors = 12400;
+  const leads = campaigns.reduce((s,c)=>s+c.leads,0);
+  const prospectsN = campaigns.reduce((s,c)=>s+(c.prospects||0),0);
+  const clientsN = campaigns.reduce((s,c)=>s+(c.clients||0),0);
+  const revenue = campaigns.reduce((s,c)=>s+(c.revenue||0),0);
+  const step = (n,label,pct,w,rate) => `<div style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
+    <div style="height:52px;border-radius:12px;background:linear-gradient(135deg,#FB8B3D,var(--th-orange));display:flex;align-items:center;padding:0 18px;color:#fff;width:${w}%"><span style="font-size:19px;font-weight:800">${n}</span><span style="font-size:11.5px;opacity:0.9;margin-left:8px">${label}</span></div>
+    ${rate!==null?`<span style="font-size:11.5px;color:var(--th-text-3);font-weight:700;width:60px;text-align:center">${rate}%</span>`:''}
+  </div>`;
+  el.innerHTML = `
+    <div class="card"><div style="max-width:600px;margin:0 auto">
+      ${step(visitors.toLocaleString('fr-FR'),'visiteurs',100,100,null)}
+      ${step(leads,'leads', null, leads?Math.max(20,leads/visitors*400):20, leads?Math.round(leads/visitors*100):0)}
+      ${step(prospectsN,'prospects', null, prospectsN&&leads?Math.max(15,prospectsN/leads*300):15, leads?Math.round(prospectsN/leads*100):0)}
+      ${step(clientsN,'clients', null, clientsN&&prospectsN?Math.max(10,clientsN/prospectsN*200):10, prospectsN?Math.round(clientsN/prospectsN*100):0)}
+    </div>
+    <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--th-text-2)">Chiffre d'affaires généré : <b style="color:var(--th-text)">${revenue.toLocaleString('fr-FR')} €</b></p></div>
+  `;
+}
+
+/* ---- Résultats ---- */
+function renderMktgResults(){
+  const el = document.getElementById('marketing-resultsContent'); if(!el) return;
+  const withProfit = campaigns.filter(c=>c.cost>0).map(c=>({...c, profit:(c.revenue||0)-c.cost})).sort((a,b)=>b.profit-a.profit);
+  const top = withProfit.slice(0,4), bottom = withProfit.slice(-3).reverse();
+  const line = c => `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--th-border)"><span style="font-size:12.5px;font-weight:600">${esc(c.title)}</span><span class="badge ${c.profit>=0?'green':'red'}">${c.profit>=0?'+':''}${c.profit} €</span></div>`;
+  el.innerHTML = `<div class="grid-2">
+    <div class="card"><div class="card-header"><div class="card-title">${ic('ti-trending-up',17)}Campagnes les plus rentables</div></div>${top.map(line).join('') || '<p class="empty-hint">Pas encore de données.</p>'}</div>
+    <div class="card"><div class="card-header"><div class="card-title">${ic('ti-trending-down',17)}À surveiller</div></div>${bottom.map(line).join('') || '<p class="empty-hint">Pas encore de données.</p>'}</div>
+  </div>`;
+}
+
+/* ---- Idées marketing (Link Engine réel) ---- */
+function renderMktgIdeas(){
+  const el = document.getElementById('marketing-ideasContent'); if(!el) return;
+  const unexplored = ideas.filter(i=>!i.explored);
+  if(unexplored.length === 0){
+    el.innerHTML = `<div class="empty">${ic('ti-bulb',24)}Aucune idée en attente. Ce qui apparaît ici vient directement de ta Boîte à idées — rien n'est jamais recréé ici.</div>`;
+    return;
+  }
+  el.innerHTML = unexplored.map(i => `
+    <div class="row-card" style="margin-bottom:8px">
+      <div class="row-main" style="flex:1">${esc(i.text)}</div>
+      <button class="import-btn" onclick="importIdeaToCampaign('${i.id}')">${ic('ti-bulb',14)} Transformer en campagne</button>
+    </div>`).join('');
+}
+
+/* ---- Contenu statique de démonstration (SEO, SEA, Emailing, Calendrier, Bibliothèque, Objectifs, Expérimentations, Apprentissages) ---- */
+const SEO_KEYWORDS = [
+  { kw:'logiciel gestion entreprise terrain', position:4, evol:3, trafic:820, conv:18 },
+  { kw:'saas gestion pme intervention', position:7, evol:1, trafic:410, conv:9 },
+  { kw:'crm pour artisans', position:12, evol:-2, trafic:260, conv:4 },
+  { kw:'logiciel intervention terrain', position:3, evol:5, trafic:990, conv:22 },
+  { kw:'gestion facturation pme', position:15, evol:0, trafic:180, conv:2 },
+  { kw:'application planning technicien', position:6, evol:2, trafic:340, conv:7 },
+  { kw:'logiciel devis facture btp', position:9, evol:-1, trafic:290, conv:5 },
+  { kw:'alternative tigerflow', position:2, evol:8, trafic:150, conv:11 },
+];
+const SEA_STATS = [
+  { name:'Google Ads — mots-clés génériques', platform:'Google Ads', impressions:182000, clicks:4100, cpc:0.93 },
+  { name:'Retargeting Meta Ads', platform:'Meta Ads', impressions:64000, clicks:1250, cpc:0.52 },
+];
+const EMAIL_CAMPAIGNS = [
+  { name:'Newsletter mensuelle — Juillet', sent:'03/07', recipients:2400, openRate:38, clickRate:6.2, conv:14 },
+  { name:'Séquence onboarding — email 1/6', sent:'Automatisé', recipients:1180, openRate:52, clickRate:11.4, conv:38 },
+  { name:'Relance essais expirés', sent:'20/07', recipients:340, openRate:29, clickRate:8.1, conv:9 },
+  { name:'Annonce TigerHub V2', sent:'01/07', recipients:2400, openRate:44, clickRate:9.8, conv:21 },
+];
+const CALENDAR_ITEMS = [
+  { day:2, title:'Article SEO — devis BTP' }, { day:4, title:'Post LinkedIn lancement V2' },
+  { day:8, title:'Newsletter mensuelle' }, { day:11, title:'Vidéo démo produit' },
+  { day:15, title:"Article — signes qu'il faut changer d'outil" }, { day:18, title:'Carrousel Instagram' },
+  { day:22, title:'Étude de cas client' }, { day:25, title:'Post LinkedIn témoignage' }, { day:29, title:'Email relance essais' },
+];
+const CONTENT_LIBRARY = [
+  { title:'Guide — Digitaliser son entreprise de terrain', type:'PDF' }, { title:"Article — signes qu'il faut changer d'outil", type:'Article' },
+  { title:'Démonstration produit — 3 minutes', type:'Vidéo' }, { title:'Témoignage client', type:'Étude de cas' },
+  { title:"Infographie — ROI d'un logiciel terrain", type:'Infographie' }, { title:'Webinaire replay', type:'Vidéo' },
+  { title:'Carrousel — 3 erreurs de planning', type:'Post' }, { title:'Newsletter juillet', type:'Email' },
+];
+const MKTG_GOALS = [
+  { name:'Leads mensuels', target:250, current:210, unit:'', more:true },
+  { name:'CAC cible', target:150, current:132, unit:'€', more:false },
+  { name:'Clients par mois', target:15, current:11, unit:'', more:true },
+  { name:'Budget mensuel maîtrisé', target:8000, current:6350, unit:'€', more:false },
+];
+const EXPERIMENTS = [
+  { title:"Objet d'email avec prénom vs générique", status:'Terminé', hyp:"Un objet personnalisé augmente le taux d'ouverture.", result:"+9 points (47% vs 38%).", learning:"Personnaliser systématiquement l'objet des emails." },
+  { title:"Page d'atterrissage courte vs longue", status:'Terminé', hyp:"Une page courte convertit mieux.", result:'Résultat quasi identique (4.1% vs 3.9%).', learning:"Le format compte moins que la qualité du trafic source." },
+  { title:'Afficher le prix vs "Demander un devis"', status:'En cours', hyp:'Cacher le prix augmente les leads mais baisse leur qualité.', result:'+40% de leads, closing à confirmer.', learning:null },
+];
+const LEARNINGS = [
+  "Le SEO génère le meilleur ratio coût/client du portefeuille — à renforcer avant d'augmenter les budgets payants.",
+  "Les partenariats génériques attirent du volume mais peu de clients qualifiés — cibler des créateurs spécialisés B2B.",
+  "Les emails personnalisés surperforment les emails génériques de 8 à 10 points de taux d'ouverture.",
+  "Les webinaires génèrent du volume mais convertissent moins que le contenu — utiles pour la notoriété, pas la conversion directe.",
+];
 
 /* ================= SALES PORTAL ================= */
 const SALES_STAGES = ['Nouveau','Qualifié','Proposition','Négociation','Gagné'];
@@ -1523,8 +1810,10 @@ async function init(){
     loadKey('launch-manager:checklist'), loadKey('finance:revenues'), loadKey('finance:expenses')
   ]);
   bindEvents();
+  await seedDemoCampaignsIfEmpty();
   renderDashboardHome(); renderPlanner(); renderIdeaBox();
   renderMktgStats(); renderCampaigns();
+  renderMktgChannels(); renderMktgBudget(); renderMktgFunnel(); renderMktgResults(); renderMktgIdeas();
   renderSalesStats(); renderProspects(); renderPipeline();
   renderFbStats(); renderFeedbacks();
   renderRoadmap(); renderBacklog();
