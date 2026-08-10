@@ -285,6 +285,10 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
   box-shadow:var(--th-shadow);border:1px solid var(--th-border);
 }
 .card-header{display:flex;align-items:center;gap:9px;margin-bottom:17px}
+.card-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700}
+.card-title .icon{color:var(--th-orange)}
+.grid-2{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
+@media (max-width:900px){.grid-2{grid-template-columns:1fr}}
 .card-header i{font-size:17px;color:var(--th-orange)}
 .card-header span{font-weight:700;font-size:15px}
 .task-line{display:flex;align-items:center;gap:10px;font-size:14px;padding:7px 0;font-weight:500}
@@ -734,8 +738,11 @@ function panelTemplate(moduleId, s){
   switch(s.kind){
     case 'dashboardHome': return `
       <p class="subtitle" id="${p}-dateLabel"></p><h1>Salut Sophie</h1><p class="tone" id="${p}-tone"></p>
-      <div class="card"><div class="card-header">${ic('ti-target')}<span id="${p}-focusTitle">Focus du jour</span></div><div id="${p}-focusContent"></div></div>
-      <div class="card"><div class="card-header">${ic('ti-bulb')}<span>Dernières idées captées</span></div><div id="${p}-ideasContent"></div></div>`;
+      <div class="stats-grid" id="${p}-statsGrid"></div>
+      <div class="grid-2">
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-target',17)}<span id="${p}-focusTitle">Focus du jour</span></div></div><div id="${p}-focusContent"></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-bulb',17)}<span>Dernières idées captées</span></div></div><div id="${p}-ideasContent"></div></div>
+      </div>`;
     case 'plannerToday': return `
       <h1>Ta journée</h1><p class="subtitle" id="${p}-subtitle"></p>
       <div class="capture"><div class="capture-row">
@@ -750,7 +757,7 @@ function panelTemplate(moduleId, s){
         <button class="add-btn" id="${p}-addBtn">Capturer</button>
       </div></div><div id="${p}-content"></div>`;
     case 'mktgDashboard': return `<h1>Dashboard Marketing</h1><p class="subtitle">Vue d'ensemble de tes campagnes</p><div class="stats-grid" id="${p}-statsGrid"></div>
-      <div class="card"><div class="card-header">${ic('ti-chart-bar')}<span>Leads par canal</span></div><div id="${p}-channelChart"></div></div>`;
+      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-chart-bar',17)}<span>Leads par canal</span></div></div><div id="${p}-channelChart"></div></div>`;
     case 'mktgCampaigns': return `
       <h1>Campagnes</h1><p class="subtitle">Quelles actions génèrent le plus de prospects et de clients ?</p>
       <div class="capture"><div class="capture-row">
@@ -887,6 +894,20 @@ function renderDashboardHome(){
   const p = 'dashboard';
   const focusTitleEl = document.getElementById(`${p}-focusTitle`);
   if(!focusTitleEl) return;
+
+  const statsGrid = document.getElementById(`${p}-statsGrid`);
+  if(statsGrid){
+    const activeTasksCount = tasks.filter(t=>!t.done).length;
+    const unexploredIdeasCount = ideas.filter(i=>!i.explored).length;
+    const activeCampaignsCount = campaigns.filter(c=>c.status==='En cours' || c.status==='Planifiée').length;
+    const openProspectsCount = prospects.filter(p=>p.stage!=='Gagné').length;
+    statsGrid.innerHTML = `
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-calendar-event',15)}</div><div class="val">${activeTasksCount}</div><div class="label">Tâches actives</div></div>
+      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-bulb',15)}</div><div class="val">${unexploredIdeasCount}</div><div class="label">Idées à explorer</div></div>
+      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-target-arrow',15)}</div><div class="val">${activeCampaignsCount}</div><div class="label">Campagnes en cours</div></div>
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-user-plus',15)}</div><div class="val">${openProspectsCount}</div><div class="label">Prospects en cours</div></div>`;
+  }
+
   const activeTasks = tasks.filter(t => !t.done);
   const priorityTasks = activeTasks.filter(t => t.impact);
   const focusTasks = priorityTasks.length ? priorityTasks : activeTasks.slice(0,2);
