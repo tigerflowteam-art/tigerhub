@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TigerHub</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+<style>
+:root{--th-bg:#F7F7F9;--th-sidebar:#F3F3F1;--th-card:#FFFFFF;--th-text:#1F2937;--th-text-2:#6B7280;--th-border:#EEEDE8;--th-orange:#F97316;--th-orange-bg:#FFF1E7;--th-red:#EF4444;--th-red-bg:#FEE2E2;--th-green:#22C55E;--th-shadow:0 1px 2px rgba(31,41,55,0.03), 0 4px 16px rgba(31,41,55,0.03)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--th-bg);color:var(--th-text);display:flex;min-height:100vh}
+#sidebar{width:200px;flex-shrink:0;background:var(--th-sidebar);padding:24px 12px;display:flex;flex-direction:column}
+.logo{font-weight:500;font-size:16px;padding:0 8px;margin-bottom:24px}.logo span{color:var(--th-orange)}
+.nav-group-title{font-size:11px;color:var(--th-text-2);font-weight:500;padding:0 10px;margin:16px 0 6px}
+.nav-group-title:first-of-type{margin-top:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;font-size:13px;color:var(--th-text-2);margin-bottom:2px;cursor:pointer}
+.nav-item:hover{background:rgba(0,0,0,0.03)}
+.nav-item.active{background:var(--th-orange);color:#fff;font-weight:500}.nav-item i{font-size:16px}
+.module-view{display:none;flex:1;min-width:0}
+.module-view.active{display:flex}
+.submenu{width:190px;flex-shrink:0;padding:32px 10px;border-right:0.5px solid var(--th-border)}
+.submenu-title{font-size:11px;color:var(--th-text-2);font-weight:500;padding:0 10px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.03em}
+.sub-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--th-text-2);cursor:pointer;margin-bottom:1px}
+.sub-item:hover{background:var(--th-bg)}.sub-item.active{background:var(--th-orange-bg);color:var(--th-orange);font-weight:500}
+.sub-item i{font-size:15px}.soon-dot{width:5px;height:5px;border-radius:50%;background:#D1D5DB;margin-left:auto}
+main{flex:1;padding:32px 40px;min-width:0;max-width:900px;overflow-y:auto}
+h1{font-size:20px;font-weight:500;margin-bottom:4px}.subtitle{color:var(--th-text-2);font-size:13px;margin-bottom:4px}.tone{color:var(--th-text-2);font-size:13px;margin-bottom:24px}
+.panel{display:none}.panel.active{display:block}
+.placeholder{background:var(--th-card);border-radius:16px;padding:40px;text-align:center;box-shadow:var(--th-shadow)}
+.placeholder i{font-size:28px;color:var(--th-orange);margin-bottom:12px;display:block}
+.placeholder-badge{display:inline-block;font-size:11px;color:var(--th-orange);background:var(--th-orange-bg);border-radius:6px;padding:3px 10px;margin-bottom:10px}
+.placeholder p{font-size:13px;color:var(--th-text-2);max-width:380px;margin:0 auto;line-height:1.6}
+.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.stat-card{background:var(--th-card);border-radius:16px;padding:18px;box-shadow:var(--th-shadow)}
+.stat-card .val{font-size:22px;font-weight:500}.stat-card .label{font-size:12px;color:var(--th-text-2);margin-top:2px}
+.stat-card.green .val{color:var(--th-green)}.stat-card.red .val{color:var(--th-red)}
+.capture{background:var(--th-card);border-radius:16px;padding:16px;box-shadow:var(--th-shadow);margin-bottom:16px}
+.capture-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.capture input[type="text"]{flex:1;min-width:140px;border:none;outline:none;font-size:14px;background:transparent;color:var(--th-text)}
+.capture input[type="text"].fixed{flex:none;width:170px;border:0.5px solid var(--th-border);border-radius:8px;padding:7px 10px}
+.capture input[type="number"]{width:100px;border:0.5px solid var(--th-border);border-radius:8px;padding:7px 10px;font-size:13px}
+.capture select{border:0.5px solid var(--th-border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--th-text-2);background:transparent}
+.capture textarea{width:100%;border:none;outline:none;font-size:13px;background:transparent;color:var(--th-text);min-height:60px;resize:vertical;font-family:inherit;margin-top:6px}
+.capture-title{width:100%;border:none;outline:none;font-size:14px;background:transparent;color:var(--th-text);font-weight:500}
+.capture-footer{display:flex;justify-content:flex-end;margin-top:8px}
+.add-btn{background:var(--th-orange);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+.import-btn{background:transparent;color:var(--th-orange);border:0.5px solid var(--th-orange);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.import-btn i{font-size:15px}
+.section-label{font-size:12px;color:var(--th-text-2);font-weight:500;margin:0 0 10px}
+.row-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.row-card{background:var(--th-card);border-radius:14px;padding:16px;box-shadow:var(--th-shadow);display:flex;align-items:center;gap:14px}
+.row-main{flex:1;min-width:0}.row-title{font-size:14px;margin-bottom:4px}.row-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--th-text-2)}
+.badge{font-size:11px;color:var(--th-text-2);background:var(--th-bg);border-radius:6px;padding:2px 8px}
+.badge.origin{color:var(--th-orange);background:var(--th-orange-bg);display:flex;align-items:center;gap:4px}
+.badge.origin i{font-size:12px}
+.badge.critique{color:var(--th-red);background:var(--th-red-bg)}
+select.status-select{border:0.5px solid var(--th-border);border-radius:8px;padding:5px 8px;font-size:12px;color:var(--th-text-2)}
+.stat-input{width:56px;border:0.5px solid var(--th-border);border-radius:6px;padding:3px 6px;font-size:12px;text-align:center}
+.vote-group{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.vote-btn{width:26px;height:26px;border-radius:8px;border:0.5px solid var(--th-border);background:none;cursor:pointer;color:var(--th-orange)}
+.vote-count{font-size:14px;font-weight:500;width:20px;text-align:center}
+.delete-btn{background:none;border:none;cursor:pointer;color:var(--th-text-2);padding:4px;flex-shrink:0;opacity:0;transition:opacity .1s}
+.row-card:hover .delete-btn{opacity:1}.delete-btn i{font-size:16px}
+.empty{text-align:center;padding:36px 20px;color:var(--th-text-2);font-size:13px;background:var(--th-card);border-radius:16px;box-shadow:var(--th-shadow)}
+.empty i{font-size:22px;color:var(--th-orange);display:block;margin-bottom:8px}
+.card{background:var(--th-card);border-radius:18px;padding:24px;margin-bottom:20px;box-shadow:var(--th-shadow)}
+.card-header{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.card-header i{font-size:18px;color:var(--th-orange)}.card-header span{font-weight:500;font-size:15px}
+.task-line{display:flex;align-items:center;gap:10px;font-size:14px;padding:6px 0}
+.task-line input[type="checkbox"]{width:16px;height:16px;accent-color:var(--th-orange)}
+.idea-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:10px 0;border-bottom:0.5px solid var(--th-border)}
+.idea-row:last-child{border-bottom:none}.idea-date{color:var(--th-text-2);font-size:11px}
+.empty-hint{font-size:13px;color:var(--th-text-2);line-height:1.6}
+.impact-toggle{display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--th-text-2);font-size:12px;border:0.5px solid var(--th-border);border-radius:8px;padding:5px 10px;background:transparent}
+.impact-toggle.active{color:var(--th-orange);border-color:var(--th-orange);background:var(--th-orange-bg)}
+.impact-toggle i{font-size:14px}
+.explore-btn{background:none;border:0.5px solid var(--th-border);border-radius:8px;cursor:pointer;color:var(--th-text-2);padding:5px 10px;font-size:11px;flex-shrink:0}
+.explore-btn.active{color:var(--th-orange);border-color:var(--th-orange);background:var(--th-orange-bg)}
+.kanban{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.kanban-col{background:var(--th-card);border-radius:14px;padding:12px;box-shadow:var(--th-shadow);min-height:100px}
+.kanban-col-title{font-size:11px;color:var(--th-text-2);font-weight:500;margin-bottom:10px}
+.kanban-card{background:var(--th-bg);border-radius:10px;padding:10px;font-size:12px;margin-bottom:6px}
+.kanban-card .kv{font-size:11px;color:var(--th-text-2);margin-top:2px}
+.kanban-empty{font-size:11px;color:var(--th-text-2);text-align:center;padding:10px 0}
+.note-card{background:var(--th-card);border-radius:14px;padding:16px;box-shadow:var(--th-shadow);margin-bottom:8px}
+.note-title{font-size:14px;font-weight:500;margin-bottom:4px}
+.note-body{font-size:13px;color:var(--th-text-2);line-height:1.6;margin-bottom:8px;white-space:pre-wrap}
+.note-footer{display:flex;justify-content:space-between;align-items:center}
+.note-date{font-size:11px;color:var(--th-text-2)}
+.task-flat-list{display:flex;flex-direction:column;gap:1px;background:var(--th-card);border-radius:16px;box-shadow:var(--th-shadow);overflow:hidden}
+.task-flat{display:flex;align-items:center;gap:10px;font-size:14px;padding:12px 16px;border-bottom:0.5px solid var(--th-border)}
+.task-flat:last-child{border-bottom:none}
+.task-flat.done{opacity:0.5}.task-flat.done span{text-decoration:line-through}
+.task-flat input[type="checkbox"]{width:16px;height:16px;accent-color:var(--th-orange)}
+.task-flat span{flex:1}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(31,41,55,0.4);align-items:center;justify-content:center;z-index:10}
+.modal-overlay.open{display:flex}
+.modal{background:var(--th-card);border-radius:16px;padding:20px;width:100%;max-width:420px;box-shadow:var(--th-shadow)}
+.modal h3{font-size:15px;margin-bottom:12px}
+.modal-item{padding:10px 12px;border-radius:10px;font-size:13px;cursor:pointer;border:0.5px solid var(--th-border);margin-bottom:8px}
+.modal-item:hover{border-color:var(--th-orange);background:var(--th-orange-bg)}
+.modal-close{margin-top:10px;font-size:12px;color:var(--th-text-2);background:none;border:none;cursor:pointer}
+.modal-empty{font-size:13px;color:var(--th-text-2);text-align:center;padding:16px 0}
+</style></head>
+<body>
+
+<aside id="sidebar"><div class="logo">Tiger<span>Hub</span></div></aside>
+<div id="app"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal"><h3 id="modalTitle"></h3><div id="modalContent"></div>
+    <button class="modal-close" id="modalClose">Annuler</button>
+  </div>
+</div>
+
+<script>
+/* ---------- Générique ---------- */
+function esc(str){ const d=document.createElement('div'); d.textContent=str==null?'':str; return d.innerHTML; }
+async function loadKey(k){ try{ const r = await window.storage.get(k); return r?JSON.parse(r.value):[]; }catch(e){ return []; } }
+async function saveKey(k,v){ try{ await window.storage.set(k, JSON.stringify(v)); }catch(e){ console.error(e); } }
+function fmtDate(iso){ const d=new Date(iso); return d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}); }
+function fmtDateTime(iso){ const d=new Date(iso); return d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})+' à '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }
+
+/* ---------- Données ---------- */
+let tasks=[], ideas=[], campaigns=[], prospects=[], feedbacks=[], features=[], bugs=[], competitors=[], contacts=[], partners=[], notes=[], decisions=[], launchItems=[], revenues=[], expenses=[];
+
+/* ---------- Définition des modules ---------- */
+const MODULES = [
+  { id:'dashboard', label:'Tableau de bord', group:'🏠 Accueil', icon:'ti-layout-dashboard', sections:[
+    { id:'home', label:'Vue générale', icon:'ti-home', kind:'dashboardHome' },
+    { id:'focus', label:'Focus du jour', icon:'ti-target', desc:"Vue dédiée et approfondie du focus du jour." },
+    { id:'decisions', label:'Décisions à prendre', icon:'ti-scale', desc:"Toutes les décisions en attente, remontées de l'ensemble des modules." },
+    { id:'watch', label:'À surveiller', icon:'ti-alert-triangle', desc:"Signaux critiques consolidés : bugs, objectifs en retard, alertes financières." },
+    { id:'activity', label:'Activité récente', icon:'ti-history', desc:"Fil chronologique de tout ce qui a bougé récemment." },
+    { id:'kpi', label:'Objectifs & KPI', icon:'ti-chart-bar', desc:"Suivi des objectifs d'entreprise dans le temps." },
+    { id:'custom', label:'Vue personnalisée', icon:'ti-layout-grid-add', desc:"Composer une vue sur-mesure." },
+    { id:'settings', label:'Paramètres du Dashboard', icon:'ti-settings', desc:"Choisir ce qui apparaît sur la Vue générale." },
+  ]},
+  { id:'planner', label:'Planificateur quotidien', group:'🎯 Organisation personnelle', icon:'ti-calendar-event', sections:[
+    { id:'today', label:"Aujourd'hui", icon:'ti-sun', kind:'plannerToday' },
+    { id:'week', label:'Cette semaine', icon:'ti-calendar-week', desc:"Vue étendue sur 7 jours." },
+    { id:'calendar', label:'Calendrier', icon:'ti-calendar', desc:"Vue calendrier une fois les tâches datées." },
+    { id:'all', label:'Toutes les tâches', icon:'ti-list', desc:"Vue complète, actives et terminées." },
+    { id:'priorities', label:'Priorités', icon:'ti-star', desc:"Vue dédiée aux tâches prioritaires." },
+    { id:'routine', label:'Routine', icon:'ti-repeat', desc:"Tâches récurrentes." },
+    { id:'goals', label:'Objectifs', icon:'ti-target', desc:"Objectifs personnels à plus long terme." },
+    { id:'archives', label:'Archives', icon:'ti-archive', desc:"Historique des tâches terminées." },
+    { id:'settings', label:'Paramètres', icon:'ti-settings', desc:"Préférences d'affichage et de tri." },
+  ]},
+  { id:'ideabox', label:'Boîte à idées', icon:'ti-bulb', sections:[
+    { id:'inbox', label:'Boîte de réception', icon:'ti-inbox', kind:'ideaInbox' },
+    { id:'all', label:'Toutes les idées', icon:'ti-list', desc:"Vue complète sans distinction de statut." },
+    { id:'analyze', label:'À analyser', icon:'ti-search', desc:"Idées qui méritent réflexion." },
+    { id:'validated', label:'Validées', icon:'ti-circle-check', desc:"Idées prêtes à devenir une action." },
+    { id:'rejected', label:'Rejetées', icon:'ti-circle-x', desc:"Idées écartées." },
+    { id:'category', label:'Par catégorie', icon:'ti-category', desc:"Classement par thème." },
+    { id:'links', label:'Liens avec les autres modules', icon:'ti-link', desc:"Ce que chaque idée est devenue ailleurs." },
+    { id:'archives', label:'Archives', icon:'ti-archive', desc:"Idées explorées." },
+    { id:'settings', label:'Paramètres', icon:'ti-settings', desc:"Préférences de capture." },
+  ]},
+  { id:'marketing', label:'Marketing', group:'📈 Développement de TigerFlow', icon:'ti-speakerphone', sections:[
+    { id:'mktg-dashboard', label:'Dashboard Marketing', icon:'ti-chart-donut-3', kind:'mktgDashboard' },
+    { id:'campaigns', label:'Campagnes', icon:'ti-target-arrow', kind:'mktgCampaigns' },
+    { id:'editorial', label:'Calendrier éditorial', icon:'ti-calendar', desc:"Planifier les publications à venir." },
+    { id:'social', label:'Réseaux sociaux', icon:'ti-share', desc:"LinkedIn, TikTok, YouTube, Facebook, Instagram, Reddit." },
+    { id:'seo', label:'SEO', icon:'ti-search', desc:"Mots-clés, positionnement, pages à optimiser." },
+    { id:'sea', label:'SEA', icon:'ti-ad-2', desc:"Campagnes publicitaires payantes." },
+    { id:'emailing', label:'Emailing', icon:'ti-mail', desc:"Emailing et newsletters." },
+    { id:'budget', label:'Budget', icon:'ti-wallet', desc:"Allocation du budget par canal." },
+    { id:'results', label:'Résultats', icon:'ti-chart-line', desc:"Analyse approfondie des conversions." },
+    { id:'library', label:'Bibliothèque de contenus', icon:'ti-photo', desc:"Visuels et gabarits réutilisables." },
+    { id:'ai', label:'IA', icon:'ti-sparkles', desc:"Suggestions de contenu, via le futur Centre IA." },
+    { id:'settings', label:'Paramètres', icon:'ti-settings', desc:"Canaux connectés, accès." },
+  ]},
+  { id:'sales', label:'Développement commercial', icon:'ti-briefcase', sections:[
+    { id:'sales-dashboard', label:'Dashboard Commercial', icon:'ti-chart-donut-3', kind:'salesDashboard' },
+    { id:'prospects', label:'Prospects', icon:'ti-user-plus', kind:'salesProspects' },
+    { id:'pipeline', label:'Pipeline', icon:'ti-timeline', kind:'salesPipeline' },
+    { id:'opportunities', label:'Opportunités', icon:'ti-bulb', desc:"Opportunités qualifiées avec probabilité de closing." },
+    { id:'demos', label:'Démonstrations', icon:'ti-presentation', desc:"Démonstrations produit réalisées." },
+    { id:'quotes', label:'Devis', icon:'ti-file-invoice', desc:"Devis envoyés jusqu'à signature." },
+    { id:'contracts', label:'Contrats', icon:'ti-file-certificate', desc:"Contrats clients signés." },
+    { id:'reps', label:'Commerciaux', icon:'ti-users', desc:"Commerciaux freelance et portefeuilles." },
+    { id:'commissions', label:'Commissions', icon:'ti-percentage', desc:"Commissions dues par commercial." },
+    { id:'performance', label:'Performances', icon:'ti-chart-bar', desc:"Comparaison des performances dans le temps." },
+    { id:'docs', label:'Documents commerciaux', icon:'ti-folder', desc:"Plaquettes et argumentaires." },
+    { id:'scripts', label:'Scripts', icon:'ti-message-2', desc:"Scripts d'appel et de relance." },
+    { id:'settings', label:'Paramètres', icon:'ti-settings', desc:"Étapes du pipeline, accès." },
+  ]},
+  { id:'feedback', label:'Retours clients', icon:'ti-heart', sections:[
+    { id:'fb-dashboard', label:'Tableau de bord', icon:'ti-chart-donut-3', kind:'fbDashboard' },
+    { id:'requests', label:'Toutes les demandes', icon:'ti-messages', kind:'fbRequests' },
+    { id:'votes', label:'Votes', icon:'ti-thumb-up', desc:"Vue triée par nombre de votes." },
+    { id:'trends', label:'Tendances', icon:'ti-trending-up', desc:"Sujets récurrents dans le temps." },
+    { id:'priorities', label:'Priorités', icon:'ti-flag', desc:"Croisement votes / impact." },
+    { id:'validated', label:'Suggestions validées', icon:'ti-circle-check', desc:"Demandes transformées en fonctionnalités." },
+    { id:'pm-link', label:'Liens avec Gestion produit', icon:'ti-link', desc:"Statut roadmap de chaque demande validée." },
+    { id:'settings', label:'Paramètres', icon:'ti-settings', desc:"Sources de feedback, seuils d'alerte." },
+  ]},
+  { id:'pm', label:'Gestion produit', icon:'ti-tools', sections:[
+    { id:'roadmap', label:'Roadmap', icon:'ti-map', kind:'pmRoadmap' },
+    { id:'backlog', label:'Backlog', icon:'ti-list-check', kind:'pmBacklog' },
+    { id:'versions', label:'Versions', icon:'ti-versions', desc:"Regrouper par version de TigerFlow." },
+    { id:'features', label:'Fonctionnalités', icon:'ti-puzzle', desc:"Fiches détaillées par fonctionnalité." },
+    { id:'priorities', label:'Priorités', icon:'ti-flag', desc:"Votes clients, effort, impact." },
+    { id:'mockups', label:'Maquettes', icon:'ti-layout-grid', desc:"Maquettes associées à chaque fonctionnalité." },
+    { id:'docs', label:'Documentation', icon:'ti-file-text', desc:"Documentation liée à chaque livraison." },
+    { id:'history', label:'Historique', icon:'ti-history', desc:"Historique des décisions produit." },
+    { id:'settings', label:'Paramètres', icon:'ti-settings', desc:"Statuts personnalisés, accès." },
+  ]},
+  { id:'bugs', label:'Support & Bugs', icon:'ti-bug', sections:[
+    { id:'sb-dashboard', label:'Tableau de bord', icon:'ti-chart-donut-3', kind:'bugsDashboard' },
+    { id:'open', label:'Bugs ouverts', icon:'ti-bug', kind:'bugsOpen' },
+    { id:'critical', label:'Bugs critiques', icon:'ti-alert-triangle', kind:'bugsCritical' },
+    { id:'fixes', label:'Corrections', icon:'ti-circle-check', desc:"Corrections livrées, liées à leur version." },
+    { id:'versions', label:'Versions', icon:'ti-versions', desc:"Bugs corrigés par version." },
+    { id:'incidents', label:'Incidents', icon:'ti-alert-octagon', desc:"Incidents de production plus larges." },
+    { id:'history', label:'Historique', icon:'ti-history', desc:"Historique complet des bugs." },
+    { id:'settings', label:'Paramètres', icon:'ti-settings', desc:"Niveaux de gravité, notifications." },
+  ]},
+  { id:'finance', label:'Finances', group:'📊 Pilotage de l\u2019entreprise', icon:'ti-currency-euro', sections:[
+    { id:'fin-dashboard', label:'Dashboard financier', icon:'ti-chart-donut-3', kind:'finDashboard' },
+    { id:'revenue', label:'Revenus', icon:'ti-trending-up', kind:'finRevenue' },
+    { id:'expenses', label:'Dépenses', icon:'ti-trending-down', kind:'finExpenses' },
+    { id:'marketing', label:'Marketing', icon:'ti-speakerphone', desc:"Détail des dépenses marketing par canal." },
+    { id:'commissions', label:'Commissions', icon:'ti-percentage', desc:"Commissions dues, lues depuis Développement commercial." },
+    { id:'treasury', label:'Trésorerie', icon:'ti-building-bank', desc:"Trésorerie disponible dans le temps." },
+    { id:'forecast', label:'Prévisions', icon:'ti-chart-line', desc:"Projection des revenus et dépenses." },
+    { id:'kpi', label:'KPI', icon:'ti-target', desc:"MRR, marge, coût d'acquisition." },
+    { id:'settings', label:'Paramètres', icon:'ti-settings', desc:"Devise, catégories, objectifs." },
+  ]},
+  { id:'competitor', label:'Veille concurrentielle', icon:'ti-eye', sections:[
+    { id:'cw-dashboard', label:'Tableau de bord', icon:'ti-chart-donut-3', kind:'cwDashboard' },
+    { id:'competitors', label:'Concurrents', icon:'ti-building', kind:'cwCompetitors' },
+    { id:'features', label:'Fonctionnalités', icon:'ti-puzzle', desc:"Comparaison avec TigerFlow." },
+    { id:'pricing', label:'Tarifs', icon:'ti-tag', desc:"Évolution des grilles tarifaires." },
+    { id:'marketing', label:'Marketing', icon:'ti-speakerphone', desc:"Positionnement marketing des concurrents." },
+    { id:'seo', label:'SEO', icon:'ti-search', desc:"Positionnement SEO comparé." },
+    { id:'ads', label:'Publicités', icon:'ti-ad-2', desc:"Publicités actives des concurrents." },
+    { id:'news', label:'Actualités', icon:'ti-news', desc:"Fil d'annonces et de sorties." },
+    { id:'opportunities', label:'Opportunités', icon:'ti-bulb', desc:"Faiblesses à exploiter." },
+  ]},
+  { id:'ai', label:'Centre IA', icon:'ti-robot', sections:[
+    { id:'ai-dashboard', label:'Tableau de bord', icon:'ti-chart-donut-3', desc:"Vue d'ensemble des automatisations actives." },
+    { id:'prompts', label:'Prompts', icon:'ti-message-code', desc:"Bibliothèque de prompts réutilisables." },
+    { id:'agents', label:'Agents IA', icon:'ti-robot', desc:"Agents dédiés à des tâches précises." },
+    { id:'automations', label:'Automatisations', icon:'ti-bolt', desc:"Règles automatiques entre modules." },
+    { id:'content-gen', label:'Génération de contenu', icon:'ti-pencil', desc:"Assistance à la génération de contenu." },
+    { id:'analysis', label:'Analyse', icon:'ti-chart-histogram', desc:"Analyse croisée entre modules." },
+    { id:'library', label:'Bibliothèque', icon:'ti-books', desc:"Ressources IA de référence." },
+    { id:'settings', label:'Paramètres', icon:'ti-settings', desc:"Connexions aux modèles IA." },
+  ]},
+  { id:'contacts', label:'Contacts', group:'🏢 Organisation de l\u2019entreprise', icon:'ti-address-book', sections:[
+    { id:'contacts', label:'Contacts', icon:'ti-address-book', kind:'contactsList' },
+    { id:'clients', label:'Clients', icon:'ti-user-check', desc:"Vue filtrée des contacts Client." },
+    { id:'prospects', label:'Prospects', icon:'ti-user-plus', desc:"Lus depuis Développement commercial." },
+    { id:'partners', label:'Partenaires', icon:'ti-handshake', desc:"Vue filtrée, reliée à Partenaires." },
+    { id:'devs', label:'Développeurs', icon:'ti-code', desc:"Vue filtrée des développeurs." },
+    { id:'reps', label:'Commerciaux', icon:'ti-briefcase', desc:"Vue filtrée, reliée à Développement commercial." },
+    { id:'suppliers', label:'Fournisseurs', icon:'ti-truck', desc:"Vue filtrée des fournisseurs." },
+    { id:'tags', label:'Tags', icon:'ti-tags', desc:"Organisation libre par tags." },
+  ]},
+  { id:'partners', label:'Partenaires', icon:'ti-handshake', sections:[
+    { id:'partners', label:'Partenaires', icon:'ti-handshake', kind:'partnersList' },
+    { id:'contracts', label:'Contrats', icon:'ti-file-certificate', desc:"Contrats de partenariat en cours." },
+    { id:'commissions', label:'Commissions', icon:'ti-percentage', desc:"Commissions dues aux partenaires." },
+    { id:'history', label:'Historique', icon:'ti-history', desc:"Échanges et actions menées." },
+    { id:'docs', label:'Documents', icon:'ti-folder', desc:"Documents partagés avec les partenaires." },
+  ]},
+  { id:'knowledge', label:'Centre de connaissances', icon:'ti-books', sections:[
+    { id:'notes', label:'Notes', icon:'ti-note', kind:'kcNotes' },
+    { id:'documentation', label:'Documentation', icon:'ti-file-text', desc:"Documentation structurée par thème." },
+    { id:'sop', label:'SOP', icon:'ti-checklist', desc:"Procédures standardisées." },
+    { id:'guides', label:'Guides', icon:'ti-book', desc:"Guides pas-à-pas." },
+    { id:'wiki', label:'Wiki', icon:'ti-brand-wikipedia', desc:"Base de connaissance interconnectée." },
+    { id:'resources', label:'Ressources', icon:'ti-link', desc:"Liens et fichiers de référence." },
+    { id:'search', label:'Recherche', icon:'ti-search', desc:"Recherche dédiée dans les connaissances." },
+  ]},
+  { id:'decision', label:'Journal des décisions', icon:'ti-notebook', sections:[
+    { id:'decisions', label:'Décisions', icon:'ti-notebook', kind:'djDecisions' },
+    { id:'history', label:'Historique', icon:'ti-history', desc:"Vue chronologique complète." },
+    { id:'results', label:'Résultats', icon:'ti-target-arrow', desc:"Ce qui s'est réellement passé." },
+    { id:'lessons', label:'Enseignements', icon:'ti-bulb', desc:"Ce que chaque décision a appris." },
+  ]},
+  { id:'legal', label:'Juridique', icon:'ti-scale', sections:[
+    { id:'contracts', label:'Contrats', icon:'ti-file-certificate', desc:"Contrats signés, clients et prestataires." },
+    { id:'nda', label:'NDA', icon:'ti-lock', desc:"Accords de confidentialité et échéances." },
+    { id:'trademarks', label:'Marques', icon:'ti-stamp', desc:"Marques déposées et leur statut." },
+    { id:'terms', label:'Conditions générales', icon:'ti-file-description', desc:"CGV et CGU, avec historique des versions." },
+    { id:'official', label:'Documents officiels', icon:'ti-file-invoice', desc:"Statuts, K-bis et documents administratifs." },
+  ]},
+  { id:'launch', label:'Gestion des lancements', icon:'ti-rocket', sections:[
+    { id:'launches', label:'Lancements', icon:'ti-rocket', desc:"Tous les lancements passés et à venir." },
+    { id:'checklist', label:'Checklist', icon:'ti-checklist', kind:'launchChecklist' },
+    { id:'marketing', label:'Marketing', icon:'ti-speakerphone', desc:"Actions marketing dédiées au lancement." },
+    { id:'comms', label:'Communication', icon:'ti-message-2', desc:"Messages et annonces prévus." },
+    { id:'deployment', label:'Déploiement', icon:'ti-server', desc:"Étapes techniques de déploiement." },
+    { id:'tracking', label:'Suivi', icon:'ti-chart-line', desc:"Résultats du lancement." },
+  ]},
+];
+
+let currentModule = 'dashboard';
+
+/* ---------- Construction du DOM ---------- */
+function buildSidebar(){
+  const sb = document.getElementById('sidebar');
+  let lastGroup = null;
+  MODULES.forEach((m, idx) => {
+    if(m.group && m.group !== lastGroup){
+      const title = document.createElement('div');
+      title.className = 'nav-group-title';
+      title.textContent = m.group;
+      sb.appendChild(title);
+      lastGroup = m.group;
+    }
+    const el = document.createElement('div');
+    el.className = 'nav-item' + (idx===0 ? ' active' : '');
+    el.dataset.module = m.id;
+    el.innerHTML = `<i class="ti ${m.icon}"></i>${m.label}`;
+    el.addEventListener('click', () => selectModule(m.id));
+    sb.appendChild(el);
+  });
+}
+
+function buildApp(){
+  const app = document.getElementById('app');
+  MODULES.forEach((m, mIdx) => {
+    const view = document.createElement('div');
+    view.className = 'module-view' + (mIdx===0 ? ' active' : '');
+    view.id = 'view-' + m.id;
+
+    const submenu = document.createElement('nav');
+    submenu.className = 'submenu';
+    submenu.innerHTML = `<div class="submenu-title">${m.label}</div>`;
+    m.sections.forEach((s, sIdx) => {
+      const item = document.createElement('div');
+      item.className = 'sub-item' + (sIdx===0 ? ' active' : '');
+      item.dataset.section = s.id;
+      item.innerHTML = `<i class="ti ${s.icon}"></i>${s.label}` + (!s.kind ? '<span class="soon-dot"></span>' : '');
+      item.addEventListener('click', () => selectSection(m.id, s.id));
+      submenu.appendChild(item);
+    });
+
+    const mainEl = document.createElement('main');
+    m.sections.forEach((s, sIdx) => {
+      const panel = document.createElement('div');
+      panel.className = 'panel' + (sIdx===0 ? ' active' : '');
+      panel.id = `panel-${m.id}-${s.id}`;
+      panel.innerHTML = s.kind ? panelTemplate(m.id, s) : placeholderTemplate(s);
+      mainEl.appendChild(panel);
+    });
+
+    view.appendChild(submenu);
+    view.appendChild(mainEl);
+    app.appendChild(view);
+  });
+}
+
+function placeholderTemplate(s){
+  return `<h1>${s.label}</h1><p class="subtitle">Section pas encore développée</p>
+    <div class="placeholder"><i class="ti ${s.icon}"></i><div class="placeholder-badge">À venir</div><p>${s.desc}</p></div>`;
+}
+
+function panelTemplate(moduleId, s){
+  const p = moduleId; // prefix
+  switch(s.kind){
+    case 'dashboardHome': return `
+      <p class="subtitle" id="${p}-dateLabel"></p><h1>Salut Sophie</h1><p class="tone" id="${p}-tone"></p>
+      <div class="card"><div class="card-header"><i class="ti ti-target"></i><span id="${p}-focusTitle">Focus du jour</span></div><div id="${p}-focusContent"></div></div>
+      <div class="card"><div class="card-header"><i class="ti ti-bulb"></i><span>Dernières idées captées</span></div><div id="${p}-ideasContent"></div></div>`;
+    case 'plannerToday': return `
+      <h1>Ta journée</h1><p class="subtitle" id="${p}-subtitle"></p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-taskInput" placeholder="Ajouter une tâche...">
+        <button class="impact-toggle" id="${p}-impactToggle"><i class="ti ti-star"></i>Prioritaire</button>
+        <button class="add-btn" id="${p}-addBtn">Ajouter</button>
+      </div></div><div id="${p}-content"></div>`;
+    case 'ideaInbox': return `
+      <h1>Boîte de réception</h1><p class="subtitle">Tout ce que tu captures arrive ici en premier</p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-ideaInput" placeholder="Note une idée...">
+        <button class="add-btn" id="${p}-addBtn">Capturer</button>
+      </div></div><div id="${p}-content"></div>`;
+    case 'mktgDashboard': return `<h1>Dashboard Marketing</h1><p class="subtitle">Vue d'ensemble de tes campagnes</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
+    case 'mktgCampaigns': return `
+      <h1>Campagnes</h1><p class="subtitle">Quelles actions génèrent le plus de prospects et de clients ?</p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-actionInput" placeholder="Nom de la campagne...">
+        <select id="${p}-channelSelect"><option>Réseaux sociaux</option><option>Email</option><option>SEO</option><option>Publicité payante</option><option>Partenariat</option><option>Autre</option></select>
+        <button class="add-btn" id="${p}-addBtn">Ajouter</button>
+        <button class="import-btn" id="${p}-importBtn"><i class="ti ti-bulb"></i>Depuis une idée</button>
+      </div></div><div id="${p}-content"></div>`;
+    case 'salesDashboard': return `<h1>Dashboard Commercial</h1><p class="subtitle">Vue d'ensemble de ton activité commerciale</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
+    case 'salesProspects': return `
+      <h1>Prospects</h1><p class="subtitle">Comment transformer davantage de prospects en clients ?</p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-prospectInput" placeholder="Nom du prospect...">
+        <input type="number" id="${p}-valueInput" placeholder="Valeur €">
+        <button class="add-btn" id="${p}-addBtn">Ajouter</button>
+        <button class="import-btn" id="${p}-importBtn"><i class="ti ti-speakerphone"></i>Depuis une campagne</button>
+      </div></div><div id="${p}-content"></div>`;
+    case 'salesPipeline': return `<h1>Pipeline</h1><p class="subtitle">Où en sont tes prospects, étape par étape</p><div class="kanban" id="${p}-kanbanGrid"></div>`;
+    case 'fbDashboard': return `<h1>Tableau de bord</h1><p class="subtitle">Que demandent réellement mes clients ?</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
+    case 'fbRequests': return `
+      <h1>Toutes les demandes</h1><p class="subtitle">Chaque retour compte, surtout s'il revient plusieurs fois</p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-reqInput" placeholder="Ce que demande le client...">
+        <input type="text" id="${p}-requesterInput" class="fixed" placeholder="Nom du client (optionnel)">
+        <button class="add-btn" id="${p}-addBtn">Ajouter</button>
+      </div></div><div id="${p}-content"></div>`;
+    case 'pmRoadmap': return `<h1>Roadmap</h1><p class="subtitle">Que devons-nous développer ensuite ?</p><div class="kanban" id="${p}-kanbanGrid"></div>`;
+    case 'pmBacklog': return `
+      <h1>Backlog</h1><p class="subtitle">Toutes les fonctionnalités envisagées</p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-featInput" placeholder="Nom de la fonctionnalité...">
+        <button class="add-btn" id="${p}-addBtn">Ajouter</button>
+        <button class="import-btn" id="${p}-importBtn"><i class="ti ti-heart"></i>Depuis Retours clients</button>
+      </div></div><div id="${p}-content"></div>`;
+    case 'bugsDashboard': return `<h1>Tableau de bord</h1><p class="subtitle">Quels problèmes empêchent mes clients d'être satisfaits ?</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
+    case 'bugsOpen': return `
+      <h1>Bugs ouverts</h1><p class="subtitle">Tout ce qui casse l'expérience de tes clients</p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-bugInput" placeholder="Décris le bug...">
+        <select id="${p}-severitySelect"><option>Normal</option><option>Critique</option></select>
+        <button class="add-btn" id="${p}-addBtn">Ajouter</button>
+      </div></div><div id="${p}-content"></div>`;
+    case 'bugsCritical': return `<h1>Bugs critiques</h1><p class="subtitle">Vue filtrée des bugs ouverts marqués critiques</p><div id="${p}-criticalContent"></div>`;
+    case 'finDashboard': return `<h1>Dashboard financier</h1><p class="subtitle">Comment évolue mon entreprise ?</p><div class="stats-grid" id="${p}-statsGrid"></div>
+      <p style="font-size:12px;color:var(--th-text-2)">Dépenses marketing lues depuis Marketing, valeur clients gagnés lue depuis Développement commercial.</p>`;
+    case 'finRevenue': return `
+      <h1>Revenus</h1><p class="subtitle">Entrées manuelles, en complément des clients gagnés</p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-revLabel" placeholder="Source du revenu...">
+        <input type="number" id="${p}-revAmount" placeholder="Montant €">
+        <button class="add-btn" id="${p}-addRevBtn">Ajouter</button>
+      </div></div><div id="${p}-revenueContent"></div>`;
+    case 'finExpenses': return `
+      <h1>Dépenses</h1><p class="subtitle">Entrées manuelles, en complément du budget marketing</p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-expLabel" placeholder="Nature de la dépense...">
+        <input type="number" id="${p}-expAmount" placeholder="Montant €">
+        <button class="add-btn" id="${p}-addExpBtn">Ajouter</button>
+      </div></div><div id="${p}-expenseContent"></div>`;
+    case 'cwDashboard': return `<h1>Tableau de bord</h1><p class="subtitle">Que font mes concurrents et quelles opportunités puis-je saisir ?</p><div class="stats-grid" id="${p}-statsGrid"></div>`;
+    case 'cwCompetitors': return `
+      <h1>Concurrents</h1><p class="subtitle">Ceux que tu surveilles activement</p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-compName" placeholder="Nom du concurrent...">
+        <input type="text" id="${p}-compNotes" class="fixed" placeholder="Note rapide...">
+        <button class="add-btn" id="${p}-addBtn">Ajouter</button>
+      </div></div><div id="${p}-content"></div>`;
+    case 'contactsList': return `
+      <h1>Contacts</h1><p class="subtitle">Qui sont tous les acteurs de mon entreprise ?</p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-contactName" placeholder="Nom du contact...">
+        <select id="${p}-contactType"><option>Partenaire</option><option>Développeur</option><option>Commercial</option><option>Fournisseur</option><option>Autre</option></select>
+        <button class="add-btn" id="${p}-addBtn">Ajouter</button>
+      </div></div><div id="${p}-content"></div>`;
+    case 'partnersList': return `
+      <h1>Partenaires</h1><p class="subtitle">Avec quels partenaires travailles-tu ?</p>
+      <div class="capture"><div class="capture-row">
+        <input type="text" id="${p}-itemName" placeholder="Nom du partenaire...">
+        <input type="text" id="${p}-itemNotes" class="fixed" placeholder="Note...">
+        <button class="add-btn" id="${p}-addBtn">Ajouter</button>
+      </div></div><div id="${p}-content"></div>`;
+    case 'kcNotes': return `
+      <h1>Notes</h1><p class="subtitle">Où retrouver toutes mes connaissances ?</p>
+      <div class="capture">
+        <input class="capture-title" type="text" id="${p}-noteTitle" placeholder="Titre de la note...">
+        <textarea id="${p}-noteBody" placeholder="Contenu..."></textarea>
+        <div class="capture-footer"><button class="add-btn" id="${p}-addBtn">Enregistrer</button></div>
+      </div><div id="${p}-content"></div>`;
+    case 'djDecisions': return `
+      <h1>Décisions</h1><p class="subtitle">Pourquoi ai-je pris cette décision ?</p>
+      <div class="capture">
+        <input class="capture-title" type="text" id="${p}-decTitle" placeholder="La décision prise...">
+        <textarea id="${p}-decBody" placeholder="Contexte, raisons, options écartées..."></textarea>
+        <div class="capture-footer"><button class="add-btn" id="${p}-addBtn">Enregistrer</button></div>
+      </div><div id="${p}-content"></div>`;
+    case 'launchChecklist': return `
+      <h1>Checklist</h1><p class="subtitle">Comment organiser le lancement d'une nouvelle version ?</p>
+      <div class="capture"><div class="capture-row"><input type="text" id="${p}-taskInput" placeholder="Ajouter une étape..."><button class="add-btn" id="${p}-addBtn">Ajouter</button></div></div>
+      <div id="${p}-content"></div>`;
+    default: return '';
+  }
+}
+
+/* ---------- Navigation ---------- */
+function selectModule(moduleId){
+  currentModule = moduleId;
+  document.querySelectorAll('#sidebar .nav-item').forEach(el => el.classList.toggle('active', el.dataset.module === moduleId));
+  document.querySelectorAll('.module-view').forEach(el => el.classList.toggle('active', el.id === 'view-' + moduleId));
+}
+function selectSection(moduleId, sectionId){
+  const view = document.getElementById('view-' + moduleId);
+  view.querySelectorAll('.sub-item').forEach(el => el.classList.toggle('active', el.dataset.section === sectionId));
+  view.querySelectorAll('.panel').forEach(el => el.classList.toggle('active', el.id === `panel-${moduleId}-${sectionId}`));
+}
+
+/* ---------- Modal générique (import inter-modules) ---------- */
+let modalAction = null;
+function openModal(title, itemsHtml, onEmpty){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalContent').innerHTML = itemsHtml || `<p class="modal-empty">${onEmpty}</p>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+document.getElementById('modalClose').addEventListener('click', closeModal);
+
+/* ================= DASHBOARD ================= */
+function renderDashboardHome(){
+  const p = 'dashboard';
+  const focusTitleEl = document.getElementById(`${p}-focusTitle`);
+  if(!focusTitleEl) return;
+  const activeTasks = tasks.filter(t => !t.done);
+  const priorityTasks = activeTasks.filter(t => t.impact);
+  const focusTasks = priorityTasks.length ? priorityTasks : activeTasks.slice(0,2);
+  const toneEl = document.getElementById(`${p}-tone`);
+  const focusContent = document.getElementById(`${p}-focusContent`);
+  if(focusTasks.length === 0){
+    focusTitleEl.textContent = `Focus du jour`;
+    focusContent.innerHTML = `<p class="empty-hint">Rien de prioritaire pour l'instant. Ajoute une tâche dans le Planificateur quotidien pour la voir apparaître ici.</p>`;
+    toneEl.textContent = `Une journée calme, pour l'instant.`;
+  }else{
+    const count = focusTasks.length;
+    focusTitleEl.textContent = count === 1 ? `Une chose mérite ton énergie aujourd'hui` : `${count} choses méritent ton énergie aujourd'hui`;
+    focusContent.innerHTML = focusTasks.map(t => `<div class="task-line"><input type="checkbox" disabled>${esc(t.title)}</div>`).join('');
+    toneEl.textContent = count <= 2 ? `${count} sujet${count>1?'s':''} à traiter, rien qui déborde.` : `${count} sujets t'attendent aujourd'hui, mieux vaut commencer tôt.`;
+  }
+  const ideasContent = document.getElementById(`${p}-ideasContent`);
+  ideasContent.innerHTML = ideas.length === 0
+    ? `<p class="empty-hint">Aucune idée capturée pour l'instant.</p>`
+    : ideas.slice(0,3).map(i => `<div class="idea-row"><span>${esc(i.text)}</span><span class="idea-date">${fmtDate(i.createdAt)}</span></div>`).join('');
+  document.getElementById(`${p}-dateLabel`).textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+}
+
+/* ================= DAILY PLANNER ================= */
+let pendingImpact = false;
+function renderPlanner(){
+  const content = document.getElementById('planner-content');
+  if(!content) return;
+  if(tasks.length === 0){ content.innerHTML = `<div class="empty"><i class="ti ti-sparkles"></i>Aucune tâche pour l'instant. Ajoute la première chose à faire aujourd'hui.</div>`; return; }
+  const active = tasks.filter(t=>!t.done), done = tasks.filter(t=>t.done);
+  const priority = active.filter(t=>t.impact), normal = active.filter(t=>!t.impact);
+  const row = t => `<div class="row-card ${t.done?'':''}" style="${t.done?'opacity:.5':''}">
+    <input type="checkbox" ${t.done?'checked':''} onchange="toggleTaskDone('${t.id}')" style="width:18px;height:18px;accent-color:var(--th-orange)">
+    <span class="row-main" style="${t.done?'text-decoration:line-through':''}">${esc(t.title)}</span>
+    <button class="delete-btn" style="opacity:1;color:${t.impact?'#F97316':'#D1D5DB'}" onclick="toggleTaskImpact('${t.id}')"><i class="ti ti-star${t.impact?'-filled':''}"></i></button>
+    <button class="delete-btn" style="opacity:1" onclick="deleteTask('${t.id}')"><i class="ti ti-trash"></i></button>
+  </div>`;
+  let html = '';
+  if(priority.length) html += `<p class="section-label">Prioritaire</p><div class="row-list">${priority.map(row).join('')}</div>`;
+  if(normal.length) html += `<p class="section-label">À faire</p><div class="row-list">${normal.map(row).join('')}</div>`;
+  if(done.length) html += `<p class="section-label">Terminé</p><div class="row-list">${done.map(row).join('')}</div>`;
+  content.innerHTML = html;
+}
+function addTask(){
+  const input = document.getElementById('planner-taskInput'); const title = input.value.trim(); if(!title) return;
+  tasks.unshift({ id:'task_'+Date.now(), title, impact:pendingImpact, done:false, createdAt:new Date().toISOString() });
+  input.value=''; pendingImpact=false; document.getElementById('planner-impactToggle').classList.remove('active');
+  saveKey('daily-planner:tasks', tasks); renderPlanner(); renderDashboardHome(); input.focus();
+}
+function toggleTaskDone(id){ const t=tasks.find(t=>t.id===id); if(t) t.done=!t.done; saveKey('daily-planner:tasks',tasks); renderPlanner(); renderDashboardHome(); }
+function toggleTaskImpact(id){ const t=tasks.find(t=>t.id===id); if(t) t.impact=!t.impact; saveKey('daily-planner:tasks',tasks); renderPlanner(); renderDashboardHome(); }
+function deleteTask(id){ tasks=tasks.filter(t=>t.id!==id); saveKey('daily-planner:tasks',tasks); renderPlanner(); renderDashboardHome(); }
+
+/* ================= IDEA BOX ================= */
+function renderIdeaBox(){
+  const content = document.getElementById('ideabox-content');
+  if(!content) return;
+  if(ideas.length === 0){ content.innerHTML = `<div class="empty"><i class="ti ti-bulb"></i>Aucune idée pour l'instant. Note la prochaine dès qu'elle arrive.</div>`; return; }
+  const toExplore = ideas.filter(i=>!i.explored), explored = ideas.filter(i=>i.explored);
+  const row = i => `<div class="row-card" style="${i.explored?'opacity:.55':''}">
+    <div class="row-main"><div>${esc(i.text)}</div><div class="row-meta">${fmtDateTime(i.createdAt)}</div></div>
+    <button class="explore-btn ${i.explored?'active':''}" onclick="toggleIdeaExplored('${i.id}')">${i.explored?'Explorée':'À explorer'}</button>
+    <button class="delete-btn" style="opacity:1" onclick="deleteIdea('${i.id}')"><i class="ti ti-trash"></i></button>
+  </div>`;
+  let html = '';
+  if(toExplore.length) html += `<p class="section-label">À explorer</p><div class="row-list">${toExplore.map(row).join('')}</div>`;
+  if(explored.length) html += `<p class="section-label">Explorées</p><div class="row-list">${explored.map(row).join('')}</div>`;
+  content.innerHTML = html;
+}
+function addIdea(){
+  const input = document.getElementById('ideabox-ideaInput'); const text = input.value.trim(); if(!text) return;
+  ideas.unshift({ id:'idea_'+Date.now(), text, explored:false, createdAt:new Date().toISOString() });
+  input.value=''; saveKey('idea-box:ideas', ideas); renderIdeaBox(); renderDashboardHome(); input.focus();
+}
+function toggleIdeaExplored(id){ const i=ideas.find(i=>i.id===id); if(i) i.explored=!i.explored; saveKey('idea-box:ideas',ideas); renderIdeaBox(); }
+function deleteIdea(id){ ideas=ideas.filter(i=>i.id!==id); saveKey('idea-box:ideas',ideas); renderIdeaBox(); }
+
+/* ================= MARKETING OS ================= */
+function renderMktgStats(){
+  const grid = document.getElementById('marketing-statsGrid'); if(!grid) return;
+  const totalLeads = campaigns.reduce((s,c)=>s+(c.leads||0),0);
+  const totalCost = campaigns.reduce((s,c)=>s+(c.cost||0),0);
+  const byChannel = {}; campaigns.forEach(c=>{ byChannel[c.channel]=(byChannel[c.channel]||0)+(c.leads||0); });
+  let bestChannel='—', bestLeads=-1;
+  Object.entries(byChannel).forEach(([ch,leads])=>{ if(leads>bestLeads){bestLeads=leads;bestChannel=ch;} });
+  grid.innerHTML = `
+    <div class="stat-card"><div class="val">${campaigns.length}</div><div class="label">Campagnes</div></div>
+    <div class="stat-card"><div class="val">${totalLeads}</div><div class="label">Leads générés</div></div>
+    <div class="stat-card"><div class="val">${totalCost} €</div><div class="label">Budget engagé</div></div>
+    <div class="stat-card"><div class="val">${esc(bestChannel)}</div><div class="label">Meilleur canal</div></div>`;
+}
+function renderCampaigns(){
+  const c = document.getElementById('marketing-content'); if(!c) return;
+  if(campaigns.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-target-arrow"></i>Aucune campagne pour l'instant.</div>`; return; }
+  const sorted = [...campaigns].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  c.innerHTML = `<div class="row-list">${sorted.map(a=>{
+    const origin = a.sourceIdeaId ? ideas.find(i=>i.id===a.sourceIdeaId) : null;
+    return `<div class="row-card">
+      <div class="row-main"><div class="row-title">${esc(a.title)}</div><div class="row-meta">
+        <span class="badge">${esc(a.channel)}</span>
+        ${origin?`<span class="badge origin"><i class="ti ti-bulb"></i>Depuis Boîte à idées</span>`:''}
+        Coût <input class="stat-input" type="number" value="${a.cost}" onchange="updateCampaign('${a.id}','cost',Number(this.value))">€
+        Leads <input class="stat-input" type="number" value="${a.leads}" onchange="updateCampaign('${a.id}','leads',Number(this.value))">
+      </div></div>
+      <select class="status-select" onchange="updateCampaign('${a.id}','status',this.value)">${['Idée','Planifiée','En cours','Terminée'].map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}</select>
+      <button class="delete-btn" style="opacity:1" onclick="deleteCampaign('${a.id}')"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('')}</div>`;
+}
+function addCampaign(title, channel, sourceIdeaId){
+  campaigns.unshift({ id:'mktg_'+Date.now(), title, channel, cost:0, leads:0, status:'Idée', sourceIdeaId:sourceIdeaId||null, createdAt:new Date().toISOString() });
+  saveKey('marketing-os:actions', campaigns); renderCampaigns(); renderMktgStats();
+}
+function updateCampaign(id, field, value){ const a=campaigns.find(a=>a.id===id); if(a) a[field]=value; saveKey('marketing-os:actions',campaigns); renderMktgStats(); }
+function deleteCampaign(id){ campaigns=campaigns.filter(a=>a.id!==id); saveKey('marketing-os:actions',campaigns); renderCampaigns(); renderMktgStats(); }
+function importIdeaToCampaign(ideaId){
+  const idea = ideas.find(i=>i.id===ideaId); if(!idea) return;
+  addCampaign(idea.text, 'Autre', ideaId);
+  idea.explored = true; saveKey('idea-box:ideas', ideas); renderIdeaBox();
+  closeModal();
+}
+
+/* ================= SALES PORTAL ================= */
+const SALES_STAGES = ['Nouveau','Qualifié','Proposition','Négociation','Gagné'];
+function renderSalesStats(){
+  const grid = document.getElementById('sales-statsGrid'); if(!grid) return;
+  const total = prospects.length, won = prospects.filter(p=>p.stage==='Gagné').length;
+  const conv = total ? Math.round((won/total)*100) : 0;
+  const pipelineValue = prospects.filter(p=>p.stage!=='Gagné').reduce((s,p)=>s+(p.value||0),0);
+  grid.innerHTML = `
+    <div class="stat-card"><div class="val">${total}</div><div class="label">Prospects</div></div>
+    <div class="stat-card"><div class="val">${won}</div><div class="label">Clients gagnés</div></div>
+    <div class="stat-card"><div class="val">${conv}%</div><div class="label">Taux de conversion</div></div>
+    <div class="stat-card"><div class="val">${pipelineValue} €</div><div class="label">Valeur en pipeline</div></div>`;
+}
+function renderProspects(){
+  const c = document.getElementById('sales-content'); if(!c) return;
+  if(prospects.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-user-plus"></i>Aucun prospect pour l'instant.</div>`; return; }
+  const sorted = [...prospects].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  c.innerHTML = `<div class="row-list">${sorted.map(pr=>{
+    const origin = pr.sourceCampaignId ? campaigns.find(c=>c.id===pr.sourceCampaignId) : null;
+    return `<div class="row-card">
+      <div class="row-main"><div class="row-title">${esc(pr.name)}</div><div class="row-meta">
+        <span class="badge">${pr.value||0} €</span>
+        ${origin?`<span class="badge origin"><i class="ti ti-speakerphone"></i>Depuis ${esc(origin.title)}</span>`:''}
+      </div></div>
+      <select class="status-select" onchange="updateProspectStage('${pr.id}',this.value)">${SALES_STAGES.map(s=>`<option ${pr.stage===s?'selected':''}>${s}</option>`).join('')}</select>
+      <button class="delete-btn" style="opacity:1" onclick="deleteProspect('${pr.id}')"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('')}</div>`;
+}
+function renderPipeline(){
+  const grid = document.getElementById('sales-kanbanGrid'); if(!grid) return;
+  grid.innerHTML = SALES_STAGES.map(stage => {
+    const items = prospects.filter(p=>p.stage===stage);
+    return `<div class="kanban-col"><div class="kanban-col-title">${stage} (${items.length})</div>
+      ${items.length===0?'<div class="kanban-empty">Vide</div>':items.map(p=>`<div class="kanban-card">${esc(p.name)}<div class="kv">${p.value||0} €</div></div>`).join('')}</div>`;
+  }).join('');
+}
+function addProspect(name, value, sourceCampaignId){
+  prospects.unshift({ id:'prospect_'+Date.now(), name, value:value||0, stage:'Nouveau', sourceCampaignId:sourceCampaignId||null, createdAt:new Date().toISOString() });
+  saveKey('sales-portal:prospects', prospects); renderProspects(); renderSalesStats(); renderPipeline(); renderContacts(); renderFinDashboard();
+}
+function updateProspectStage(id, stage){ const p=prospects.find(p=>p.id===id); if(p) p.stage=stage; saveKey('sales-portal:prospects',prospects); renderSalesStats(); renderPipeline(); renderFinDashboard(); }
+function deleteProspect(id){ prospects=prospects.filter(p=>p.id!==id); saveKey('sales-portal:prospects',prospects); renderProspects(); renderSalesStats(); renderPipeline(); renderContacts(); renderFinDashboard(); }
+function importCampaignToProspect(campaignId){
+  const c = campaigns.find(c=>c.id===campaignId); if(!c) return;
+  addProspect(c.title + ' — prospect', 0, campaignId);
+  closeModal();
+}
+
+/* ================= CUSTOMER FEEDBACK ================= */
+function renderFbStats(){
+  const grid = document.getElementById('feedback-statsGrid'); if(!grid) return;
+  const totalVotes = feedbacks.reduce((s,f)=>s+(f.votes||0),0);
+  const top = [...feedbacks].sort((a,b)=>(b.votes||0)-(a.votes||0))[0];
+  grid.innerHTML = `
+    <div class="stat-card"><div class="val">${feedbacks.length}</div><div class="label">Demandes reçues</div></div>
+    <div class="stat-card"><div class="val">${totalVotes}</div><div class="label">Votes cumulés</div></div>
+    <div class="stat-card" style="grid-column:span 2"><div class="val" style="font-size:14px">${top?esc(top.text):'—'}</div><div class="label">Demande la plus votée</div></div>`;
+}
+function renderFeedbacks(){
+  const c = document.getElementById('feedback-content'); if(!c) return;
+  if(feedbacks.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-heart"></i>Aucune demande pour l'instant.</div>`; return; }
+  const sorted = [...feedbacks].sort((a,b)=>(b.votes||0)-(a.votes||0));
+  c.innerHTML = `<div class="row-list">${sorted.map(f=>`
+    <div class="row-card">
+      <div class="row-main"><div class="row-title">${esc(f.text)}</div><div class="row-meta">${f.requester?esc(f.requester)+' · ':''}${fmtDate(f.createdAt)}</div></div>
+      <div class="vote-group">
+        <button class="vote-btn" onclick="voteFeedback('${f.id}',-1)">−</button><span class="vote-count">${f.votes||0}</span><button class="vote-btn" onclick="voteFeedback('${f.id}',1)">+</button>
+      </div>
+      <button class="delete-btn" style="opacity:1" onclick="deleteFeedback('${f.id}')"><i class="ti ti-trash"></i></button>
+    </div>`).join('')}</div>`;
+}
+function addFeedback(text, requester){
+  feedbacks.unshift({ id:'fb_'+Date.now(), text, requester:requester||'', votes:1, createdAt:new Date().toISOString() });
+  saveKey('customer-feedback:requests', feedbacks); renderFeedbacks(); renderFbStats();
+}
+function voteFeedback(id, delta){ const f=feedbacks.find(f=>f.id===id); if(f) f.votes=Math.max(0,(f.votes||0)+delta); saveKey('customer-feedback:requests',feedbacks); renderFeedbacks(); renderFbStats(); }
+function deleteFeedback(id){ feedbacks=feedbacks.filter(f=>f.id!==id); saveKey('customer-feedback:requests',feedbacks); renderFeedbacks(); renderFbStats(); }
+function importFeedbackToFeature(feedbackId){
+  const f = feedbacks.find(f=>f.id===feedbackId); if(!f) return;
+  addFeature(f.text, feedbackId, f.votes||0);
+  closeModal();
+}
+
+/* ================= PRODUCT MANAGEMENT ================= */
+const PM_STATUSES = ['À faire','En cours','Fait'];
+function renderBacklog(){
+  const c = document.getElementById('pm-content'); if(!c) return;
+  if(features.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-tools"></i>Backlog vide.</div>`; return; }
+  const sorted = [...features].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  c.innerHTML = `<div class="row-list">${sorted.map(f=>{
+    const origin = f.sourceFeedbackId ? feedbacks.find(fb=>fb.id===f.sourceFeedbackId) : null;
+    return `<div class="row-card">
+      <div class="row-main"><div class="row-title">${esc(f.title)}</div><div class="row-meta">
+        ${origin?`<span class="badge origin"><i class="ti ti-heart"></i>Depuis Retours clients</span>`:''}
+        ${f.votes?`<span class="badge">${f.votes} votes</span>`:''}
+      </div></div>
+      <select class="status-select" onchange="updateFeature('${f.id}','status',this.value)">${PM_STATUSES.map(s=>`<option ${f.status===s?'selected':''}>${s}</option>`).join('')}</select>
+      <button class="delete-btn" style="opacity:1" onclick="deleteFeature('${f.id}')"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('')}</div>`;
+}
+function renderRoadmap(){
+  const grid = document.getElementById('pm-kanbanGrid'); if(!grid) return;
+  grid.innerHTML = PM_STATUSES.map(status => {
+    const items = features.filter(f=>f.status===status);
+    return `<div class="kanban-col"><div class="kanban-col-title">${status} (${items.length})</div>${items.length===0?'<div class="kanban-empty">Vide</div>':items.map(f=>`<div class="kanban-card">${esc(f.title)}</div>`).join('')}</div>`;
+  }).join('');
+}
+function addFeature(title, sourceFeedbackId, votes){
+  features.unshift({ id:'feat_'+Date.now(), title, status:'À faire', sourceFeedbackId:sourceFeedbackId||null, votes:votes||0, createdAt:new Date().toISOString() });
+  saveKey('product-management:backlog', features); renderBacklog(); renderRoadmap();
+}
+function updateFeature(id, field, value){ const f=features.find(f=>f.id===id); if(f) f[field]=value; saveKey('product-management:backlog',features); renderRoadmap(); }
+function deleteFeature(id){ features=features.filter(f=>f.id!==id); saveKey('product-management:backlog',features); renderBacklog(); renderRoadmap(); }
+
+/* ================= SUPPORT & BUGS ================= */
+const BUG_STATUSES = ['Ouvert','En cours','Corrigé'];
+function renderBugsStats(){
+  const grid = document.getElementById('bugs-statsGrid'); if(!grid) return;
+  const open = bugs.filter(b=>b.status!=='Corrigé').length;
+  const critical = bugs.filter(b=>b.severity==='Critique' && b.status!=='Corrigé').length;
+  const fixed = bugs.filter(b=>b.status==='Corrigé').length;
+  grid.innerHTML = `
+    <div class="stat-card"><div class="val">${open}</div><div class="label">Bugs ouverts</div></div>
+    <div class="stat-card"><div class="val">${critical}</div><div class="label">Critiques non résolus</div></div>
+    <div class="stat-card"><div class="val">${fixed}</div><div class="label">Corrigés</div></div>`;
+}
+function bugRow(b){
+  return `<div class="row-card">
+    <div class="row-main"><div class="row-title">${esc(b.title)}</div><span class="badge ${b.severity==='Critique'?'critique':''}">${b.severity}</span></div>
+    <select class="status-select" onchange="updateBug('${b.id}','status',this.value)">${BUG_STATUSES.map(s=>`<option ${b.status===s?'selected':''}>${s}</option>`).join('')}</select>
+    <button class="delete-btn" style="opacity:1" onclick="deleteBug('${b.id}')"><i class="ti ti-trash"></i></button>
+  </div>`;
+}
+function renderBugsOpen(){
+  const c = document.getElementById('bugs-content'); if(!c) return;
+  if(bugs.length===0){ c.innerHTML = `<div class="empty"><i class="ti ti-bug"></i>Aucun bug signalé.</div>`; return; }
+  const sorted = [...bugs].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  c.innerHTML = `<div class="row-list">${sorted.map(bugRow).join('')}</div>`;
+}
+function renderBugsCritical(){
+  const c = document.getElementById('bugs-criticalContent'); if(!c) return;
+  const critical = bugs.filter(b=>b.severity==='Critique' && b.status!=='Corrigé');
+  c.innerHTML = critical.length===0 ? `<div class="empty"><i class="ti ti-alert-triangle"></i>Aucun bug critique ouvert.</div>` : `<div class="row-list">${critical.map(bugRow).join('')}</div>`;
+}
+function addBug(title, severity){
+  bugs.unshift({ id:'bug_'+Date.now(), title, severity, status:'Ouvert', createdAt:new Date().toISOString() });
+  saveKey('support-bugs:bugs', bugs); renderBugsOpen(); renderBugsStats(); renderBugsCritical();
+}
+function updateBug(id, field, value){ const b=bugs.find(b=>b.id===id); if(b) b[field]=value; saveKey('support-bugs:bugs',bugs); renderBugsStats(); renderBugsCritical(); }
+function deleteBug(id){ bugs=bugs.filter(b=>b.id!==id); saveKey('support-bugs:bugs',bugs); renderBugsOpen(); renderBugsStats(); renderBugsCritical(); }
+
+/* ================= FINANCE ================= */
+function renderFinDashboard(){
+  const grid = document.getElementById('finance-statsGrid'); if(!grid) return;
+  const marketingCost = campaigns.reduce((s,c)=>s+(c.cost||0),0);
+  const manualExpenses = expenses.reduce((s,e)=>s+(e.amount||0),0);
+  const manualRevenue = revenues.reduce((s,r)=>s+(r.amount||0),0);
+  const wonValue = prospects.filter(p=>p.stage==='Gagné').reduce((s,p)=>s+(p.value||0),0);
+  grid.innerHTML = `
+    <div class="stat-card green"><div class="val">${manualRevenue+wonValue} €</div><div class="label">Revenus totaux</div></div>
+    <div class="stat-card red"><div class="val">${manualExpenses+marketingCost} €</div><div class="label">Dépenses totales</div></div>
+    <div class="stat-card"><div class="val">${marketingCost} €</div><div class="label">Dont budget marketing</div></div>
+    <div class="stat-card"><div class="val">${wonValue} €</div><div class="label">Dont clients gagnés</div></div>`;
+}
+function entryRow(e, kind){
+  return `<div class="row-card"><span class="row-main">${esc(e.label)}</span><span style="font-weight:500;color:${kind==='rev'?'var(--th-green)':'var(--th-red)'}">${kind==='rev'?'+':'−'}${e.amount} €</span>
+    <button class="delete-btn" style="opacity:1" onclick="deleteFinEntry('${kind}','${e.id}')"><i class="ti ti-trash"></i></button></div>`;
+}
+function renderRevenue(){ const c=document.getElementById('finance-revenueContent'); if(!c) return; c.innerHTML = revenues.length===0?`<div class="empty"><i class="ti ti-trending-up"></i>Aucun revenu manuel.</div>`:`<div class="row-list">${revenues.map(r=>entryRow(r,'rev')).join('')}</div>`; }
+function renderExpenses(){ const c=document.getElementById('finance-expenseContent'); if(!c) return; c.innerHTML = expenses.length===0?`<div class="empty"><i class="ti ti-trending-down"></i>Aucune dépense manuelle.</div>`:`<div class="row-list">${expenses.map(e=>entryRow(e,'exp')).join('')}</div>`; }
+function addRevenue(label, amount){ revenues.unshift({id:'rev_'+Date.now(),label,amount,createdAt:new Date().toISOString()}); saveKey('finance:revenues',revenues); renderRevenue(); renderFinDashboard(); }
+function addExpense(label, amount){ expenses.unshift({id:'exp_'+Date.now(),label,amount,createdAt:new Date().toISOString()}); saveKey('finance:expenses',expenses); renderExpenses(); renderFinDashboard(); }
+function deleteFinEntry(kind, id){
+  if(kind==='rev'){ revenues=revenues.filter(r=>r.id!==id); saveKey('finance:revenues',revenues); renderRevenue(); }
+  else { expenses=expenses.filter(e=>e.id!==id); saveKey('finance:expenses',expenses); renderExpenses(); }
+  renderFinDashboard();
+}
+
+/* ================= COMPETITOR WATCH ================= */
+function renderCwStats(){
+  const grid = document.getElementById('competitor-statsGrid'); if(!grid) return;
+  grid.innerHTML = `<div class="stat-card"><div class="val">${competitors.length}</div><div class="label">Concurrents suivis</div></div>
+    <div class="stat-card"><div class="val">0</div><div class="label">Opportunités identifiées</div></div>
+    <div class="stat-card"><div class="val">0</div><div class="label">Alertes récentes</div></div>`;
+}
+function renderCompetitors(){
+  const c = document.getElementById('competitor-content'); if(!c) return;
+  c.innerHTML = competitors.length===0 ? `<div class="empty"><i class="ti ti-building"></i>Aucun concurrent suivi.</div>` :
+    `<div class="row-list">${competitors.map(cp=>`<div class="row-card"><div class="row-main"><div class="row-title">${esc(cp.name)}</div>${cp.notes?`<div class="row-meta">${esc(cp.notes)}</div>`:''}</div><button class="delete-btn" style="opacity:1" onclick="deleteCompetitor('${cp.id}')"><i class="ti ti-trash"></i></button></div>`).join('')}</div>`;
+}
+function addCompetitor(name, notes){ competitors.unshift({id:'comp_'+Date.now(),name,notes,createdAt:new Date().toISOString()}); saveKey('competitor-watch:competitors',competitors); renderCompetitors(); renderCwStats(); }
+function deleteCompetitor(id){ competitors=competitors.filter(c=>c.id!==id); saveKey('competitor-watch:competitors',competitors); renderCompetitors(); renderCwStats(); }
+
+/* ================= SMART CONTACTS ================= */
+function renderContacts(){
+  const c = document.getElementById('contacts-content'); if(!c) return;
+  const salesRows = prospects.map(p => `<div class="row-card"><div class="row-main"><div class="row-title">${esc(p.name)}</div></div><span class="badge">Prospect</span><span class="badge origin"><i class="ti ti-briefcase"></i>Depuis Développement commercial</span></div>`).join('');
+  const manualRows = contacts.map(ct => `<div class="row-card"><div class="row-main"><div class="row-title">${esc(ct.name)}</div></div><span class="badge">${esc(ct.type)}</span><button class="delete-btn" style="opacity:1" onclick="deleteContact('${ct.id}')"><i class="ti ti-trash"></i></button></div>`).join('');
+  c.innerHTML = (contacts.length===0 && prospects.length===0) ? `<div class="empty"><i class="ti ti-address-book"></i>Aucun contact pour l'instant.</div>` : `<div class="row-list">${salesRows}${manualRows}</div>`;
+}
+function addContact(name, type){ contacts.unshift({id:'contact_'+Date.now(),name,type,createdAt:new Date().toISOString()}); saveKey('smart-contacts:contacts',contacts); renderContacts(); }
+function deleteContact(id){ contacts=contacts.filter(c=>c.id!==id); saveKey('smart-contacts:contacts',contacts); renderContacts(); }
+
+/* ================= PARTNERS ================= */
+function renderPartners(){
+  const c = document.getElementById('partners-content'); if(!c) return;
+  c.innerHTML = partners.length===0 ? `<div class="empty"><i class="ti ti-handshake"></i>Aucun partenaire pour l'instant.</div>` :
+    `<div class="row-list">${partners.map(p=>`<div class="row-card"><div class="row-main"><div class="row-title">${esc(p.name)}</div>${p.notes?`<div class="row-meta">${esc(p.notes)}</div>`:''}</div><button class="delete-btn" style="opacity:1" onclick="deletePartner('${p.id}')"><i class="ti ti-trash"></i></button></div>`).join('')}</div>`;
+}
+function addPartner(name, notes){ partners.unshift({id:'partner_'+Date.now(),name,notes,createdAt:new Date().toISOString()}); saveKey('partners:partners',partners); renderPartners(); }
+function deletePartner(id){ partners=partners.filter(p=>p.id!==id); saveKey('partners:partners',partners); renderPartners(); }
+
+/* ================= KNOWLEDGE CENTER ================= */
+function renderNotes(){
+  const c = document.getElementById('knowledge-content'); if(!c) return;
+  c.innerHTML = notes.length===0 ? `<div class="empty"><i class="ti ti-note"></i>Aucune note pour l'instant.</div>` :
+    notes.map(n=>`<div class="note-card"><div class="note-title">${esc(n.title)}</div>${n.body?`<div class="note-body">${esc(n.body)}</div>`:''}<div class="note-footer"><span class="note-date">${fmtDate(n.createdAt)}</span><button class="delete-btn" style="opacity:1" onclick="deleteNote('${n.id}')"><i class="ti ti-trash"></i></button></div></div>`).join('');
+}
+function addNote(title, body){ notes.unshift({id:'note_'+Date.now(),title,body,createdAt:new Date().toISOString()}); saveKey('knowledge-center:notes',notes); renderNotes(); }
+function deleteNote(id){ notes=notes.filter(n=>n.id!==id); saveKey('knowledge-center:notes',notes); renderNotes(); }
+
+/* ================= DECISION JOURNAL ================= */
+function renderDecisions(){
+  const c = document.getElementById('decision-content'); if(!c) return;
+  c.innerHTML = decisions.length===0 ? `<div class="empty"><i class="ti ti-notebook"></i>Aucune décision enregistrée.</div>` :
+    decisions.map(d=>`<div class="note-card"><div class="note-title">${esc(d.title)}</div>${d.body?`<div class="note-body">${esc(d.body)}</div>`:''}<div class="note-footer"><span class="note-date">${fmtDate(d.createdAt)}</span><button class="delete-btn" style="opacity:1" onclick="deleteDecision('${d.id}')"><i class="ti ti-trash"></i></button></div></div>`).join('');
+}
+function addDecision(title, body){ decisions.unshift({id:'dec_'+Date.now(),title,body,createdAt:new Date().toISOString()}); saveKey('decision-journal:decisions',decisions); renderDecisions(); }
+function deleteDecision(id){ decisions=decisions.filter(d=>d.id!==id); saveKey('decision-journal:decisions',decisions); renderDecisions(); }
+
+/* ================= LAUNCH MANAGER ================= */
+function renderLaunch(){
+  const c = document.getElementById('launch-content'); if(!c) return;
+  c.innerHTML = launchItems.length===0 ? `<div class="empty"><i class="ti ti-rocket"></i>Aucune étape pour l'instant.</div>` :
+    `<div class="task-flat-list">${launchItems.map(it=>`<div class="task-flat ${it.done?'done':''}"><input type="checkbox" ${it.done?'checked':''} onchange="toggleLaunchDone('${it.id}')"><span>${esc(it.title)}</span><button class="delete-btn" style="opacity:1" onclick="deleteLaunchItem('${it.id}')"><i class="ti ti-trash"></i></button></div>`).join('')}</div>`;
+}
+function addLaunchItem(title){ launchItems.push({id:'launch_'+Date.now(),title,done:false}); saveKey('launch-manager:checklist',launchItems); renderLaunch(); }
+function toggleLaunchDone(id){ const it=launchItems.find(i=>i.id===id); if(it) it.done=!it.done; saveKey('launch-manager:checklist',launchItems); renderLaunch(); }
+function deleteLaunchItem(id){ launchItems=launchItems.filter(i=>i.id!==id); saveKey('launch-manager:checklist',launchItems); renderLaunch(); }
+
+/* ---------- Liaison des événements (une seule fois) ---------- */
+function bindEvents(){
+  document.getElementById('planner-addBtn').addEventListener('click', addTask);
+  document.getElementById('planner-taskInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); });
+  document.getElementById('planner-impactToggle').addEventListener('click', () => {
+    pendingImpact = !pendingImpact;
+    document.getElementById('planner-impactToggle').classList.toggle('active', pendingImpact);
+  });
+  document.getElementById('planner-subtitle').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+
+  document.getElementById('ideabox-addBtn').addEventListener('click', addIdea);
+  document.getElementById('ideabox-ideaInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addIdea(); });
+
+  document.getElementById('marketing-addBtn').addEventListener('click', () => {
+    const input = document.getElementById('marketing-actionInput'); const title = input.value.trim(); if(!title) return;
+    addCampaign(title, document.getElementById('marketing-channelSelect').value, null);
+    input.value=''; input.focus();
+  });
+  document.getElementById('marketing-actionInput').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('marketing-addBtn').click(); });
+  document.getElementById('marketing-importBtn').addEventListener('click', () => {
+    const unexplored = ideas.filter(i=>!i.explored);
+    const html = unexplored.map(i=>`<div class="modal-item" onclick="importIdeaToCampaign('${i.id}')">${esc(i.text)}</div>`).join('');
+    openModal('Importer une idée non explorée', html, 'Aucune idée non explorée dans la Boîte à idées.');
+  });
+
+  document.getElementById('sales-addBtn').addEventListener('click', () => {
+    const input = document.getElementById('sales-prospectInput'); const name = input.value.trim(); if(!name) return;
+    const value = Number(document.getElementById('sales-valueInput').value) || 0;
+    addProspect(name, value, null);
+    input.value=''; document.getElementById('sales-valueInput').value=''; input.focus();
+  });
+  document.getElementById('sales-prospectInput').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('sales-addBtn').click(); });
+  document.getElementById('sales-importBtn').addEventListener('click', () => {
+    const html = campaigns.map(c=>`<div class="modal-item" onclick="importCampaignToProspect('${c.id}')">${esc(c.title)} <span style="color:var(--th-text-2)">— ${esc(c.channel)}</span></div>`).join('');
+    openModal('Créer un prospect depuis une campagne', html, 'Aucune campagne dans Marketing.');
+  });
+
+  document.getElementById('feedback-addBtn').addEventListener('click', () => {
+    const input = document.getElementById('feedback-reqInput'); const text = input.value.trim(); if(!text) return;
+    const requester = document.getElementById('feedback-requesterInput').value.trim();
+    addFeedback(text, requester);
+    input.value=''; document.getElementById('feedback-requesterInput').value=''; input.focus();
+  });
+  document.getElementById('feedback-reqInput').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('feedback-addBtn').click(); });
+
+  document.getElementById('pm-addBtn').addEventListener('click', () => {
+    const input = document.getElementById('pm-featInput'); const title = input.value.trim(); if(!title) return;
+    addFeature(title, null, 0); input.value=''; input.focus();
+  });
+  document.getElementById('pm-featInput').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('pm-addBtn').click(); });
+  document.getElementById('pm-importBtn').addEventListener('click', () => {
+    const html = [...feedbacks].sort((a,b)=>(b.votes||0)-(a.votes||0)).map(f=>`<div class="modal-item" onclick="importFeedbackToFeature('${f.id}')">${esc(f.text)} <span style="color:var(--th-text-2)">— ${f.votes||0} votes</span></div>`).join('');
+    openModal('Valider une demande en fonctionnalité', html, 'Aucune demande dans Retours clients.');
+  });
+
+  document.getElementById('bugs-addBtn').addEventListener('click', () => {
+    const input = document.getElementById('bugs-bugInput'); const title = input.value.trim(); if(!title) return;
+    addBug(title, document.getElementById('bugs-severitySelect').value); input.value=''; input.focus();
+  });
+  document.getElementById('bugs-bugInput').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('bugs-addBtn').click(); });
+
+  document.getElementById('finance-addRevBtn').addEventListener('click', () => {
+    const label = document.getElementById('finance-revLabel').value.trim(); if(!label) return;
+    addRevenue(label, Number(document.getElementById('finance-revAmount').value)||0);
+    document.getElementById('finance-revLabel').value=''; document.getElementById('finance-revAmount').value='';
+  });
+  document.getElementById('finance-addExpBtn').addEventListener('click', () => {
+    const label = document.getElementById('finance-expLabel').value.trim(); if(!label) return;
+    addExpense(label, Number(document.getElementById('finance-expAmount').value)||0);
+    document.getElementById('finance-expLabel').value=''; document.getElementById('finance-expAmount').value='';
+  });
+
+  document.getElementById('competitor-addBtn').addEventListener('click', () => {
+    const name = document.getElementById('competitor-compName').value.trim(); if(!name) return;
+    addCompetitor(name, document.getElementById('competitor-compNotes').value.trim());
+    document.getElementById('competitor-compName').value=''; document.getElementById('competitor-compNotes').value='';
+  });
+
+  document.getElementById('contacts-addBtn').addEventListener('click', () => {
+    const name = document.getElementById('contacts-contactName').value.trim(); if(!name) return;
+    addContact(name, document.getElementById('contacts-contactType').value);
+    document.getElementById('contacts-contactName').value='';
+  });
+
+  document.getElementById('partners-addBtn').addEventListener('click', () => {
+    const name = document.getElementById('partners-itemName').value.trim(); if(!name) return;
+    addPartner(name, document.getElementById('partners-itemNotes').value.trim());
+    document.getElementById('partners-itemName').value=''; document.getElementById('partners-itemNotes').value='';
+  });
+
+  document.getElementById('knowledge-addBtn').addEventListener('click', () => {
+    const title = document.getElementById('knowledge-noteTitle').value.trim(); if(!title) return;
+    addNote(title, document.getElementById('knowledge-noteBody').value.trim());
+    document.getElementById('knowledge-noteTitle').value=''; document.getElementById('knowledge-noteBody').value='';
+  });
+
+  document.getElementById('decision-addBtn').addEventListener('click', () => {
+    const title = document.getElementById('decision-decTitle').value.trim(); if(!title) return;
+    addDecision(title, document.getElementById('decision-decBody').value.trim());
+    document.getElementById('decision-decTitle').value=''; document.getElementById('decision-decBody').value='';
+  });
+
+  document.getElementById('launch-addBtn').addEventListener('click', () => {
+    const input = document.getElementById('launch-taskInput'); const title = input.value.trim(); if(!title) return;
+    addLaunchItem(title); input.value=''; input.focus();
+  });
+  document.getElementById('launch-taskInput').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('launch-addBtn').click(); });
+}
+
+/* ---------- Initialisation ---------- */
+async function init(){
+  buildSidebar();
+  buildApp();
+  [tasks, ideas, campaigns, prospects, feedbacks, features, bugs, competitors, contacts, partners, notes, decisions, launchItems, revenues, expenses] = await Promise.all([
+    loadKey('daily-planner:tasks'), loadKey('idea-box:ideas'), loadKey('marketing-os:actions'), loadKey('sales-portal:prospects'),
+    loadKey('customer-feedback:requests'), loadKey('product-management:backlog'), loadKey('support-bugs:bugs'), loadKey('competitor-watch:competitors'),
+    loadKey('smart-contacts:contacts'), loadKey('partners:partners'), loadKey('knowledge-center:notes'), loadKey('decision-journal:decisions'),
+    loadKey('launch-manager:checklist'), loadKey('finance:revenues'), loadKey('finance:expenses')
+  ]);
+  bindEvents();
+  renderDashboardHome(); renderPlanner(); renderIdeaBox();
+  renderMktgStats(); renderCampaigns();
+  renderSalesStats(); renderProspects(); renderPipeline();
+  renderFbStats(); renderFeedbacks();
+  renderRoadmap(); renderBacklog();
+  renderBugsStats(); renderBugsOpen(); renderBugsCritical();
+  renderFinDashboard(); renderRevenue(); renderExpenses();
+  renderCwStats(); renderCompetitors();
+  renderContacts(); renderPartners(); renderNotes(); renderDecisions(); renderLaunch();
+}
+init();
+</script>
+</body></html>
