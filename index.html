@@ -291,6 +291,11 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .card-title .icon{color:var(--th-orange)}
 .grid-2{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
 @media (max-width:900px){.grid-2{grid-template-columns:1fr}}
+.plan-channel-card{background:var(--th-card);border-radius:16px;padding:18px;box-shadow:var(--th-shadow);border:2px solid var(--th-border);cursor:pointer;transition:all .12s ease}
+.plan-channel-card:hover{transform:translateY(-2px);box-shadow:var(--th-shadow-lg)}
+.plan-channel-card.selected{border-color:var(--th-orange);background:var(--th-orange-bg)}
+.plan-channel-icon{width:34px;height:34px;border-radius:10px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.plan-channel-card.selected .plan-channel-icon{background:#fff}
 .alert{display:flex;align-items:flex-start;gap:11px;padding:12px 14px;border-radius:13px;margin-bottom:10px}
 .alert:last-child{margin-bottom:0}
 .alert.warn{background:var(--th-red-bg)}
@@ -521,6 +526,7 @@ const MODULES = [
   { id:'marketing', label:'Marketing', group:'📈 Développement de TigerFlow', icon:'ti-speakerphone', sections:[
     { id:'mktg-dashboard', label:'Dashboard Marketing', icon:'ti-chart-donut-3', kind:'mktgDashboard' },
     { id:'campaigns', label:'Campagnes', icon:'ti-target-arrow', kind:'mktgCampaigns' },
+    { id:'plan', label:'Plan de campagne', icon:'ti-layout-grid', kind:'mktgPlan' },
     { id:'editorial', label:'Calendrier éditorial', icon:'ti-calendar', kind:'mktgCalendar' },
     { id:'social', label:'Réseaux sociaux', icon:'ti-share', kind:'mktgSocial' },
     { id:'seo', label:'SEO', icon:'ti-search', kind:'mktgSeo' },
@@ -801,6 +807,9 @@ function panelTemplate(moduleId, s){
       </div></div>
       <div class="search-bar">${ic('ti-search')}<input type="text" id="${p}-searchInput" placeholder="Rechercher une campagne..." oninput="setCampaignSearch(this.value)"></div>
       <div id="${p}-content"></div>`;
+    case 'mktgPlan': return `<h1>Plan de campagne</h1><p class="subtitle">Par où commencer aujourd'hui ? Un canal à la fois, l'état réel de chacun.</p>
+      <div id="${p}-planChannels" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px"></div>
+      <div id="${p}-planDetail"></div>`;
     case 'mktgSeo': {
       const totalTraffic = SEO_KEYWORDS.reduce((s,k)=>s+k.trafic,0);
       const avgPos = (SEO_KEYWORDS.reduce((s,k)=>s+k.position,0)/SEO_KEYWORDS.length).toFixed(1);
@@ -1286,7 +1295,7 @@ async function seedDemoCampaignsIfEmpty(){
   campaigns = DEMO_CAMPAIGNS.map((c,i) => ({ id:'mktg_demo_'+i, sourceIdeaId:null, createdAt:new Date(Date.now() - i*86400000).toISOString(), ...c }));
   await saveKey('marketing-os:actions', campaigns);
 }
-function refreshMktgDerived(){ renderMktgChannels(); renderMktgBudget(); renderMktgFunnel(); renderMktgResults(); if(openCampaignId) renderCampaignDetail(); }
+function refreshMktgDerived(){ renderMktgChannels(); renderMktgBudget(); renderMktgFunnel(); renderMktgResults(); renderMktgPlan(); if(openCampaignId) renderCampaignDetail(); }
 function updateCampaign(id, field, value){ const a=campaigns.find(a=>a.id===id); if(a) a[field]=value; saveKey('marketing-os:actions',campaigns); renderMktgStats(); refreshMktgDerived(); }
 function deleteCampaign(id){ campaigns=campaigns.filter(a=>a.id!==id); saveKey('marketing-os:actions',campaigns); renderCampaigns(); renderMktgStats(); refreshMktgDerived(); }
 function importIdeaToCampaign(ideaId){
@@ -1414,6 +1423,62 @@ function addCalendarItem(){
   toggleCalendarForm();
   document.querySelector('#view-marketing .sub-item.active').click();
 }
+
+/* ---- Plan de campagne ---- */
+let selectedPlanChannel = null;
+const CHANNEL_ICONS = { 'Réseaux sociaux':'ti-share', 'Publicité payante':'ti-ad-2', 'SEO':'ti-search', 'Email':'ti-mail', 'Partenariat':'ti-handshake', 'Contenu':'ti-photo', 'Événement':'ti-calendar', 'Autre':'ti-target' };
+function renderMktgPlan(){
+  const channelsEl = document.getElementById('marketing-planChannels');
+  const detailEl = document.getElementById('marketing-planDetail');
+  if(!channelsEl) return;
+
+  const byChannel = {};
+  campaigns.forEach(c => {
+    if(!byChannel[c.channel]) byChannel[c.channel] = [];
+    byChannel[c.channel].push(c);
+  });
+  const channels = Object.keys(byChannel);
+
+  if(channels.length === 0){
+    channelsEl.innerHTML = '';
+    detailEl.innerHTML = `<div class="empty">${ic('ti-layout-grid',24)}Aucune campagne pour l'instant. Crée ta première campagne dans l'onglet Campagnes, elle apparaîtra ici automatiquement, classée par canal.</div>`;
+    return;
+  }
+
+  if(!selectedPlanChannel || !channels.includes(selectedPlanChannel)) selectedPlanChannel = channels[0];
+
+  channelsEl.innerHTML = channels.map(ch => {
+    const list = byChannel[ch];
+    const published = list.filter(c=>c.status==='Active' || c.status==='Terminée').length;
+    const toLaunch = list.length - published;
+    return `<div class="plan-channel-card${ch===selectedPlanChannel?' selected':''}" onclick="selectPlanChannel('${ch.replace(/'/g,"\\'")}')">
+      <div class="plan-channel-icon">${ic(CHANNEL_ICONS[ch]||'ti-target',18)}</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px">${esc(ch)}</div>
+      <div style="font-size:11.5px;color:var(--th-text-2)">${list.length} campagne${list.length>1?'s':''} · ${published} publiée${published>1?'s':''}${toLaunch>0?` · ${toLaunch} à lancer`:''}</div>
+    </div>`;
+  }).join('');
+
+  const items = byChannel[selectedPlanChannel] || [];
+  const rows = items.map(c => {
+    const published = c.status==='Active' || c.status==='Terminée';
+    const periode = c.startDate ? `${fmtDate(c.startDate)}${c.endDate && c.endDate!==c.startDate ? ' → '+fmtDate(c.endDate) : ''}` : 'Non planifiée';
+    return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer">
+      <td><div class="dt-title">${esc(c.title)}</div>${c.objective?`<div class="dt-sub">${esc(c.objective)}</div>`:''}</td>
+      <td><span class="badge ${published?'green':'gray'}">${published?'Publiée':'Non publiée'}</span></td>
+      <td><span class="badge">${esc(c.status)}</span></td>
+      <td style="font-size:12px;color:var(--th-text-2)">${periode}</td>
+      <td>${c.budget||0} €</td>
+      <td>${c.cost} €</td>
+    </tr>`;
+  }).join('');
+
+  detailEl.innerHTML = `
+    <p class="section-label">${esc(selectedPlanChannel)} — ${items.length} campagne${items.length>1?'s':''}</p>
+    <table class="data-table"><thead><tr><th>Campagne</th><th>Publication</th><th>Statut</th><th>Mise en ligne</th><th>Budget</th><th>Dépensé</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="6" style="text-align:center;color:var(--th-text-2)">Aucune campagne sur ce canal.</td></tr>`}</tbody></table>
+  `;
+}
+function selectPlanChannel(ch){ selectedPlanChannel = ch; renderMktgPlan(); }
 
 /* ---- Canaux ---- */
 function renderMktgChannels(){
@@ -1993,7 +2058,7 @@ async function init(){
   await seedDemoCampaignsIfEmpty();
   renderDashboardHome(); renderPlanner(); renderIdeaBox();
   renderMktgStats(); renderCampaigns();
-  renderMktgChannels(); renderMktgBudget(); renderMktgFunnel(); renderMktgResults(); renderMktgIdeas(); renderMktgLibrary();
+  renderMktgChannels(); renderMktgBudget(); renderMktgFunnel(); renderMktgResults(); renderMktgIdeas(); renderMktgLibrary(); renderMktgPlan();
   renderSalesStats(); renderProspects(); renderPipeline();
   renderFbStats(); renderFeedbacks();
   renderRoadmap(); renderBacklog();
