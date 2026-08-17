@@ -312,6 +312,14 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ch-metric .v{font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .ch-metric .l{font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-top:1px}
 .ch-spark{flex-shrink:0}
+.ctx-bar{display:flex;align-items:center;gap:22px;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;padding:15px 20px;margin-bottom:8px;box-shadow:var(--th-shadow-sm);flex-wrap:wrap}
+.ctx-main{display:flex;align-items:center;gap:11px}
+.ctx-sep{width:1px;height:30px;background:var(--th-border)}
+.prio-row{display:flex;align-items:center;gap:13px;padding:12px 0;border-bottom:1px solid var(--th-border);cursor:pointer}
+.prio-row:last-of-type{border-bottom:none}
+.prio-row:hover .prio-num{background:var(--th-orange);color:#fff}
+.prio-num{width:24px;height:24px;border-radius:8px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;transition:all .12s}
+.launch-step.blocking{border:1px solid var(--th-red-bg)}
 .zone-label{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;margin:26px 0 12px;padding-left:11px;border-left:3px solid}
 .zone-label:first-of-type{margin-top:0}
 .zone-red{color:var(--th-red);border-color:var(--th-red)}
@@ -1324,16 +1332,21 @@ const LEARNINGS = [
 
 /* ==================== RENDUS ==================== */
 
-/* ---- 1. Vue d'ensemble — cockpit CEO adaptatif ----
-   Deux états qui basculent naturellement selon les données :
-   A) Pré-lancement  : Préparer → Organiser → Lancer
-   B) Post-lancement : Mesurer → Comprendre → Optimiser
-   Hiérarchie visuelle : 🔴 attention · 🟠 préparation · 🟢 performance · 🔵 tendance */
+/* ---- 1. Vue d'ensemble — structure V1 en 7 zones ----
+   Question du module : « Est-ce que mon marketing avance et est-ce qu'il fonctionne ? »
+   Chaque bloc doit répondre à l'une des deux moitiés, sinon il n'a rien à faire ici.
+
+   1. Contexte    2. Lancement    3. Priorités    4. Semaine
+   5. Performance 6. Alertes      7. Objectifs
+
+   Le dashboard s'adapte : avant lancement, l'accent est sur préparer ;
+   après, sur mesurer. Aucune donnée inventée : ce qui n'est pas mesurable
+   est annoncé comme tel. */
 
 const LAUNCH_CHECKLIST = [
   { label:'Campagnes créées', done:2, total:2, section:'campaigns' },
-  { label:'Landing page', done:0, total:1, section:'contents' },
   { label:'Contenus prêts', done:4, total:6, section:'contents' },
+  { label:'Landing page', done:0, total:1, section:'contents' },
   { label:'Tracking / UTM', done:1, total:1, section:'settings' },
   { label:'Budget défini', done:1, total:1, section:'analysis' },
   { label:'Canaux configurés', done:3, total:4, section:'channels' },
@@ -1346,12 +1359,11 @@ const MKTG_PRIORITIES = [
   { action:"Valider le kit stand pour le salon", echeance:"5 sept.", etat:'À venir', section:'campaigns' },
 ];
 
-/* Seuil en dessous duquel on refuse de présenter une performance comme significative */
+/* Seuil en dessous duquel une comparaison entre canaux n'a pas de sens */
 const SIGNIFICANCE_THRESHOLD = 30;
 
 function daysUntil(iso){
-  const d = new Date(iso), now = new Date();
-  return Math.ceil((d - now) / 86400000);
+  return Math.ceil((new Date(iso) - new Date()) / 86400000);
 }
 
 function renderMktgOverview(){
@@ -1371,25 +1383,48 @@ function renderMktgOverview(){
   const doneSteps = LAUNCH_CHECKLIST.reduce((s,x)=>s+x.done,0);
   const totalSteps = LAUNCH_CHECKLIST.reduce((s,x)=>s+x.total,0);
   const readyPct = Math.round(doneSteps/totalSteps*100);
+  const blockers = LAUNCH_CHECKLIST.filter(x=>x.done<x.total);
 
-  /* ---------- Blocs réutilisables ---------- */
-
-  const bandeauSecteur = `
-    <div class="sector-bar">
-      <div class="sector-dot"></div>
-      <div><b>Secteur actif : ${esc(ACTIVE_SECTOR.nom)}</b> <span style="color:var(--th-text-2)">— ${esc(ACTIVE_SECTOR.libelle)}</span></div>
-      <div style="margin-left:auto;font-size:11.5px;color:var(--th-text-2)">${SECTORS.filter(s=>!s.actif).length} secteurs prévus ensuite</div>
+  /* ========== ZONE 1 — CONTEXTE ========== */
+  const zoneContexte = `
+    <div class="ctx-bar">
+      <div class="ctx-main">
+        <div class="sector-dot"></div>
+        <div>
+          <div style="font-size:14px;font-weight:800">${esc(ACTIVE_SECTOR.nom)}</div>
+          <div style="font-size:11.5px;color:var(--th-text-2)">${esc(ACTIVE_SECTOR.libelle)} · secteur actif</div>
+        </div>
+      </div>
+      <div class="ctx-sep"></div>
+      <div>
+        <div style="font-size:14px;font-weight:800">${preLaunch?`J-${jours}`:'Lancé'}</div>
+        <div style="font-size:11.5px;color:var(--th-text-2)">${preLaunch?'avant lancement':'depuis le '+fmtDate(ACTIVE_SECTOR.lancement)}</div>
+      </div>
+      <div class="ctx-sep"></div>
+      <div>
+        <div style="font-size:14px;font-weight:800">${active.length} active${active.length>1?'s':''} · ${upcoming.length} à venir</div>
+        <div style="font-size:11.5px;color:var(--th-text-2)">campagnes</div>
+      </div>
+      <div class="ctx-sep"></div>
+      <div>
+        <div style="font-size:14px;font-weight:800">${totals.cost} € · ${totals.time} h</div>
+        <div style="font-size:11.5px;color:var(--th-text-2)">investis ce trimestre</div>
+      </div>
+      <div style="margin-left:auto;font-size:11px;color:var(--th-text-3)">${SECTORS.filter(s=>!s.actif).length} secteurs prévus ensuite</div>
     </div>`;
 
-  const blocLancement = `
+  /* ========== ZONE 2 — LANCEMENT ========== */
+  const zoneLancement = `
+    <div class="zone-label zone-orange">${ic('ti-rocket',14)} Lancement</div>
     <div class="card launch-card">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:20px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:18px">
         <div>
-          <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">${ic('ti-rocket',20)}<span style="font-size:16px;font-weight:800">Lancement TigerFlow — ${esc(ACTIVE_SECTOR.nom)}</span></div>
+          <div style="font-size:16px;font-weight:800;margin-bottom:4px">Lancement TigerFlow — ${esc(ACTIVE_SECTOR.nom)}</div>
           <div style="font-size:13px;color:var(--th-text-2)">${new Date(ACTIVE_SECTOR.lancement).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</div>
+          ${blockers.length ? `<div style="margin-top:10px;font-size:12.5px"><span style="color:var(--th-red);font-weight:700">${blockers.length} élément${blockers.length>1?'s':''} bloquant${blockers.length>1?'s':''}</span> <span style="color:var(--th-text-2)">avant d'être prête</span></div>` : `<div style="margin-top:10px;font-size:12.5px;color:var(--th-green);font-weight:700">Tout est prêt pour le lancement</div>`}
         </div>
-        <div style="display:flex;align-items:center;gap:26px">
-          <div style="text-align:center"><div style="font-size:30px;font-weight:800;letter-spacing:-0.03em;line-height:1">J-${jours}</div><div style="font-size:11px;color:var(--th-text-2);margin-top:3px">avant lancement</div></div>
+        <div style="display:flex;align-items:center;gap:24px">
+          <div style="text-align:center"><div style="font-size:32px;font-weight:800;letter-spacing:-0.03em;line-height:1">J-${jours}</div><div style="font-size:11px;color:var(--th-text-2);margin-top:3px">restants</div></div>
           <div style="position:relative;width:76px;height:76px">
             <svg viewBox="0 0 42 42" style="width:76px;height:76px;transform:rotate(-90deg)">
               <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--th-bg-alt)" stroke-width="5"/>
@@ -1402,89 +1437,76 @@ function renderMktgOverview(){
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:9px">
         ${LAUNCH_CHECKLIST.map(x=>{
           const complete = x.done>=x.total;
-          return `<div class="launch-step ${complete?'done':''}" onclick="gotoMktg('${x.section}')">
+          return `<div class="launch-step ${complete?'done':'blocking'}" onclick="gotoMktg('${x.section}')">
             <div class="launch-check">${complete?ic('ti-circle-check',13):''}</div>
-            <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600">${esc(x.label)}</div></div>
-            <div style="font-size:11.5px;font-weight:700;color:${complete?'var(--th-green)':'var(--th-orange)'}">${x.total>1?`${x.done}/${x.total}`:complete?'✓':'—'}</div>
+            <div style="flex:1;min-width:0;font-size:12.5px;font-weight:600">${esc(x.label)}</div>
+            <div style="font-size:11.5px;font-weight:700;color:${complete?'var(--th-green)':'var(--th-red)'}">${x.total>1?`${x.done}/${x.total}`:complete?'✓':'À faire'}</div>
           </div>`;
         }).join('')}
       </div>
     </div>`;
 
-  const blocPriorites = `
+  /* ========== ZONE 3 — PRIORITÉS ========== */
+  const zonePriorites = `
+    <div class="zone-label zone-red">${ic('ti-flag',14)} Priorités</div>
     <div class="card">
-      <div class="card-header"><div class="card-title">${ic('ti-flag',17)}<span>Priorités marketing</span></div>
+      <div class="card-header"><div class="card-title">${ic('ti-flag',17)}<span>3 actions les plus importantes</span></div>
         <span class="card-link" onclick="selectModule('planner')">Ouvrir le Planificateur →</span></div>
-      <table class="data-table" style="box-shadow:none;border:none">
-        <tbody>
-          ${MKTG_PRIORITIES.map(p=>{
-            const c = p.etat==='À faire'?'red':p.etat==='En cours'?'orange':p.etat==='À préparer'?'blue':'gray';
-            const cs = c==='red'?'color:var(--th-red);background:var(--th-red-bg)':c==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':'';
-            return `<tr onclick="gotoMktg('${p.section}')" style="cursor:pointer">
-              <td style="padding-left:0"><div class="dt-title">${esc(p.action)}</div></td>
-              <td style="width:110px;font-size:12px;color:${p.echeance==="Aujourd'hui"?'var(--th-red)':'var(--th-text-2)'};font-weight:${p.echeance==="Aujourd'hui"?'700':'500'}">${esc(p.echeance)}</td>
-              <td style="width:110px;padding-right:0"><span class="badge ${c}" style="${cs}">${esc(p.etat)}</span></td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-      <div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>Ces actions sont identifiées ici, mais <b>s'exécutent dans le Planificateur quotidien</b> — une seule tâche, une seule source.</span></div>
+      ${MKTG_PRIORITIES.slice(0,3).map((p,i)=>{
+        const c = p.etat==='À faire'?'red':p.etat==='En cours'?'orange':'blue';
+        const cs = c==='red'?'color:var(--th-red);background:var(--th-red-bg)':c==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':'';
+        return `<div class="prio-row" onclick="gotoMktg('${p.section}')">
+          <div class="prio-num">${i+1}</div>
+          <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600">${esc(p.action)}</div></div>
+          <span style="font-size:11.5px;color:${p.echeance==="Aujourd'hui"?'var(--th-red)':'var(--th-text-2)'};font-weight:${p.echeance==="Aujourd'hui"?'700':'500'};white-space:nowrap">${esc(p.echeance)}</span>
+          <span class="badge ${c}" style="${cs}">${esc(p.etat)}</span>
+        </div>`;
+      }).join('')}
+      <div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>Ces actions sont identifiées ici mais <b>s'exécutent dans le Planificateur quotidien</b> — une seule tâche, une seule source.</span></div>
     </div>`;
 
-  const kpis = `
-    <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
-      <div class="stat-card" onclick="gotoMktg('campaigns')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-target-arrow')}</div><div class="val">${active.length}</div><div class="label">Campagnes actives</div></div>
-      <div class="stat-card blue" onclick="gotoMktg('analysis')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-users')}</div><div class="val">${totals.leads}</div><div class="label">Leads générés</div></div>
-      <div class="stat-card green" onclick="gotoMktg('analysis')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${totals.conv}</div><div class="label">Clients générés</div></div>
-      <div class="stat-card red" onclick="gotoMktg('analysis')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-wallet')}</div><div class="val">${budgetPct}%</div><div class="label">Budget consommé</div></div>
-      <div class="stat-card" onclick="gotoMktg('analysis')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-coin')}</div><div class="val">${totals.leads?cplG+' €':'—'}</div><div class="label">Coût par lead</div></div>
-      <div class="stat-card purple" onclick="gotoMktg('analysis')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-chart-donut-3')}</div><div class="val">${totals.leads?convG+'%':'—'}</div><div class="label">Taux de conversion</div></div>
+  /* ========== ZONE 4 — SEMAINE ========== */
+  const contentsToPublish = CONTENTS.filter(c=>c.statut==='Programmé'||c.statut==='Prêt');
+  const contentsToCreate = CONTENTS.filter(c=>c.statut==='À créer'||c.statut==='À préparer');
+  const zoneSemaine = `
+    <div class="zone-label zone-orange">${ic('ti-calendar-week',14)} Cette semaine</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">${ic('ti-calendar-week',17)}<span>Charge de la semaine</span></div></div>
+        ${[
+          {n:active.length, l:`campagne${active.length>1?'s':''} en cours`, s:'campaigns'},
+          {n:contentsToPublish.length, l:'contenus à publier', s:'contents'},
+          {n:contentsToCreate.length, l:'contenus à créer', s:'contents'},
+          {n:MKTG_PRIORITIES.length, l:'actions marketing prévues', s:'campaigns'},
+        ].map(x=>`<div class="week-row" onclick="gotoMktg('${x.s}')">
+          <span class="week-num">${x.n}</span><span style="flex:1">${esc(x.l)}</span>${ic('ti-arrow-left',14)}</div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">${ic('ti-calendar',17)}<span>Campagnes à venir</span></div>
+          <span class="card-link" onclick="gotoMktg('campaigns')">Tout voir →</span></div>
+        ${upcoming.length ? upcoming.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--th-border);cursor:pointer" onclick="openCampaignDetail('${c.id}')">
+          <span style="flex:1;font-size:12.5px;font-weight:600">${esc(c.title)}</span>
+          <span style="font-size:11.5px;color:var(--th-text-2)">${c.startDate?fmtDate(c.startDate):'Non planifiée'}</span>
+          ${statusBadge(c.status)}</div>`).join('') : '<p class="empty-hint">Aucune campagne à venir.</p>'}
+      </div>
     </div>`;
 
-  const semaineItems = [
-    { n:active.length, label:`campagne${active.length>1?'s':''} en cours`, section:'campaigns' },
-    { n:CONTENTS.filter(c=>c.statut==='Programmé'||c.statut==='Prêt').length, label:'contenus à publier', section:'contents' },
-    { n:campaigns.filter(c=>c.status==='En préparation').length, label:'campagne à préparer', section:'campaigns' },
-    { n:MKTG_PRIORITIES.length, label:'actions marketing prévues', section:'campaigns' },
-  ];
-  const blocSemaine = `
-    <div class="card">
-      <div class="card-header"><div class="card-title">${ic('ti-calendar-week',17)}<span>Cette semaine</span></div></div>
-      ${semaineItems.map(x=>`<div class="week-row" onclick="gotoMktg('${x.section}')">
-        <span class="week-num">${x.n}</span><span style="flex:1">${esc(x.label)}</span>${ic('ti-arrow-left',14)}
-      </div>`).join('')}
-    </div>`;
-
-  /* Alertes : uniquement des signaux réels, calculés */
-  const alerts = [];
-  campaigns.forEach(c=>{
-    const t = campTotals(c);
-    if(c.status==='En ligne' && t.cost>200 && t.leads===0)
-      alerts.push({ txt:`<b>${esc(c.title)}</b> n'a généré aucun lead malgré ${t.cost} € dépensés.`, id:c.id, type:'warn' });
-    if(t.leads>0 && (t.cost/t.leads)>40)
-      alerts.push({ txt:`<b>${esc(c.title)}</b> dépasse l'objectif de coût par lead (${Math.round(t.cost/t.leads)} € contre 40 € visés).`, id:c.id, type:'warn' });
-    if(c.budget>0 && t.cost>c.budget)
-      alerts.push({ txt:`<b>${esc(c.title)}</b> a dépassé son budget de ${t.cost-c.budget} €.`, id:c.id, type:'warn' });
-  });
-  const notReady = CONTENTS.filter(c=>c.statut==='À créer'||c.statut==='À préparer');
-  if(notReady.length) alerts.push({ txt:`<b>${notReady.length} contenus</b> ne sont pas encore prêts alors que le lancement approche.`, section:'contents', type:'warn' });
-  const lpMissing = LAUNCH_CHECKLIST.find(x=>x.label==='Landing page' && x.done<x.total);
-  if(lpMissing) alerts.push({ txt:`La <b>landing page</b> n'est pas publiée alors que des campagnes sont prêtes à partir.`, section:'contents', type:'warn' });
-
-  const blocSurveiller = `
-    <div class="card">
-      <div class="card-header"><div class="card-title">${ic('ti-alert-triangle',17)}<span>À surveiller</span></div>
-        ${alerts.length?`<span class="badge red">${alerts.length}</span>`:''}</div>
-      ${alerts.length
-        ? alerts.slice(0,5).map(a=>`<div class="alert warn" onclick="${a.id?`openCampaignDetail('${a.id}')`:`gotoMktg('${a.section}')`}" style="cursor:pointer"><div class="alert-icon">${ic('ti-alert-triangle',14)}</div><div class="alert-text">${a.txt}</div></div>`).join('')
-        : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div><div class="alert-text">Rien à signaler pour le moment.</div></div>`}
-    </div>`;
-
-  /* Performance : adaptatif selon le volume de données */
+  /* ========== ZONE 5 — PERFORMANCE ========== */
   const chAgg = aggregateByChannel();
   const segAgg = aggregateBySegment();
   const activeChannels = [...new Set(campaigns.flatMap(c=>campChannels(c)))];
 
+  const kpis = `
+    <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-card blue" onclick="gotoMktg('analysis')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-users')}</div><div class="val">${totals.leads}</div><div class="label">Leads générés</div></div>
+      <div class="stat-card green" onclick="gotoMktg('analysis')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${totals.conv}</div><div class="label">Clients générés</div></div>
+      <div class="stat-card" onclick="gotoMktg('analysis')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-coin')}</div><div class="val">${totals.leads?cplG+' €':'—'}</div><div class="label">Coût par lead</div></div>
+      <div class="stat-card purple" onclick="gotoMktg('analysis')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-chart-donut-3')}</div><div class="val">${totals.leads?convG+'%':'—'}</div><div class="label">Taux de conversion</div></div>
+      <div class="stat-card red" onclick="gotoMktg('analysis')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-wallet')}</div><div class="val">${budgetPct}%</div><div class="label">Budget consommé</div></div>
+      <div class="stat-card" onclick="gotoMktg('analysis')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-history')}</div><div class="val">${totals.time} h</div><div class="label">Temps investi</div></div>
+    </div>`;
+
+  const noChannelMsg = '<span style="font-size:12.5px;color:var(--th-text-2)">Aucun canal actif pour le moment.</span>';
   const blocCanaux = enoughData ? `
     <div class="card">
       <div class="card-header"><div class="card-title">${ic('ti-trophy',17)}<span>Meilleurs canaux</span></div><span style="font-size:11px;color:var(--th-text-3)">par coût / lead</span></div>
@@ -1498,14 +1520,12 @@ function renderMktgOverview(){
       }).join('')}
     </div>` : `
     <div class="card">
-      <div class="card-header"><div class="card-title">${ic('ti-chart-bar',17)}<span>Performances par canal</span></div></div>
-      <div class="waiting-block">
-        ${ic('ti-chart-line',22)}
-        <p>Vos performances apparaîtront ici après vos premières campagnes.<br><span style="font-size:11.5px">Il faut au moins ${SIGNIFICANCE_THRESHOLD} leads pour qu'une comparaison entre canaux ait du sens — vous en êtes à ${totals.leads}.</span></p>
-      </div>
+      <div class="card-header"><div class="card-title">${ic('ti-chart-bar',17)}<span>Performance par canal</span></div></div>
+      <div class="waiting-block">${ic('ti-chart-line',22)}
+        <p>Les comparaisons entre canaux apparaîtront après vos premières campagnes.<br><span style="font-size:11.5px">Il faut au moins ${SIGNIFICANCE_THRESHOLD} leads pour qu'une comparaison ait du sens — vous en êtes à ${totals.leads}.</span></p></div>
       <div style="font-size:11px;color:var(--th-text-3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 9px">Canaux actifs</div>
       <div style="display:flex;flex-wrap:wrap;gap:7px">
-        ${activeChannels.map(ch=>{ const st=CHANNEL_STYLE[ch]||{}; return `<span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span>`; }).join('') || "<span style=\"font-size:12.5px;color:var(--th-text-2)\">Aucun canal actif pour l'instant.</span>"}
+        ${activeChannels.map(ch=>{ const st=CHANNEL_STYLE[ch]||{}; return `<span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span>`; }).join('') || noChannelMsg}
       </div>
     </div>`;
 
@@ -1519,85 +1539,84 @@ function renderMktgOverview(){
           <span class="badge blue">${Math.round(a.conversions/a.leads*100)}%</span></div>`).join('')}
     </div>` : `
     <div class="card">
-      <div class="card-header"><div class="card-title">${ic('ti-users',17)}<span>Performances par segment</span></div>
+      <div class="card-header"><div class="card-title">${ic('ti-users',17)}<span>Performance par segment</span></div>
         <span class="card-link" onclick="gotoMktg('audiences')">Voir les audiences →</span></div>
-      <div class="waiting-block">
-        ${ic('ti-users',22)}
-        <p>Les segments qui convertissent le mieux apparaîtront ici une fois les premières campagnes lancées.</p>
-      </div>
+      <div class="waiting-block">${ic('ti-users',22)}
+        <p>Les segments qui convertissent le mieux apparaîtront une fois les premières campagnes lancées.</p></div>
       <div style="font-size:11px;color:var(--th-text-3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 9px">Segments définis</div>
-      <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;flex-direction:column;gap:7px">
         ${AUDIENCES.map(a=>`<div style="display:flex;justify-content:space-between;font-size:12.5px"><span>${esc(a.nom)}</span><span class="badge ${a.potentiel==='Élevé'?'green':'gray'}">${esc(a.potentiel)}</span></div>`).join('')}
       </div>
     </div>`;
 
-  /* Objectifs : rythme réel vs rythme nécessaire */
+  const zonePerformance = `
+    <div class="zone-label zone-green">${ic('ti-chart-bar',14)} Performance</div>
+    ${kpis}
+    <div class="grid-2">${blocCanaux}${blocSegments}</div>`;
+
+  /* ========== ZONE 6 — ALERTES ========== */
+  const alerts = [];
+  campaigns.forEach(c=>{
+    const t = campTotals(c);
+    if(c.status==='En ligne' && t.cost>200 && t.leads===0)
+      alerts.push({ txt:`<b>${esc(c.title)}</b> n'a généré aucun lead malgré ${t.cost} € dépensés.`, id:c.id });
+    if(t.leads>0 && (t.cost/t.leads)>40)
+      alerts.push({ txt:`<b>${esc(c.title)}</b> dépasse l'objectif de coût par lead (${Math.round(t.cost/t.leads)} € contre 40 € visés).`, id:c.id });
+    if(c.budget>0 && t.cost>c.budget)
+      alerts.push({ txt:`<b>${esc(c.title)}</b> a dépassé son budget de ${t.cost-c.budget} €.`, id:c.id });
+    if(c.timeEstimated>0 && c.timeReal>c.timeEstimated*1.3)
+      alerts.push({ txt:`<b>${esc(c.title)}</b> a demandé ${c.timeReal} h au lieu des ${c.timeEstimated} h estimées.`, id:c.id });
+  });
+  if(contentsToCreate.length) alerts.push({ txt:`<b>${contentsToCreate.length} contenus</b> ne sont pas encore prêts alors que le lancement approche.`, section:'contents' });
+  const lpMissing = LAUNCH_CHECKLIST.find(x=>x.label==='Landing page' && x.done<x.total);
+  if(lpMissing) alerts.push({ txt:`La <b>landing page</b> n'est pas publiée alors que des campagnes sont prêtes à partir.`, section:'contents' });
+
+  const zoneAlertes = `
+    <div class="zone-label zone-red">${ic('ti-alert-triangle',14)} Alertes</div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">${ic('ti-alert-triangle',17)}<span>Ce qui nécessite une décision</span></div>
+        ${alerts.length?`<span class="badge red">${alerts.length}</span>`:''}</div>
+      ${alerts.length
+        ? alerts.slice(0,6).map(a=>`<div class="alert warn" onclick="${a.id?`openCampaignDetail('${a.id}')`:`gotoMktg('${a.section}')`}" style="cursor:pointer"><div class="alert-icon">${ic('ti-alert-triangle',14)}</div><div class="alert-text">${a.txt}</div></div>`).join('')
+        : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div><div class="alert-text">Rien ne nécessite votre attention pour le moment.</div></div>`}
+    </div>`;
+
+  /* ========== ZONE 7 — OBJECTIFS ========== */
   const weeksElapsed = 6, weeksLeft = 7;
   const objectifs = [
     { nom:'Leads du trimestre', actuel:totals.leads, cible:800, unite:'' },
     { nom:'Clients signés', actuel:totals.conv, cible:60, unite:'' },
     { nom:'Budget marketing', actuel:totals.cost, cible:totals.budget||5000, unite:' €', inverse:true },
   ];
-  const blocObjectifs = `
+  const zoneObjectifs = `
+    <div class="zone-label zone-blue">${ic('ti-target',14)} Objectifs</div>
     <div class="card">
-      <div class="card-header"><div class="card-title">${ic('ti-target',17)}<span>Progression vs objectifs</span></div>
+      <div class="card-header"><div class="card-title">${ic('ti-target',17)}<span>Progression et rythme</span></div>
         <span class="card-link" onclick="selectModule('okr')">Objectifs &amp; OKR →</span></div>
       ${objectifs.map(o=>{
         const pct = Math.min(100, Math.round(o.actuel/o.cible*100));
         const rythmeActuel = Math.round(o.actuel/weeksElapsed);
-        const rythmeNecessaire = Math.ceil((o.cible-o.actuel)/weeksLeft);
+        const rythmeNecessaire = Math.ceil(Math.max(0,(o.cible-o.actuel))/weeksLeft);
         const ok = o.inverse ? rythmeActuel<=rythmeNecessaire : rythmeActuel>=rythmeNecessaire;
         return `<div style="margin-bottom:18px">
           <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
             <span style="font-size:13px;font-weight:700">${o.nom}</span>
-            <span style="font-size:12px;color:var(--th-text-2)"><b style="color:var(--th-text)">${o.actuel}${o.unite}</b> / ${o.cible}${o.unite} · ${pct}%</span>
-          </div>
+            <span style="font-size:12px;color:var(--th-text-2)"><b style="color:var(--th-text)">${o.actuel}${o.unite}</b> / ${o.cible}${o.unite} · ${pct}%</span></div>
           <div style="background:var(--th-bg-alt);border-radius:8px;height:8px;overflow:hidden;margin-bottom:7px">
-            <div style="height:100%;border-radius:8px;width:${pct}%;background:${ok?'linear-gradient(90deg,#4ADE80,var(--th-green))':'linear-gradient(90deg,#FDBA74,var(--th-orange))'}"></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--th-text-2)">
+            <div style="height:100%;border-radius:8px;width:${pct}%;background:${ok?'linear-gradient(90deg,#4ADE80,var(--th-green))':'linear-gradient(90deg,#FDBA74,var(--th-orange))'}"></div></div>
+          <div style="display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--th-text-2);flex-wrap:wrap">
             <span>Rythme actuel : <b style="color:var(--th-text)">${rythmeActuel}${o.unite}/sem.</b></span>
             <span>Nécessaire : <b style="color:var(--th-text)">${rythmeNecessaire}${o.unite}/sem.</b></span>
             <span class="badge ${ok?'green':'orange'}" style="${ok?'':'color:var(--th-orange);background:var(--th-orange-bg)'};margin-left:auto">${ok?'Rythme suffisant':'Rythme insuffisant'}</span>
-          </div>
-        </div>`;
+          </div></div>`;
       }).join('')}
     </div>`;
 
-  const blocCampagnesAVenir = `
-    <div class="card">
-      <div class="card-header"><div class="card-title">${ic('ti-calendar',17)}<span>Campagnes à venir</span></div>
-        <span class="card-link" onclick="gotoMktg('campaigns')">Tout voir →</span></div>
-      ${upcoming.length ? upcoming.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--th-border);cursor:pointer" onclick="openCampaignDetail('${c.id}')">
-        <span style="flex:1;font-size:12.5px;font-weight:600">${esc(c.title)}</span>
-        <span style="font-size:11.5px;color:var(--th-text-2)">${c.startDate?fmtDate(c.startDate):'Non planifiée'}</span>
-        ${statusBadge(c.status)}</div>`).join('')
-        : '<p class="empty-hint">Aucune campagne à venir.</p>'}
-    </div>`;
-
-  /* ---------- Assemblage selon l'état ---------- */
+  /* ========== ASSEMBLAGE ==========
+     Avant lancement : préparer d'abord. Après : mesurer d'abord. */
   el.innerHTML = preLaunch
-    ? `${bandeauSecteur}
-       <div class="zone-label zone-orange">${ic('ti-rocket',14)} Ce que je prépare</div>
-       ${blocLancement}
-       <div class="zone-label zone-red">${ic('ti-flag',14)} Ce qui nécessite mon attention</div>
-       <div class="grid-2">${blocPriorites}${blocSurveiller}</div>
-       <div class="zone-label zone-green">${ic('ti-chart-bar',14)} Ce qui fonctionne</div>
-       ${kpis}
-       <div class="grid-2">${blocSemaine}${blocCampagnesAVenir}</div>
-       <div class="grid-2">${blocCanaux}${blocSegments}</div>
-       <div class="zone-label zone-blue">${ic('ti-target',14)} Ce que je surveille dans le temps</div>
-       ${blocObjectifs}`
-    : `${bandeauSecteur}
-       <div class="zone-label zone-green">${ic('ti-chart-bar',14)} Ce qui fonctionne</div>
-       ${kpis}
-       <div class="grid-2">${blocCanaux}${blocSegments}</div>
-       <div class="zone-label zone-red">${ic('ti-flag',14)} Ce qui nécessite mon attention</div>
-       <div class="grid-2">${blocPriorites}${blocSurveiller}</div>
-       <div class="zone-label zone-orange">${ic('ti-calendar-week',14)} Cette semaine</div>
-       <div class="grid-2">${blocSemaine}${blocCampagnesAVenir}</div>
-       <div class="zone-label zone-blue">${ic('ti-target',14)} Ce que je surveille dans le temps</div>
-       ${blocObjectifs}`;
+    ? zoneContexte + zoneLancement + zonePriorites + zoneSemaine + zonePerformance + zoneAlertes + zoneObjectifs
+    : zoneContexte + zonePerformance + zoneAlertes + zonePriorites + zoneSemaine + zoneObjectifs;
 }
 
 /* Navigation interne au module Marketing */
