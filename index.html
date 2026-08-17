@@ -312,6 +312,11 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ch-metric .v{font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .ch-metric .l{font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-top:1px}
 .ch-spark{flex-shrink:0}
+.sector-bar{display:flex;align-items:center;gap:11px;background:var(--th-card);border:1px solid var(--th-border);border-left:3px solid var(--th-orange);border-radius:12px;padding:13px 17px;font-size:13px;margin-bottom:18px;box-shadow:var(--th-shadow-sm)}
+.sector-dot{width:9px;height:9px;border-radius:50%;background:var(--th-green);box-shadow:0 0 0 3px var(--th-green-bg);flex-shrink:0}
+.sector-chip{display:inline-flex;align-items:center;gap:6px;border-radius:9px;padding:6px 12px;font-size:12px;font-weight:600;border:1px solid var(--th-border);background:var(--th-card);color:var(--th-text-2)}
+.sector-chip.active{background:var(--th-orange-bg);color:var(--th-orange);border-color:var(--th-orange)}
+.sector-chip.soon{opacity:.55}
 .hint-bar{display:flex;align-items:center;gap:10px;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;padding:14px 18px;font-size:12.5px;color:var(--th-text-2);box-shadow:var(--th-shadow-sm)}
 .hint-bar .icon{color:var(--th-orange)}
 
@@ -886,7 +891,10 @@ function panelTemplate(moduleId, s){
     }
     case 'mktgSettings': return `<div class="page-head"><div><h1>Paramètres Marketing</h1><p class="subtitle">Canaux, statuts, conventions et règles de calcul</p></div></div>
       <div class="grid-2">
-        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-share',17)}<span>Canaux utilisés</span></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-building',17)}<span>Secteurs</span></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">${SECTORS.map(s=>`<span class="sector-chip ${s.actif?'active':'soon'}">${s.actif?'●':'○'} ${esc(s.nom)}</span>`).join('')}</div>
+          <p style="font-size:11.5px;color:var(--th-text-2);line-height:1.6">Un seul secteur actif en V1. Activer un nouveau secteur ne nécessite aucune refonte : campagnes, audiences, contenus et résultats lui seront rattachés automatiquement.</p>
+          <div class="card-header" style="margin-top:20px"><div class="card-title">${ic('ti-share',17)}<span>Canaux utilisés</span></div></div>
           <div style="display:flex;flex-wrap:wrap;gap:6px">${MKTG_CHANNELS.map(c=>`<span class="badge">${esc(c)}</span>`).join('')}</div>
           <div class="card-header" style="margin-top:20px"><div class="card-title">${ic('ti-flag',17)}<span>Statuts de campagne</span></div></div>
           <div style="display:flex;flex-wrap:wrap;gap:6px">${CAMPAIGN_STATUSES.map(s=>`<span class="badge">${esc(s)}</span>`).join('')}</div>
@@ -1153,65 +1161,68 @@ const STATUS_STYLE = {
 };
 const CONTENT_STATUSES = ['À créer','À préparer','Prêt','Programmé','Publié'];
 
+/* ---------- Secteurs : dimension transversale ----------
+   V1 : un seul secteur actif (Dératisation). Les autres sont
+   déclarés pour que l'architecture les accepte sans refonte,
+   mais restent inactifs : aucune campagne, aucune donnée. */
+const SECTORS = [
+  { id:'derat', nom:'Dératisation', libelle:'Destruction des nuisibles', actif:true, lancement:'2026-10-01' },
+  { id:'plomb', nom:'Plomberie', libelle:'Plomberie / sanitaire', actif:false, lancement:null },
+  { id:'elec', nom:'Électricité', libelle:'Installation électrique', actif:false, lancement:null },
+  { id:'chauf', nom:'Chauffage', libelle:'Chauffage / climatisation', actif:false, lancement:null },
+];
+const ACTIVE_SECTOR = SECTORS.find(s=>s.actif);
+function sectorName(id){ const s = SECTORS.find(x=>x.id===id); return s ? s.nom : '—'; }
+function sectorBadge(id){ return `<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">${esc(sectorName(id))}</span>`; }
+
 /* ---------- Audiences : définies ici, sélectionnées ailleurs ---------- */
 const AUDIENCES = [
-  { id:'seg1', nom:'Plombiers indépendants', metier:'Plomberie', taille:'1 à 5 salariés', zone:'France métropolitaine', maturite:'Faible', phase:'Acquisition',
-    persona:{ role:'Artisan dirigeant', douleurs:"Devis perdus, planning sur papier, relances oubliées", objections:"Pas le temps d'apprendre un logiciel", declencheur:"Un chantier perdu faute de relance" },
-    messages:[{ texte:"Ne perdez plus un devis faute de relance", perf:'fonctionne' },{ texte:"Le logiciel tout-en-un pour artisans", perf:'neutre' }],
-    leads:145, conversion:8, coutLead:17, potentiel:'Élevé' },
-  { id:'seg2', nom:'Sociétés de dératisation', metier:'Dératisation', taille:'5 à 20 salariés', zone:'Grandes agglomérations', maturite:'Moyenne', phase:'Acquisition',
-    persona:{ role:'Gérant / responsable exploitation', douleurs:"Traçabilité des interventions, obligations réglementaires", objections:"Nos process sont déjà en place", declencheur:"Un contrôle sanitaire raté" },
-    messages:[{ texte:"Traçabilité réglementaire automatique", perf:'fonctionne' },{ texte:"Gagnez du temps sur vos tournées", perf:'ne fonctionne pas' }],
-    leads:95, conversion:15, coutLead:13, potentiel:'Moyen' },
-  { id:'seg3', nom:'Électriciens en croissance', metier:'Électricité', taille:'5 à 20 salariés', zone:'France métropolitaine', maturite:'Élevée', phase:'Expansion',
-    persona:{ role:'Dirigeant en structuration', douleurs:"Coordination des équipes terrain, rentabilité par chantier", objections:"Coût d'un abonnement supplémentaire", declencheur:"Embauche du 5e technicien" },
-    messages:[{ texte:"Pilotez la rentabilité de chaque chantier", perf:'fonctionne' }],
-    leads:210, conversion:4, coutLead:18, potentiel:'Élevé' },
-  { id:'seg4', nom:'Serruriers urgentistes', metier:'Serrurerie', taille:'1 à 5 salariés', zone:'Île-de-France', maturite:'Faible', phase:'Test',
-    persona:{ role:'Artisan mobile', douleurs:"Interventions en urgence mal facturées", objections:"Je travaille surtout au téléphone", declencheur:"Trop d'impayés" },
-    messages:[{ texte:"Facturez sur place, en 30 secondes", perf:'neutre' }],
-    leads:40, conversion:2, coutLead:24, potentiel:'Faible' },
+  { id:'seg1', sectorId:'derat', nom:'Dératisation 2 à 10 salariés', metier:'Destruction des nuisibles', taille:'2 à 10 salariés', zone:'France métropolitaine', maturite:'Faible', phase:'Marché initial',
+    persona:{ role:'Gérant technicien', douleurs:"Planning des tournées sur papier, comptes rendus d'intervention perdus, relances clients oubliées", objections:"Mes techniciens ne sont pas à l'aise avec le numérique", declencheur:"Un contrat perdu faute de traçabilité" },
+    messages:[{ texte:"Vos comptes rendus d'intervention prêts en 2 minutes, depuis le terrain", perf:'fonctionne' },{ texte:"Le logiciel tout-en-un pour les professionnels du nuisible", perf:'neutre' }],
+    potentiel:'Élevé' },
+  { id:'seg2', sectorId:'derat', nom:'Dératisation sous contrat sanitaire', metier:'Destruction des nuisibles', taille:'5 à 25 salariés', zone:'Grandes agglomérations', maturite:'Moyenne', phase:'Marché initial',
+    persona:{ role:'Responsable exploitation', douleurs:"Obligations réglementaires HACCP, preuves de passage à fournir aux clients pros", objections:"Nous avons déjà nos process internes", declencheur:"Un contrôle sanitaire raté chez un client" },
+    messages:[{ texte:"Traçabilité réglementaire automatique, prête pour vos audits", perf:'fonctionne' },{ texte:"Gagnez du temps sur vos tournées", perf:'ne fonctionne pas' }],
+    potentiel:'Élevé' },
+  { id:'seg3', sectorId:'derat', nom:'Dératiseurs indépendants', metier:'Destruction des nuisibles', taille:'1 salarié', zone:'Île-de-France', maturite:'Faible', phase:'Test',
+    persona:{ role:'Artisan seul', douleurs:"Devis faits le soir, facturation en retard, pas de suivi", objections:"Un abonnement de plus, ça fait cher", declencheur:"Trop d'impayés en fin de trimestre" },
+    messages:[{ texte:"Facturez sur place, en fin d'intervention", perf:'neutre' }],
+    potentiel:'Moyen' },
 ];
 
 /* ---------- Campagnes : source unique des résultats ---------- */
 const DEMO_CAMPAIGNS = [
-  { title:'Lancement TigerFlow V2', objective:'Notoriété + acquisition', segmentId:'seg1', status:'En ligne',
-    startDate:'2026-07-01', endDate:'2026-08-31', budget:3000, timeEstimated:24, timeReal:19,
-    offre:"3 mois offerts sur l'abonnement annuel", message:"Ne perdez plus un devis faute de relance",
-    results:{ 'LinkedIn':{impressions:48000,clicks:1240,leads:98,conversions:8,cost:1600}, 'Google Ads':{impressions:32000,clicks:820,leads:47,conversions:3,cost:850} },
-    notes:"Le message centré sur la perte de devis surperforme largement le message générique." },
-  { title:'Search — mots-clés métiers', objective:'Acquisition', segmentId:'seg3', status:'En ligne',
-    startDate:'2026-06-15', endDate:'2026-09-15', budget:4000, timeEstimated:10, timeReal:14,
-    offre:"Essai gratuit 14 jours", message:"Pilotez la rentabilité de chaque chantier",
-    results:{ 'Google Ads':{impressions:182000,clicks:4100,leads:210,conversions:9,cost:3800} },
-    notes:"Volume élevé mais qualité de lead inférieure au SEO." },
-  { title:'Contenu longue traîne', objective:'Acquisition durable', segmentId:'seg2', status:'En ligne',
-    startDate:'2026-03-01', endDate:'2026-12-31', budget:1200, timeEstimated:60, timeReal:72,
-    offre:"Guide gratuit", message:"Traçabilité réglementaire automatique",
-    results:{ 'SEO':{impressions:0,clicks:2400,leads:95,conversions:14,cost:1200} },
-    notes:"Meilleur ratio coût/client, mais très coûteux en temps humain." },
-  { title:'Séquence onboarding', objective:'Conversion essai → client', segmentId:'seg1', status:'En ligne',
-    startDate:'2026-01-01', endDate:'2026-12-31', budget:300, timeEstimated:16, timeReal:12,
-    offre:"Accompagnement au démarrage", message:"Vos 3 premières interventions en 10 minutes",
-    results:{ 'Email':{impressions:7200,clicks:840,leads:0,conversions:22,cost:300} },
-    notes:"Automatisée, très rentable une fois en place." },
-  { title:'Webinaire — Piloter son activité', objective:'Notoriété + leads qualifiés', segmentId:'seg2', status:'Terminée',
-    startDate:'2026-05-10', endDate:'2026-05-10', budget:800, timeEstimated:20, timeReal:26,
-    offre:"Replay + modèle de planning", message:"Reprenez le contrôle de vos tournées",
-    results:{ 'LinkedIn':{impressions:22000,clicks:640,leads:90,conversions:3,cost:500}, 'Email':{impressions:2400,clicks:310,leads:40,conversions:2,cost:300} },
-    notes:"Beaucoup de leads, peu de clients — utile en notoriété, pas en conversion directe." },
-  { title:'Retargeting visiteurs', objective:'Reconversion', segmentId:'seg3', status:'En pause',
-    startDate:'2026-06-01', endDate:'2026-07-15', budget:900, timeEstimated:6, timeReal:5,
-    offre:"Démonstration personnalisée", message:"Vous étiez à deux clics de simplifier vos chantiers",
-    results:{ 'Meta Ads':{impressions:64000,clicks:1250,leads:55,conversions:4,cost:650} },
-    notes:"Excellent retour pour un petit budget — probablement sous-investi." },
-  { title:'Salon Solutions PME', objective:'Génération de leads terrain', segmentId:'seg4', status:'Planifiée',
-    startDate:'2026-10-12', endDate:'2026-10-14', budget:5000, timeEstimated:40, timeReal:0,
-    offre:"Démonstration sur stand", message:"Facturez sur place, en 30 secondes",
-    results:{}, notes:"" },
-  { title:'Partenariat réseau artisans', objective:'Notoriété', segmentId:'seg4', status:'En préparation',
-    startDate:'2026-09-01', endDate:'2026-10-31', budget:1500, timeEstimated:12, timeReal:3,
-    offre:"Offre co-brandée", message:"", results:{}, notes:"" },
+  { title:'Lancement TigerFlow — Dératisation France', sectorId:'derat', objective:'Acquisition', segmentId:'seg1', status:'En préparation',
+    startDate:'2026-09-15', endDate:'2026-11-15', budget:500, timeEstimated:18, timeReal:4,
+    offre:"2 mois offerts pour les 20 premiers inscrits", message:"Vos comptes rendus d'intervention prêts en 2 minutes, depuis le terrain",
+    results:{}, notes:"Campagne principale du lancement du 1er octobre." },
+  { title:'Notoriété — Présence LinkedIn fondatrice', sectorId:'derat', objective:'Notoriété', segmentId:'seg1', status:'En ligne',
+    startDate:'2026-08-01', endDate:'2026-12-31', budget:0, timeEstimated:24, timeReal:11,
+    offre:"", message:"Coulisses de la construction de TigerFlow avec des dératiseurs",
+    results:{ 'LinkedIn':{impressions:14200,clicks:420,leads:38,conversions:2,cost:0} },
+    notes:"Zéro budget, uniquement du temps. Bon retour sur l'audience métier." },
+  { title:'Contenu SEO — Réglementation et traçabilité', sectorId:'derat', objective:'Acquisition durable', segmentId:'seg2', status:'En ligne',
+    startDate:'2026-07-01', endDate:'2026-12-31', budget:400, timeEstimated:40, timeReal:34,
+    offre:"Guide gratuit : obligations réglementaires du dératiseur", message:"Traçabilité réglementaire automatique, prête pour vos audits",
+    results:{ 'SEO':{impressions:0,clicks:1180,leads:52,conversions:6,cost:400} },
+    notes:"Le sujet réglementaire attire exactement la bonne cible." },
+  { title:'Prospection ciblée — Contrats sanitaires', sectorId:'derat', objective:'Leads qualifiés', segmentId:'seg2', status:'En ligne',
+    startDate:'2026-08-15', endDate:'2026-10-31', budget:600, timeEstimated:20, timeReal:9,
+    offre:"Démonstration de 20 minutes", message:"Fournissez vos preuves de passage sans effort",
+    results:{ 'LinkedIn':{impressions:8400,clicks:310,leads:24,conversions:4,cost:380}, 'Email':{impressions:900,clicks:180,leads:14,conversions:3,cost:0} },
+    notes:"Le combiné LinkedIn + email fonctionne bien sur ce segment." },
+  { title:'Test — Google Ads mots-clés métier', sectorId:'derat', objective:'Acquisition', segmentId:'seg1', status:'En pause',
+    startDate:'2026-08-01', endDate:'2026-08-20', budget:300, timeEstimated:6, timeReal:7,
+    offre:"Essai gratuit 14 jours", message:"Le logiciel des professionnels du nuisible",
+    results:{ 'Google Ads':{impressions:22000,clicks:410,leads:18,conversions:1,cost:290} },
+    notes:"Coût par lead trop élevé sur ce marché de niche — mis en pause." },
+  { title:'Salon des professionnels du nuisible', sectorId:'derat', objective:'Leads terrain', segmentId:'seg2', status:'Planifiée',
+    startDate:'2026-11-18', endDate:'2026-11-20', budget:2500, timeEstimated:36, timeReal:0,
+    offre:"Démonstration sur stand", message:"", results:{}, notes:"" },
+  { title:'Partenariat — Fédération professionnelle', sectorId:'derat', objective:'Crédibilité + leads', segmentId:'seg2', status:'Brouillon',
+    startDate:'', endDate:'', budget:800, timeEstimated:14, timeReal:0,
+    offre:"Offre adhérents", message:"", results:{}, notes:"" },
 ];
 
 async function seedDemoCampaignsIfEmpty(){
@@ -1263,34 +1274,31 @@ function aggregateBySegment(){
 
 /* ---------- Contenus : bibliothèque unique ---------- */
 const CONTENTS = [
-  { id:'ct1', titre:"Guide — Digitaliser son entreprise de terrain", type:'Document', statut:'Publié', canal:'SEO', segmentId:'seg2', campIdx:2, date:'2026-05-01' },
-  { id:'ct2', titre:"5 signes qu'il faut changer d'outil", type:'Article', statut:'Publié', canal:'SEO', segmentId:'seg1', campIdx:2, date:'2026-07-15' },
-  { id:'ct3', titre:"Démonstration produit — 3 minutes", type:'Vidéo', statut:'Prêt', canal:'YouTube', segmentId:'seg3', campIdx:null, date:'2026-06-20' },
-  { id:'ct4', titre:"Témoignage client Dératik+", type:'Vidéo', statut:'Programmé', canal:'LinkedIn', segmentId:'seg2', campIdx:0, date:'2026-08-22' },
-  { id:'ct5', titre:"Infographie — ROI d'un logiciel terrain", type:'Image', statut:'Publié', canal:'Instagram', segmentId:'seg1', campIdx:null, date:'2026-06-10' },
-  { id:'ct6', titre:"Carrousel — 3 erreurs de planning", type:'Post', statut:'Publié', canal:'LinkedIn', segmentId:'seg1', campIdx:0, date:'2026-07-08' },
-  { id:'ct7', titre:"Landing page — Offre lancement V2", type:'Landing page', statut:'Prêt', canal:'Google Ads', segmentId:'seg1', campIdx:0, date:'2026-07-01' },
-  { id:'ct8', titre:"Newsletter août", type:'Email', statut:'À préparer', canal:'Email', segmentId:'seg1', campIdx:3, date:'2026-08-14' },
-  { id:'ct9', titre:"Étude de cas — électricien 8 salariés", type:'Article', statut:'À créer', canal:'SEO', segmentId:'seg3', campIdx:null, date:'2026-09-05' },
-  { id:'ct10', titre:"Script vidéo salon", type:'Document', statut:'À créer', canal:'Événement', segmentId:'seg4', campIdx:6, date:'2026-09-20' },
-  { id:'ct11', titre:"Post LinkedIn — coulisses du salon", type:'Post', statut:'À créer', canal:'LinkedIn', segmentId:'seg4', campIdx:6, date:'2026-10-13' },
-  { id:'ct12', titre:"Séquence relance essais expirés", type:'Email', statut:'Programmé', canal:'Email', segmentId:'seg1', campIdx:3, date:'2026-08-25' },
+  { id:'ct1', titre:"Guide — Obligations réglementaires du dératiseur", type:'Document', statut:'Publié', canal:'SEO', sectorId:'derat', segmentId:'seg2', campIdx:2, date:'2026-07-12' },
+  { id:'ct2', titre:"Article — Preuve de passage : ce que la loi exige", type:'Article', statut:'Publié', canal:'SEO', sectorId:'derat', segmentId:'seg2', campIdx:2, date:'2026-08-04' },
+  { id:'ct3', titre:"Vidéo démo — Compte rendu depuis le terrain", type:'Vidéo', statut:'Prêt', canal:'YouTube', sectorId:'derat', segmentId:'seg1', campIdx:0, date:'2026-09-08' },
+  { id:'ct4', titre:"Post LinkedIn — Coulisses du développement", type:'Post', statut:'Publié', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:1, date:'2026-08-06' },
+  { id:'ct5', titre:"Landing page — Lancement 1er octobre", type:'Landing page', statut:'À préparer', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:0, date:'2026-09-12' },
+  { id:'ct6', titre:"Séquence email — Prospection contrats sanitaires", type:'Email', statut:'Programmé', canal:'Email', sectorId:'derat', segmentId:'seg2', campIdx:3, date:'2026-08-20' },
+  { id:'ct7', titre:"Étude de cas — Dératiseur 6 salariés", type:'Article', statut:'À créer', canal:'SEO', sectorId:'derat', segmentId:'seg2', campIdx:null, date:'2026-09-25' },
+  { id:'ct8', titre:"Carrousel — 3 erreurs de tournée", type:'Post', statut:'À créer', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:1, date:'2026-09-18' },
+  { id:'ct9', titre:"Kit stand salon", type:'Document', statut:'À créer', canal:'Événement', sectorId:'derat', segmentId:'seg2', campIdx:5, date:'2026-11-05' },
 ];
 
 /* ---------- Expérimentations : hypothèse + conclusion obligatoires ---------- */
 const EXPERIMENTS = [
-  { titre:"Objet d'email personnalisé vs générique", hypothese:"Un objet avec le prénom augmente le taux d'ouverture.", segmentId:'seg1', canal:'Email', objectif:"Taux d'ouverture", budget:0, duree:'3 semaines', attendu:"+5 points d'ouverture", reel:"+9 points (47% vs 38%)", conclusion:"Continuer", enseignement:"Personnaliser systématiquement l'objet." },
-  { titre:"Page courte vs page détaillée", hypothese:"Une page courte avec un seul appel à l'action convertit mieux.", segmentId:'seg3', canal:'Google Ads', objectif:"Taux de conversion", budget:400, duree:'1 mois', attendu:"+1 point de conversion", reel:"Quasi identique (4.1% vs 3.9%)", conclusion:"Arrêter", enseignement:"Le format compte moins que la qualité du trafic source." },
-  { titre:'Afficher le prix vs "Demander un devis"', hypothese:"Cacher le prix augmente le volume de leads mais baisse leur qualité.", segmentId:'seg1', canal:'LinkedIn', objectif:"Qualité des leads", budget:600, duree:'6 semaines', attendu:"+30% de leads, closing stable", reel:"+40% de leads, closing en cours de mesure", conclusion:null, enseignement:null },
+  { titre:"Message réglementaire vs message gain de temps", sectorId:'derat', hypothese:"Sur les entreprises sous contrat sanitaire, le message réglementaire convertit mieux que le message gain de temps.", segmentId:'seg2', canal:'LinkedIn', objectif:"Taux de clic", budget:120, duree:'3 semaines', attendu:"+2 points de clic", reel:"+4,1 points (5,8% vs 1,7%)", conclusion:"Continuer", enseignement:"Sur ce segment, parler conformité plutôt que confort." },
+  { titre:"Google Ads sur un marché de niche", sectorId:'derat', hypothese:"Le search payant peut générer des leads dératisation sous 25 € le lead.", segmentId:'seg1', canal:'Google Ads', objectif:"Coût par lead", budget:300, duree:'3 semaines', attendu:"Coût/lead inférieur à 25 €", reel:"16 € de coût/lead mais 1 seule conversion", conclusion:"Arrêter", enseignement:"Volume de recherche trop faible sur ce métier — privilégier LinkedIn et le SEO." },
+  { titre:"Démo enregistrée vs démo en direct", sectorId:'derat', hypothese:"Une démo enregistrée de 3 minutes convertit autant qu'une démo en direct, pour beaucoup moins de temps investi.", segmentId:'seg1', canal:'LinkedIn', objectif:"Temps investi par client", budget:0, duree:'En cours', attendu:"Conversion stable, temps divisé par 4", reel:"Mesure en cours jusqu'au lancement", conclusion:null, enseignement:null },
 ];
 
 /* ---------- Apprentissages ---------- */
 const LEARNINGS = [
-  { texte:"Le SEO génère le meilleur ratio coût/client, mais c'est aussi le canal le plus coûteux en temps humain (72 h investies).", type:'fonctionne', canal:'SEO' },
-  { texte:"Les partenariats génériques attirent du volume mais peu de clients qualifiés — cibler des réseaux spécialisés métier.", type:'ne fonctionne pas', canal:'Partenariat' },
-  { texte:"Le message centré sur une douleur précise (« perdre un devis ») surperforme largement les messages génériques.", type:'fonctionne', canal:null },
-  { texte:"Les webinaires génèrent beaucoup de leads mais convertissent mal — utiles en notoriété, pas en conversion directe.", type:'ne fonctionne pas', canal:'Événement' },
-  { texte:"Le segment « Électriciens en croissance » a le plus fort volume, mais le segment « Dératisation » convertit 4x mieux.", type:'fonctionne', canal:null },
+  { texte:"Sur la dératisation, le message réglementaire surperforme largement le message « gain de temps » auprès des entreprises sous contrat sanitaire.", type:'fonctionne', sectorId:'derat' },
+  { texte:"Le SEO sur les sujets réglementaires attire exactement la bonne cible — 6 conversions pour 400 € investis.", type:'fonctionne', sectorId:'derat' },
+  { texte:"Google Ads ne fonctionne pas sur ce marché de niche : volume de recherche trop faible malgré un coût/lead correct.", type:'ne fonctionne pas', sectorId:'derat' },
+  { texte:"La présence LinkedIn de la fondatrice génère des leads à budget zéro, mais coûte 11 h de travail — le temps est le vrai coût ici.", type:'fonctionne', sectorId:'derat' },
+  { texte:"Le combiné LinkedIn + email sur un même segment convertit mieux que chaque canal isolé.", type:'fonctionne', sectorId:'derat' },
 ];
 
 /* ==================== RENDUS ==================== */
@@ -1312,6 +1320,11 @@ function renderMktgOverview(){
   const watch = campaigns.filter(c=>{ const t=campTotals(c); return t.cost>300 && t.conversions<=2; });
 
   el.innerHTML = `
+    <div class="sector-bar">
+      <div class="sector-dot"></div>
+      <div><b>Secteur actif : ${esc(ACTIVE_SECTOR.nom)}</b> <span style="color:var(--th-text-2)">— ${esc(ACTIVE_SECTOR.libelle)}</span></div>
+      <div style="margin-left:auto;font-size:11.5px;color:var(--th-text-2)">Lancement TigerFlow le ${fmtDate(ACTIVE_SECTOR.lancement)} · ${SECTORS.filter(s=>!s.actif).length} secteurs prévus ensuite</div>
+    </div>
     <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
       <div class="stat-card"><div class="stat-card-icon">${ic('ti-target-arrow')}</div><div class="val">${active.length}</div><div class="label">Campagnes en ligne</div></div>
       <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-calendar')}</div><div class="val">${upcoming.length}</div><div class="label">À venir</div></div>
@@ -1362,14 +1375,28 @@ function switchAudienceTab(i){ audienceTab = i; renderMktgAudiences(); }
 function renderMktgAudiences(){
   const el = document.getElementById('marketing-audiencesContent'); if(!el) return;
   const segAgg = aggregateBySegment();
-  const tabs = ['Segments','Personas','Messages','Performances'];
+  const tabs = ['Secteurs','Segments','Personas','Messages','Performances'];
   let body = '';
 
   if(audienceTab === 0){
+    body = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:18px">
+      ${SECTORS.map(s=>`<div class="card" style="${s.actif?'border-left:3px solid var(--th-orange)':'opacity:.62'}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:15px;font-weight:700">${esc(s.nom)}</div>
+          ${s.actif?'<span class="badge green">Actif</span>':'<span class="badge gray">À venir</span>'}
+        </div>
+        <div style="font-size:12.5px;color:var(--th-text-2);margin-bottom:12px">${esc(s.libelle)}</div>
+        <div style="font-size:12px;color:var(--th-text-2);line-height:1.9">
+          <div style="display:flex;justify-content:space-between"><span>Segments définis</span><b style="color:var(--th-text)">${AUDIENCES.filter(a=>a.sectorId===s.id).length}</b></div>
+          <div style="display:flex;justify-content:space-between"><span>Campagnes</span><b style="color:var(--th-text)">${campaigns.filter(c=>c.sectorId===s.id).length}</b></div>
+          <div style="display:flex;justify-content:space-between"><span>Lancement</span><b style="color:var(--th-text)">${s.lancement?fmtDate(s.lancement):'Non planifié'}</b></div>
+        </div></div>`).join('')}</div>
+      <div class="hint-bar">${ic('ti-bulb',16)}<span>TigerHub est <b>multi-secteurs par conception</b> mais <b>mono-secteur en V1</b> : seule la dératisation est active. Les autres pourront être activés sans refonte, environ tous les 3 mois.</span></div>`;
+  } else if(audienceTab === 1){
     body = `<table class="data-table"><thead><tr><th>Segment</th><th>Métier</th><th>Taille</th><th>Zone</th><th>Maturité digitale</th><th>Phase</th><th>Potentiel</th></tr></thead><tbody>
       ${AUDIENCES.map(a=>`<tr><td class="dt-title">${esc(a.nom)}</td><td><span class="badge">${esc(a.metier)}</span></td><td>${esc(a.taille)}</td><td>${esc(a.zone)}</td><td>${esc(a.maturite)}</td><td><span class="badge blue">${esc(a.phase)}</span></td><td><span class="badge ${a.potentiel==='Élevé'?'green':a.potentiel==='Moyen'?'orange':'gray'}" style="${a.potentiel==='Moyen'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(a.potentiel)}</span></td></tr>`).join('')}
     </tbody></table>`;
-  } else if(audienceTab === 1){
+  } else if(audienceTab === 2){
     body = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
       ${AUDIENCES.map(a=>`<div class="card">
         <div class="card-header"><div class="card-title">${ic('ti-user-check',17)}<span>${esc(a.nom)}</span></div></div>
@@ -1379,7 +1406,7 @@ function renderMktgAudiences(){
           <div style="margin-bottom:10px"><span style="color:var(--th-text-3);font-weight:700;font-size:10.5px;text-transform:uppercase">Objections</span><div style="color:var(--th-text-2)">${esc(a.persona.objections)}</div></div>
           <div><span style="color:var(--th-text-3);font-weight:700;font-size:10.5px;text-transform:uppercase">Déclencheur d'achat</span><div style="color:var(--th-orange);font-weight:600">${esc(a.persona.declencheur)}</div></div>
         </div></div>`).join('')}</div>`;
-  } else if(audienceTab === 2){
+  } else if(audienceTab === 3){
     body = `<table class="data-table"><thead><tr><th>Segment</th><th>Accroche testée</th><th>Performance</th></tr></thead><tbody>
       ${AUDIENCES.flatMap(a=>a.messages.map(m=>`<tr><td>${esc(a.nom)}</td><td class="dt-title">« ${esc(m.texte)} »</td>
         <td><span class="badge ${m.perf==='fonctionne'?'green':m.perf==='ne fonctionne pas'?'red':'gray'}">${m.perf==='fonctionne'?'Fonctionne':m.perf==='ne fonctionne pas'?'Ne fonctionne pas':'À confirmer'}</span></td></tr>`)).join('')}
@@ -1414,6 +1441,7 @@ function renderMktgCampaigns(){
     const chs = campChannels(c);
     return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer">
       <td><div class="dt-title">${esc(c.title)}</div><div class="dt-sub">${esc(c.objective||'')}</div></td>
+      <td>${sectorBadge(c.sectorId)}</td>
       <td><span class="badge">${esc(segName(c.segmentId))}</span></td>
       <td>${chs.length ? chs.slice(0,2).map(ch=>{const st=CHANNEL_STYLE[ch]||{};return `<span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span>`;}).join(' ')+(chs.length>2?` <span class="badge">+${chs.length-2}</span>`:'') : '<span style="color:var(--th-text-3)">—</span>'}</td>
       <td style="font-size:12px;color:var(--th-text-2)">${c.startDate?fmtDate(c.startDate):'—'}${c.endDate?' → '+fmtDate(c.endDate):''}</td>
@@ -1430,8 +1458,8 @@ function renderMktgCampaigns(){
       <button class="add-btn" style="margin-left:auto">${ic('ti-plus',14)} Nouvelle campagne</button>
     </div>
     <div class="search-bar">${ic('ti-search')}<input type="text" placeholder="Rechercher une campagne..." oninput="setCampSearch(this.value)"></div>
-    <table class="data-table"><thead><tr><th>Campagne</th><th>Segment</th><th>Canaux</th><th>Période</th><th>Budget</th><th>Dépensé</th><th>Temps</th><th>Leads</th><th>Coût/lead</th><th>Statut</th></tr></thead>
-    <tbody>${rows || `<tr><td colspan="10" style="text-align:center;color:var(--th-text-2);padding:26px">Aucune campagne dans cette vue.</td></tr>`}</tbody></table>`;
+    <table class="data-table"><thead><tr><th>Campagne</th><th>Secteur</th><th>Segment</th><th>Canaux</th><th>Période</th><th>Budget</th><th>Dépensé</th><th>Temps</th><th>Leads</th><th>Coût/lead</th><th>Statut</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="11" style="text-align:center;color:var(--th-text-2);padding:26px">Aucune campagne dans cette vue.</td></tr>`}</tbody></table>`;
 }
 
 /* ---- Fiche campagne ---- */
@@ -1573,7 +1601,7 @@ function renderCampaignDetail(){
     <div class="page-head">
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h1 style="margin-bottom:2px">${esc(c.title)}</h1>${statusBadge(c.status)}</div>
-        <p class="subtitle">${esc(c.objective||'')} · ${esc(segName(c.segmentId))}</p>
+        <p class="subtitle">${esc(sectorName(c.sectorId))} · ${esc(c.objective||'')} · ${esc(segName(c.segmentId))}</p>
       </div>
       <select class="status-select" onchange="updateCampField('${c.id}','status',this.value)">${CAMPAIGN_STATUSES.map(s=>`<option ${c.status===s?'selected':''}>${s}</option>`).join('')}</select>
     </div>
@@ -1685,14 +1713,14 @@ function renderMktgContents(){
         <button class="add-btn" style="margin-left:auto">${ic('ti-plus',14)} Nouveau contenu</button>
       </div>
       <div class="search-bar">${ic('ti-search')}<input type="text" placeholder="Rechercher un contenu..." oninput="setContentSearch(this.value)"></div>
-      <table class="data-table"><thead><tr><th>Contenu</th><th>Type</th><th>Canal</th><th>Segment</th><th>Campagne</th><th>Date</th><th>Statut</th></tr></thead><tbody>
+      <table class="data-table"><thead><tr><th>Contenu</th><th>Type</th><th>Secteur</th><th>Canal</th><th>Segment</th><th>Campagne</th><th>Date</th><th>Statut</th></tr></thead><tbody>
         ${list.map(ct=>{ const camp = ct.campIdx!==null && campaigns[ct.campIdx] ? campaigns[ct.campIdx].title : null;
           const sc = ct.statut==='Publié'?'green':ct.statut==='À créer'?'gray':ct.statut==='Programmé'?'purple':ct.statut==='À préparer'?'orange':'blue';
           const scS = sc==='purple'?'color:var(--th-purple);background:var(--th-purple-bg)':sc==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':'';
           return `<tr><td class="dt-title">${esc(ct.titre)}</td><td><span class="badge">${esc(ct.type)}</span></td>
-          <td>${esc(ct.canal)}</td><td style="font-size:12px;color:var(--th-text-2)">${esc(segName(ct.segmentId))}</td>
+          <td>${sectorBadge(ct.sectorId)}</td><td>${esc(ct.canal)}</td><td style="font-size:12px;color:var(--th-text-2)">${esc(segName(ct.segmentId))}</td>
           <td style="font-size:12px;color:var(--th-text-2)">${camp?esc(camp):'—'}</td><td style="font-size:12px">${fmtDate(ct.date)}</td>
-          <td><span class="badge ${sc}" style="${scS}">${esc(ct.statut)}</span></td></tr>`; }).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--th-text-2);padding:22px">Aucun contenu pour ce filtre.</td></tr>`}
+          <td><span class="badge ${sc}" style="${scS}">${esc(ct.statut)}</span></td></tr>`; }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--th-text-2);padding:22px">Aucun contenu pour ce filtre.</td></tr>`}
       </tbody></table>
       <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span><b>Une seule bibliothèque.</b> « À créer » est simplement un statut, pas une liste séparée.</span></div>`;
   } else {
@@ -1748,7 +1776,17 @@ function renderMktgAnalysis(){
         <div class="stat-card purple"><div class="val">${glob.leads?Math.round(glob.conv/glob.leads*100):0}%</div><div class="label">Taux de conversion</div></div>
         <div class="stat-card ${glob.cost&&glob.conv?'green':'gray'}"><div class="val">${glob.conv?Math.round(glob.cost/glob.conv):0} €</div><div class="label">Coût d'acquisition</div></div>
       </div>
-      <p class="section-label">Par canal</p>
+      <p class="section-label">Par secteur</p>
+      <table class="data-table"><thead><tr><th>Secteur</th><th>Statut</th><th>Campagnes</th><th>Leads</th><th>Conversions</th><th>Coût</th><th>Temps</th></tr></thead><tbody>
+        ${SECTORS.map(sec=>{
+          const cs = campaigns.filter(c=>c.sectorId===sec.id);
+          const a = cs.reduce((x,c)=>{ const t=campTotals(c); return {leads:x.leads+t.leads,conv:x.conv+t.conversions,cost:x.cost+t.cost,time:x.time+(c.timeReal||0)}; },{leads:0,conv:0,cost:0,time:0});
+          return `<tr style="${sec.actif?'':'opacity:.5'}"><td class="dt-title">${esc(sec.nom)}</td>
+          <td>${sec.actif?'<span class="badge green">Actif</span>':'<span class="badge gray">À venir</span>'}</td>
+          <td>${cs.length}</td><td>${a.leads}</td><td>${a.conv}</td><td>${a.cost} €</td><td>${a.time} h</td></tr>`;
+        }).join('')}
+      </tbody></table>
+      <p class="section-label" style="margin-top:24px">Par canal</p>
       <table class="data-table"><thead><tr><th>Canal</th><th>Leads</th><th>Conversions</th><th>Taux</th><th>Coût</th><th>Coût/lead</th><th>Temps</th></tr></thead><tbody>
         ${Object.entries(chAgg).sort((a,b)=>b[1].leads-a[1].leads).map(([ch,a])=>{ const st=CHANNEL_STYLE[ch]||{};
           return `<tr><td><span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span></td>
@@ -1812,7 +1850,7 @@ function renderMktgExperiments(){
       return `<div class="card" style="margin-bottom:14px;border-left:3px solid ${e.conclusion?'var(--th-green)':'var(--th-orange)'}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px;flex-wrap:wrap">
           <div><div style="font-size:14.5px;font-weight:700;margin-bottom:5px">${esc(e.titre)}</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge">${esc(segName(e.segmentId))}</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">${sectorBadge(e.sectorId)}<span class="badge">${esc(segName(e.segmentId))}</span>
             <span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(e.canal)}</span>
             <span class="badge">${esc(e.duree)}</span>${e.budget?`<span class="badge">${e.budget} €</span>`:''}</div></div>
           ${e.conclusion?`<span class="badge ${cc}" style="${cc==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(e.conclusion)}</span>`:`<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">Conclusion attendue</span>`}
@@ -1847,7 +1885,7 @@ function renderMktgIntelligence(){
     <div class="card">
       <div class="card-header"><div class="card-title">${ic('ti-refresh',17)}<span>La boucle d'apprentissage</span></div></div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:600">
-        ${['Idée','Segment','Campagne','Contenu','Résultat','Apprentissage'].map((s,i,arr)=>`<span style="background:var(--th-orange-bg);color:var(--th-orange);border-radius:9px;padding:7px 13px">${s}</span>${i<arr.length-1?`<span style="color:var(--th-text-3)">${ic('ti-arrow-left',13)}</span>`:''}`).join('').replace(/rotate/g,'')}
+        ${['Idée','Secteur','Segment','Campagne','Contenu','Résultat','Apprentissage'].map((s,i,arr)=>`<span style="background:var(--th-orange-bg);color:var(--th-orange);border-radius:9px;padding:7px 13px">${s}</span>${i<arr.length-1?`<span style="color:var(--th-text-3)">${ic('ti-arrow-left',13)}</span>`:''}`).join('').replace(/rotate/g,'')}
         <span style="color:var(--th-text-3);font-size:11px;margin-left:6px">↺ nouvelle idée</span>
       </div>
       <p style="font-size:12.5px;color:var(--th-text-2);margin-top:14px;line-height:1.7">Quand un prospect est qualifié, il bascule automatiquement de Marketing vers <b>Développement commercial</b>.</p>
