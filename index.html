@@ -312,6 +312,33 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ch-metric .v{font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .ch-metric .l{font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-top:1px}
 .ch-spark{flex-shrink:0}
+.create-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;box-shadow:var(--th-shadow-lg);padding:7px;min-width:270px;z-index:20}
+.create-item{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:10px;cursor:pointer;font-size:13px}
+.create-item:hover{background:var(--th-orange-bg)}
+.create-item .icon{color:var(--th-orange);flex-shrink:0}
+.wiz-modal{background:var(--th-card);border-radius:20px;padding:26px;width:100%;max-width:680px;max-height:88vh;overflow-y:auto;box-shadow:var(--th-shadow-lg);border:1px solid var(--th-border)}
+.wiz-steps{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap}
+.wiz-step{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--th-text-3);font-weight:600}
+.wiz-step.cur{color:var(--th-orange);font-weight:800}
+.wiz-step.done{color:var(--th-green)}
+.wiz-num{width:20px;height:20px;border-radius:7px;background:var(--th-bg-alt);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex-shrink:0}
+.wiz-step.cur .wiz-num{background:var(--th-orange);color:#fff}
+.wiz-step.done .wiz-num{background:var(--th-green-bg);color:var(--th-green)}
+.wiz-q{font-size:17px;font-weight:800;margin-bottom:16px}
+.wiz-lab{display:block;font-size:11px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 5px}
+.wiz-input{width:100%;border:1px solid var(--th-border);border-radius:11px;padding:11px 13px;font-size:13.5px;font-family:inherit;outline:none;background:var(--th-card);color:var(--th-text)}
+.wiz-input:focus{border-color:var(--th-orange)}
+.wiz-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.wiz-opt{border:1.5px solid var(--th-border);border-radius:12px;padding:13px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:all .12s}
+.wiz-opt:hover{border-color:var(--th-orange)}
+.wiz-opt.sel{border-color:var(--th-orange);background:var(--th-orange-bg);color:var(--th-orange)}
+.wiz-opt.disabled{opacity:.4;cursor:not-allowed}
+.wiz-opt.disabled:hover{border-color:var(--th-border)}
+.wiz-chan{display:flex;align-items:center;gap:10px;border:1px solid var(--th-border);border-radius:12px;padding:11px 13px}
+.wiz-chan.sel{border-color:var(--th-green);background:var(--th-green-bg)}
+.wiz-body{min-height:230px}
+.wiz-foot{display:flex;justify-content:space-between;gap:12px;margin-top:24px;padding-top:18px;border-top:1px solid var(--th-border)}
+.utm-val{font-size:12.5px;font-family:monospace;background:var(--th-bg-alt);border-radius:8px;padding:9px 11px;word-break:break-all}
 .today-bar{display:flex;align-items:center;gap:20px;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;padding:15px 20px;margin-bottom:16px;box-shadow:var(--th-shadow-sm);flex-wrap:wrap;font-size:13px}
 .today-item{display:flex;align-items:center;gap:8px;color:var(--th-text-2)}
 .today-item b{color:var(--th-text);font-size:15px;font-weight:800}
@@ -475,6 +502,8 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
   </div>
 </aside>
 <div id="app"></div>
+<div class="modal-overlay" id="wizard-overlay"><div class="wiz-modal"><div id="wizard-body"></div></div></div>
+<div class="modal-overlay" id="import-overlay"><div class="wiz-modal" style="max-width:560px"><div id="import-body"></div></div></div>
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal"><h3 id="modalTitle"></h3><div id="modalContent"></div>
@@ -1253,16 +1282,55 @@ const AUDIENCES = [
 ];
 
 /* ---------- Campagnes : source unique des résultats ---------- */
-const CAMPAIGN_OBJECTIVES = ['Acquisition','Notoriété','Conversion','Lancement','Réactivation','Fidélisation','Expérimentation'];
-const CHECKLIST_ITEMS = ['Audience définie','Objectif défini','Budget défini','Message validé','Contenu créé','Landing page prête','Tracking UTM configuré','Campagne mise en ligne'];
+const CAMPAIGN_OBJECTIVES = ['Acquisition','Notoriété','Conversion','Lancement','Réactivation','Fidélisation','Génération de leads','Test / expérimentation','Autre'];
+const CHECKLIST_ITEMS = ['Objectif défini','Audience sélectionnée','Budget défini','Dates définies','Message défini','Contenu créé','Landing page prête','Tracking UTM configuré','Campagne créée sur la plateforme','Vérification finale'];
+
+/* Statut de diffusion : distinct du statut TigerHub.
+   TigerHub pilote, les plateformes exécutent. */
+const DIFFUSION_STATUSES = ['Non créée','À créer','Créée','En attente de validation','Active','En pause','Terminée'];
+const DIFFUSION_STYLE = {
+  'Non créée':'gray','À créer':'orange','Créée':'blue','En attente de validation':'purple','Active':'green','En pause':'red','Terminée':'gray'
+};
+/* URL de la console de chaque plateforme — ouverte dans un nouvel onglet, aucune API */
+const PLATFORM_URLS = {
+  'LinkedIn':'https://www.linkedin.com/campaignmanager/',
+  'Google Ads':'https://ads.google.com/',
+  'Meta Ads':'https://business.facebook.com/adsmanager/',
+  'Instagram':'https://business.facebook.com/adsmanager/',
+  'Facebook':'https://business.facebook.com/adsmanager/',
+  'TikTok':'https://ads.tiktok.com/',
+  'YouTube':'https://ads.google.com/',
+};
+function diffusionBadge(s){
+  const k = DIFFUSION_STYLE[s]||'gray';
+  const style = k==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':k==='purple'?'color:var(--th-purple);background:var(--th-purple-bg)':'';
+  return `<span class="badge ${k}" style="${style}">${esc(s)}</span>`;
+}
+/* Diffusion globale d'une campagne : le maillon le plus faible */
+function campDiffusion(c){
+  const d = c.diffusion||{};
+  const chs = Object.keys(c.channelBudgets||{});
+  if(!chs.length) return 'Non créée';
+  const states = chs.map(ch=>(d[ch]&&d[ch].statut)||'Non créée');
+  if(states.every(s=>s==='Active')) return 'Active';
+  if(states.every(s=>s==='Terminée')) return 'Terminée';
+  if(states.some(s=>s==='À créer'||s==='Non créée')) return 'À créer';
+  if(states.some(s=>s==='En attente de validation')) return 'En attente de validation';
+  return 'Créée';
+}
+function isReadyToLaunch(c){
+  return checklistPct(c)===100 && campDiffusion(c)!=='Non créée' && campDiffusion(c)!=='À créer';
+}
 
 const DEMO_CAMPAIGNS = [
   { title:'Lancement TigerFlow — Dératisation', sectorId:'derat', objective:'Lancement', segmentId:'seg1', status:'En préparation',
     startDate:'2026-10-01', endDate:'2026-10-15', budget:300, timeEstimated:18, timeReal:6, responsable:'Sophie',
     offre:"TigerFlow — logiciel de gestion des interventions", message:"Vos comptes rendus d'intervention prêts en 2 minutes, depuis le terrain", cta:"Demander une démonstration",
     targets:{ leads:30, clients:5, cpl:10 },
-    checklist:[1,1,1,1,1,1,0,0],
+    checklist:[1,1,1,1,1,1,1,0,0,0],
     channelBudgets:{ 'LinkedIn':200, 'Email':100 },
+    diffusion:{ 'LinkedIn':{statut:'À créer',extId:'',url:''}, 'Email':{statut:'Créée',extId:'BREVO-2026-014',url:''} },
+    utm:{ source:'linkedin', medium:'paid-social', campaign:'lancement-tigerflow', content:'', term:'' },
     results:{}, notes:"Campagne principale du lancement du 1er octobre.",
     sourceIdeaText:"Faire connaître TigerFlow aux dératiseurs" },
 
@@ -1270,24 +1338,30 @@ const DEMO_CAMPAIGNS = [
     startDate:'2026-10-05', endDate:'2026-10-31', budget:500, timeEstimated:8, timeReal:2, responsable:'Sophie',
     offre:"Essai gratuit 14 jours", message:"Le logiciel des professionnels du nuisible", cta:"Essayer gratuitement",
     targets:{ leads:50, clients:4, cpl:10 },
-    checklist:[1,1,1,1,1,1,1,0],
+    checklist:[1,1,1,1,1,1,1,1,1,0],
     channelBudgets:{ 'Google Ads':500 },
+    diffusion:{ 'Google Ads':{statut:'Créée',extId:'GA-2026-4471',url:'https://ads.google.com/'} },
+    utm:{ source:'google', medium:'cpc', campaign:'google-ads-derat-tpe', content:'', term:'' },
     results:{}, notes:"" },
 
   { title:'Guide — Choisir son logiciel de dératisation', sectorId:'derat', objective:'Acquisition', segmentId:'seg2', status:'Brouillon',
     startDate:'2026-10-10', endDate:'2026-12-31', budget:150, timeEstimated:20, timeReal:3, responsable:'Sophie',
     offre:"Guide PDF gratuit", message:"", cta:"Télécharger le guide",
     targets:{ leads:40, clients:3, cpl:4 },
-    checklist:[1,1,0,0,1,0,0,0],
+    checklist:[1,1,0,1,0,1,0,0,0,0],
     channelBudgets:{ 'SEO':150 },
+    diffusion:{ 'SEO':{statut:'Non créée',extId:'',url:''} },
+    utm:{ source:'seo', medium:'organic', campaign:'guide-logiciel-deratisation', content:'', term:'' },
     results:{}, notes:"" },
 
   { title:'Prospection — Contrats sanitaires', sectorId:'derat', objective:'Acquisition', segmentId:'seg2', status:'En ligne',
     startDate:'2026-08-15', endDate:'2026-10-31', budget:600, timeEstimated:20, timeReal:9, responsable:'Sophie',
     offre:"Démonstration de 20 minutes", message:"Traçabilité réglementaire automatique, prête pour vos audits", cta:"Réserver une démonstration",
     targets:{ leads:60, clients:8, cpl:10 },
-    checklist:[1,1,1,1,1,1,1,1],
+    checklist:[1,1,1,1,1,1,1,1,1,1],
     channelBudgets:{ 'LinkedIn':380, 'Email':220 },
+    diffusion:{ 'LinkedIn':{statut:'Active',extId:'LI-2026-001',url:'https://www.linkedin.com/campaignmanager/'}, 'Email':{statut:'Active',extId:'BREVO-2026-009',url:''} },
+    utm:{ source:'linkedin', medium:'paid-social', campaign:'prospection-contrats-sanitaires', content:'', term:'' },
     results:{ 'LinkedIn':{impressions:8400,clicks:310,leads:24,conversions:4,cost:380}, 'Email':{impressions:900,clicks:180,leads:14,conversions:3,cost:0} },
     notes:"Le combiné LinkedIn + email fonctionne bien sur ce segment." },
 
@@ -1295,8 +1369,10 @@ const DEMO_CAMPAIGNS = [
     startDate:'2026-08-01', endDate:'2026-12-31', budget:0, timeEstimated:24, timeReal:11, responsable:'Sophie',
     offre:"", message:"Coulisses de la construction de TigerFlow avec des dératiseurs", cta:"Suivre le projet",
     targets:{ leads:50, clients:3, cpl:0 },
-    checklist:[1,1,1,1,1,0,1,1],
+    checklist:[1,1,1,1,1,1,0,1,1,1],
     channelBudgets:{ 'LinkedIn':0 },
+    diffusion:{ 'LinkedIn':{statut:'Active',extId:'',url:''} },
+    utm:{ source:'linkedin', medium:'organic', campaign:'presence-fondatrice', content:'', term:'' },
     results:{ 'LinkedIn':{impressions:14200,clicks:420,leads:38,conversions:2,cost:0} },
     notes:"Zéro budget, uniquement du temps investi." },
 
@@ -1304,8 +1380,10 @@ const DEMO_CAMPAIGNS = [
     startDate:'2026-07-01', endDate:'2026-12-31', budget:400, timeEstimated:40, timeReal:34, responsable:'Sophie',
     offre:"Guide gratuit obligations réglementaires", message:"Traçabilité réglementaire automatique", cta:"Lire l'article",
     targets:{ leads:80, clients:6, cpl:5 },
-    checklist:[1,1,1,1,1,1,1,1],
+    checklist:[1,1,1,1,1,1,1,1,1,1],
     channelBudgets:{ 'SEO':400 },
+    diffusion:{ 'SEO':{statut:'Active',extId:'',url:''} },
+    utm:{ source:'seo', medium:'organic', campaign:'contenu-seo-reglementation', content:'', term:'' },
     results:{ 'SEO':{impressions:0,clicks:1180,leads:52,conversions:6,cost:400} },
     notes:"Le sujet réglementaire attire exactement la bonne cible." },
 
@@ -1313,16 +1391,20 @@ const DEMO_CAMPAIGNS = [
     startDate:'2026-10-15', endDate:'2026-11-15', budget:100, timeEstimated:6, timeReal:0, responsable:'Sophie',
     offre:"Offre de rentrée", message:"", cta:"",
     targets:{ leads:20, clients:2, cpl:5 },
-    checklist:[1,1,1,0,0,0,0,0],
+    checklist:[1,1,1,1,0,0,0,0,0,0],
     channelBudgets:{ 'Email':100 },
+    diffusion:{ 'Email':{statut:'Non créée',extId:'',url:''} },
+    utm:{ source:'email', medium:'email', campaign:'relance-prospects-tiedes', content:'', term:'' },
     results:{}, notes:"" },
 
   { title:'Test Google Ads — mots-clés métier', sectorId:'derat', objective:'Expérimentation', segmentId:'seg1', status:'En pause',
     startDate:'2026-08-01', endDate:'2026-08-20', budget:300, timeEstimated:6, timeReal:7, responsable:'Sophie',
     offre:"Essai gratuit 14 jours", message:"Le logiciel des professionnels du nuisible", cta:"Essayer",
     targets:{ leads:30, clients:3, cpl:10 },
-    checklist:[1,1,1,1,1,1,1,1],
+    checklist:[1,1,1,1,1,1,1,1,1,1],
     channelBudgets:{ 'Google Ads':300 },
+    diffusion:{ 'Google Ads':{statut:'En pause',extId:'GA-2026-3308',url:'https://ads.google.com/'} },
+    utm:{ source:'google', medium:'cpc', campaign:'test-google-ads-metier', content:'', term:'' },
     results:{ 'Google Ads':{impressions:22000,clicks:410,leads:18,conversions:1,cost:290} },
     notes:"Coût par lead trop élevé sur ce marché de niche — mis en pause." },
 
@@ -1330,8 +1412,10 @@ const DEMO_CAMPAIGNS = [
     startDate:'2026-11-18', endDate:'2026-11-20', budget:2500, timeEstimated:36, timeReal:0, responsable:'Sophie',
     offre:"Démonstration sur stand", message:"", cta:"Venir nous voir",
     targets:{ leads:150, clients:10, cpl:17 },
-    checklist:[1,1,1,0,0,0,0,0],
+    checklist:[1,1,1,1,0,0,0,0,0,0],
     channelBudgets:{ 'Événement':2500 },
+    diffusion:{ 'Événement':{statut:'Non créée',extId:'',url:''} },
+    utm:{ source:'salon', medium:'event', campaign:'salon-nuisible-2026', content:'', term:'' },
     results:{}, notes:"" },
 ];
 
@@ -2016,6 +2100,14 @@ function renderMktgCampaigns(){
       <div class="today-item"><span class="today-dot" style="background:var(--th-blue)"></span><b>${upcoming.length}</b> prévue${upcoming.length>1?'s':''}</div>
       <div class="today-item" style="border-left:1px solid var(--th-border);padding-left:20px">${sectorBadge(ACTIVE_SECTOR.id)}</div>
       <button class="btn-ghost" style="margin-left:auto" onclick="document.getElementById('todo-block').scrollIntoView({behavior:'smooth'})">Voir les actions du jour →</button>
+      <div style="position:relative">
+        <button class="add-btn" onclick="toggleCreateMenu()">${ic('ti-plus',14)} Nouvelle campagne</button>
+        <div id="camp-create-menu" class="create-menu">
+          <div class="create-item" onclick="openCampaignWizard()">${ic('ti-target-arrow',15)}<div><div style="font-weight:700">Créer une campagne</div><div style="font-size:11px;color:var(--th-text-2)">Parcours guidé en 6 étapes</div></div></div>
+          <div class="create-item" onclick="openWizardFromIdea()">${ic('ti-bulb',15)}<div><div style="font-weight:700">Créer depuis une idée</div><div style="font-size:11px;color:var(--th-text-2)">Depuis la Boîte à idées</div></div></div>
+          <div class="create-item" onclick="openImportModal()">${ic('ti-arrow-left',15)}<div><div style="font-weight:700">Importer une campagne</div><div style="font-size:11px;color:var(--th-text-2)">Existe déjà sur une plateforme</div></div></div>
+        </div>
+      </div>
     </div>`;
 
   /* ===== 2. KPI ===== */
@@ -2091,7 +2183,16 @@ function renderMktgCampaigns(){
     </div>`;
 
   /* ===== 5. FILTRES ===== */
-  const views = { 'Toutes':()=>true, 'À faire':c=>c.status==='Brouillon'||c.status==='En préparation', 'À venir':c=>c.status==='Planifiée', 'En ligne':c=>c.status==='En ligne', 'En pause':c=>c.status==='En pause', 'Terminées':c=>c.status==='Terminée' };
+  const views = {
+    'Toutes':()=>true,
+    'Prêtes à lancer':c=>isReadyToLaunch(c) && c.status!=='En ligne' && c.status!=='Terminée',
+    'À créer sur plateforme':c=>Object.values(c.diffusion||{}).some(d=>d.statut==='Non créée'||d.statut==='À créer'),
+    'À faire':c=>c.status==='Brouillon'||c.status==='En préparation',
+    'À venir':c=>c.status==='Planifiée',
+    'En ligne':c=>c.status==='En ligne',
+    'En pause':c=>c.status==='En pause',
+    'Terminées':c=>c.status==='Terminée'
+  };
   const usedChannels = [...new Set(campaigns.flatMap(c=>Object.keys(c.channelBudgets||{})))];
   const filtres = `
     <div class="filter-bar" style="margin-top:26px">
@@ -2127,6 +2228,7 @@ function renderMktgCampaigns(){
       <td style="width:110px"><div style="display:flex;align-items:center;gap:7px">
         <div style="flex:1;background:var(--th-bg-alt);border-radius:5px;height:5px;overflow:hidden"><div style="height:100%;width:${pct}%;border-radius:5px;background:${pct===100?'var(--th-green)':'var(--th-orange)'}"></div></div>
         <span style="font-size:11px;color:var(--th-text-2);font-weight:700">${pct}%</span></div></td>
+      <td>${diffusionBadge(campDiffusion(c))}</td>
       <td>${statusBadge(c.status)}</td>
     </tr>`;
   }).join('');
@@ -2134,8 +2236,332 @@ function renderMktgCampaigns(){
   el.innerHTML = bandeau + kpis
     + `<div class="grid-2">${blocTodo}${blocLaunches}</div>`
     + filtres
-    + `<table class="data-table"><thead><tr><th>Campagne</th><th>Cible</th><th>Canaux</th><th>Dates</th><th>Budget</th><th>Préparation</th><th>Statut</th></tr></thead>
-       <tbody>${rows || `<tr><td colspan="7" style="text-align:center;color:var(--th-text-2);padding:26px">Aucune campagne dans cette vue.</td></tr>`}</tbody></table>`;
+    + `<table class="data-table"><thead><tr><th>Campagne</th><th>Cible</th><th>Canaux</th><th>Dates</th><th>Budget</th><th>Préparation</th><th>Diffusion</th><th>Statut TigerHub</th></tr></thead>
+       <tbody>${rows || `<tr><td colspan="8" style="text-align:center;color:var(--th-text-2);padding:26px">Aucune campagne dans cette vue.</td></tr>`}</tbody></table>`;
+}
+
+/* ==================== ACTIONS CAMPAGNES ====================
+   TigerHub planifie, les plateformes exécutent.
+   Aucune API : les boutons ouvrent la console de la plateforme
+   dans un nouvel onglet et l'identifiant se saisit à la main. */
+
+/* ---- Menu de création ---- */
+function openWizardFromIdea(){
+  const unexplored = ideas.filter(i=>!i.explored);
+  const m = document.getElementById('camp-create-menu'); if(m) m.style.display='none';
+  if(!unexplored.length){
+    alert("Aucune idée en attente dans la Boîte à idées.\n\nCapturez d'abord une idée, elle apparaîtra ici.");
+    return;
+  }
+  const list = unexplored.map((i,n)=>`${n+1}. ${i.text}`).join('\n');
+  const pick = prompt("Depuis quelle idée ?\n\n"+list+"\n\nEntrez le numéro :");
+  const idx = parseInt(pick,10)-1;
+  if(isNaN(idx)||!unexplored[idx]) return;
+  const idea = unexplored[idx];
+  idea.explored = true;
+  saveKey('idea-box:ideas', ideas);
+  if(typeof renderIdeaBox==='function') renderIdeaBox();
+  openCampaignWizard(idea.text);
+}
+function toggleCreateMenu(){
+  const m = document.getElementById('camp-create-menu');
+  if(m) m.style.display = m.style.display==='block' ? 'none' : 'block';
+}
+
+/* ---- Assistant de création en 6 étapes ---- */
+let wizStep = 0;
+let wizData = null;
+function openCampaignWizard(fromIdea){
+  wizStep = 0;
+  wizData = {
+    title:'', objective:'', sectorId:ACTIVE_SECTOR.id, segmentId:'', channels:{},
+    offre:'', message:'', cta:'', landing:'',
+    budget:0, startDate:'', endDate:'', timeEstimated:0, timeGestion:0,
+    sourceIdeaText: fromIdea || ''
+  };
+  if(fromIdea){ wizData.title = fromIdea; }
+  const m = document.getElementById('camp-create-menu'); if(m) m.style.display='none';
+  document.getElementById('wizard-overlay').classList.add('open');
+  renderWizard();
+}
+function closeWizard(){ document.getElementById('wizard-overlay').classList.remove('open'); }
+function wizNext(){ if(wizStep<5){ wizStep++; renderWizard(); } }
+function wizPrev(){ if(wizStep>0){ wizStep--; renderWizard(); } }
+function wizSet(field, val){ wizData[field] = val; renderWizard(); }
+function wizToggleChannel(ch){
+  if(wizData.channels[ch]!==undefined) delete wizData.channels[ch];
+  else wizData.channels[ch] = 0;
+  renderWizard();
+}
+function wizSetChannelBudget(ch, val){ wizData.channels[ch] = Number(val)||0; }
+
+function renderWizard(){
+  const el = document.getElementById('wizard-body'); if(!el) return;
+  const steps = ['Objectif','Secteur','Audience','Canaux','Offre & message','Budget & dates'];
+  let body = '';
+
+  if(wizStep===0){
+    body = `<p class="wiz-q">Que veux-tu obtenir avec cette campagne ?</p>
+      <input type="text" class="wiz-input" placeholder="Nom de la campagne..." value="${esc(wizData.title)}" oninput="wizData.title=this.value">
+      <div class="wiz-grid">
+        ${CAMPAIGN_OBJECTIVES.map(o=>`<div class="wiz-opt ${wizData.objective===o?'sel':''}" onclick="wizSet('objective','${o}')">${esc(o)}</div>`).join('')}
+      </div>`;
+  }
+  else if(wizStep===1){
+    body = `<p class="wiz-q">Pour quel secteur ?</p>
+      <div class="wiz-grid">
+        ${SECTORS.map(s=>`<div class="wiz-opt ${s.actif?(wizData.sectorId===s.id?'sel':''):'disabled'}" ${s.actif?`onclick="wizSet('sectorId','${s.id}')"`:''}>
+          <div style="font-weight:700">${esc(s.nom)}</div>
+          <div style="font-size:11px;color:var(--th-text-3);margin-top:3px">${s.actif?'Actif':'À venir'}</div></div>`).join('')}
+      </div>
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',15)}<span>Seule la dératisation est active en V1. Les autres secteurs seront activés progressivement.</span></div>`;
+  }
+  else if(wizStep===2){
+    body = `<p class="wiz-q">À qui s'adresse cette campagne ?</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${AUDIENCES.filter(a=>a.sectorId===wizData.sectorId).map(a=>`
+          <div class="wiz-opt ${wizData.segmentId===a.id?'sel':''}" style="text-align:left" onclick="wizSet('segmentId','${a.id}')">
+            <div style="font-weight:700;margin-bottom:3px">${esc(a.nom)}</div>
+            <div style="font-size:11.5px;color:var(--th-text-2)">${esc(a.taille)} · ${esc(a.zone)} · potentiel ${esc(a.potentiel)}</div>
+          </div>`).join('')}
+      </div>
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',15)}<span>Les audiences se définissent dans <b>Audiences</b>. La campagne en sélectionne une, elle ne la recrée pas.</span></div>`;
+  }
+  else if(wizStep===3){
+    body = `<p class="wiz-q">Sur quels canaux ?</p>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        ${MKTG_CHANNELS.map(ch=>{
+          const sel = wizData.channels[ch]!==undefined; const st = CHANNEL_STYLE[ch]||{};
+          return `<div class="wiz-chan ${sel?'sel':''}">
+            <div style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer" onclick="wizToggleChannel('${ch}')">
+              <div class="check-dot" style="${sel?'background:var(--th-green);border-color:var(--th-green);color:#fff':''}">${sel?ic('ti-circle-check',11):''}</div>
+              <div style="width:26px;height:26px;border-radius:8px;background:${st.tint||'var(--th-bg-alt)'};display:flex;align-items:center;justify-content:center;color:${st.c||'var(--th-text-3)'}">${ic(st.icon||'ti-target',14)}</div>
+              <span style="font-size:13px;font-weight:600">${esc(ch)}</span></div>
+            ${sel?`<input class="stat-input" type="number" placeholder="0" value="${wizData.channels[ch]||''}" onchange="wizSetChannelBudget('${ch}',this.value)"> €`:''}
+          </div>`;
+        }).join('')}
+      </div>`;
+  }
+  else if(wizStep===4){
+    body = `<p class="wiz-q">Quelle offre et quel message ?</p>
+      <label class="wiz-lab">Offre</label>
+      <input type="text" class="wiz-input" placeholder="Ex : 2 mois offerts" value="${esc(wizData.offre)}" oninput="wizData.offre=this.value">
+      <label class="wiz-lab">Message principal</label>
+      <input type="text" class="wiz-input" placeholder="La phrase qui doit faire réagir..." value="${esc(wizData.message)}" oninput="wizData.message=this.value">
+      <label class="wiz-lab">Appel à l'action</label>
+      <input type="text" class="wiz-input" placeholder="Ex : Demander une démonstration" value="${esc(wizData.cta)}" oninput="wizData.cta=this.value">
+      <label class="wiz-lab">Page de destination</label>
+      <input type="text" class="wiz-input" placeholder="https://..." value="${esc(wizData.landing)}" oninput="wizData.landing=this.value">`;
+  }
+  else {
+    const totalCh = Object.values(wizData.channels).reduce((s,v)=>s+v,0);
+    body = `<p class="wiz-q">Budget et calendrier</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div><label class="wiz-lab">Budget total prévu</label>
+          <input type="number" class="wiz-input" placeholder="0" value="${wizData.budget||''}" oninput="wizData.budget=Number(this.value)||0"></div>
+        <div><label class="wiz-lab">Réparti par canal</label>
+          <div style="padding:11px 0;font-size:13px;color:var(--th-text-2)">${totalCh} € sur ${Object.keys(wizData.channels).length} canal${Object.keys(wizData.channels).length>1?'ux':''}</div></div>
+        <div><label class="wiz-lab">Date de lancement</label>
+          <input type="date" class="wiz-input" value="${wizData.startDate}" oninput="wizData.startDate=this.value"></div>
+        <div><label class="wiz-lab">Date de fin</label>
+          <input type="date" class="wiz-input" value="${wizData.endDate}" oninput="wizData.endDate=this.value"></div>
+        <div><label class="wiz-lab">Temps de préparation estimé</label>
+          <input type="number" class="wiz-input" placeholder="heures" value="${wizData.timeEstimated||''}" oninput="wizData.timeEstimated=Number(this.value)||0"></div>
+        <div><label class="wiz-lab">Temps de gestion estimé</label>
+          <input type="number" class="wiz-input" placeholder="h / semaine" value="${wizData.timeGestion||''}" oninput="wizData.timeGestion=Number(this.value)||0"></div>
+      </div>
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',15)}<span>Le <b>temps investi</b> sera repris dans Analyse &amp; résultats pour calculer le coût réel, pas seulement le budget.</span></div>`;
+  }
+
+  el.innerHTML = `
+    <div class="wiz-steps">
+      ${steps.map((s,i)=>`<div class="wiz-step ${i===wizStep?'cur':i<wizStep?'done':''}">
+        <div class="wiz-num">${i<wizStep?ic('ti-circle-check',12):i+1}</div><span>${s}</span></div>`).join('')}
+    </div>
+    <div class="wiz-body">${body}</div>
+    <div class="wiz-foot">
+      <button class="btn-ghost" onclick="${wizStep===0?'closeWizard()':'wizPrev()'}">${wizStep===0?'Annuler':'← Retour'}</button>
+      ${wizStep<5 ? `<button class="add-btn" onclick="wizNext()">Continuer →</button>`
+                  : `<button class="add-btn" onclick="createCampaignFromWizard()">Créer la campagne</button>`}
+    </div>`;
+}
+
+function createCampaignFromWizard(){
+  const d = wizData;
+  if(!d.title.trim()){ alert("Donnez un nom à la campagne."); wizStep=0; return renderWizard(); }
+  const diffusion = {};
+  Object.keys(d.channels).forEach(ch=>{ diffusion[ch] = {statut:'Non créée',extId:'',url:''}; });
+  const checklist = [
+    d.objective?1:0, d.segmentId?1:0, d.budget>0?1:0, d.startDate?1:0, d.message?1:0,
+    0, d.landing?1:0, 0, 0, 0
+  ];
+  campaigns.unshift({
+    id:'mktg_'+Date.now(), title:d.title.trim(), sectorId:d.sectorId, objective:d.objective,
+    segmentId:d.segmentId||AUDIENCES[0].id, status:'Brouillon',
+    startDate:d.startDate, endDate:d.endDate, budget:d.budget,
+    timeEstimated:d.timeEstimated, timeReal:0, responsable:'Sophie',
+    offre:d.offre, message:d.message, cta:d.cta, landing:d.landing,
+    targets:{ leads:0, clients:0, cpl:0 },
+    checklist, channelBudgets:{...d.channels}, diffusion,
+    utm:{ source:'', medium:'', campaign:d.title.toLowerCase().replace(/[^a-z0-9]+/g,'-'), content:'', term:'' },
+    results:{}, notes:'', sourceIdeaText:d.sourceIdeaText||null,
+    createdAt:new Date().toISOString()
+  });
+  saveKey('marketing-os:actions', campaigns);
+  closeWizard(); refreshMktgAll();
+  openCampaignDetail(campaigns[0].id);
+}
+
+/* ---- Import d'une campagne existant déjà sur une plateforme ---- */
+let importData = null;
+function openImportModal(){
+  importData = { title:'', platform:'Google Ads', extId:'', objective:'Acquisition', segmentId:AUDIENCES[0].id, startDate:'', endDate:'', budget:0 };
+  const m = document.getElementById('camp-create-menu'); if(m) m.style.display='none';
+  document.getElementById('import-overlay').classList.add('open');
+  renderImport();
+}
+function closeImport(){ document.getElementById('import-overlay').classList.remove('open'); }
+function renderImport(){
+  const el = document.getElementById('import-body'); if(!el) return;
+  el.innerHTML = `
+    <p class="wiz-q">Importer une campagne existante</p>
+    <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.7;margin-bottom:18px">La campagne existe déjà sur une plateforme. Renseignez ses informations pour la piloter depuis TigerHub. <b>Aucune synchronisation automatique en V1</b> — les résultats se saisissent à la main.</p>
+    <label class="wiz-lab">Plateforme</label>
+    <div class="wiz-grid" style="margin-bottom:14px">
+      ${['Google Ads','LinkedIn','Meta Ads','Autre'].map(p=>`<div class="wiz-opt ${importData.platform===p?'sel':''}" onclick="importData.platform='${p}';renderImport()">${p}</div>`).join('')}
+    </div>
+    <label class="wiz-lab">Nom de la campagne</label>
+    <input type="text" class="wiz-input" value="${esc(importData.title)}" oninput="importData.title=this.value" placeholder="Nom tel qu'il apparaît sur la plateforme">
+    <label class="wiz-lab">Identifiant externe</label>
+    <input type="text" class="wiz-input" value="${esc(importData.extId)}" oninput="importData.extId=this.value" placeholder="Ex : GA-2026-4471">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div><label class="wiz-lab">Audience TigerHub</label>
+        <select class="wiz-input" onchange="importData.segmentId=this.value">
+          ${AUDIENCES.map(a=>`<option value="${a.id}" ${importData.segmentId===a.id?'selected':''}>${esc(a.nom)}</option>`).join('')}</select></div>
+      <div><label class="wiz-lab">Budget</label>
+        <input type="number" class="wiz-input" value="${importData.budget||''}" oninput="importData.budget=Number(this.value)||0"></div>
+      <div><label class="wiz-lab">Date de début</label>
+        <input type="date" class="wiz-input" value="${importData.startDate}" oninput="importData.startDate=this.value"></div>
+      <div><label class="wiz-lab">Date de fin</label>
+        <input type="date" class="wiz-input" value="${importData.endDate}" oninput="importData.endDate=this.value"></div>
+    </div>
+    <div class="wiz-foot"><button class="btn-ghost" onclick="closeImport()">Annuler</button>
+      <button class="add-btn" onclick="doImportCampaign()">Importer</button></div>`;
+}
+function doImportCampaign(){
+  const d = importData;
+  if(!d.title.trim()){ alert("Renseignez le nom de la campagne."); return; }
+  const ch = d.platform==='Autre' ? 'Autre' : d.platform;
+  campaigns.unshift({
+    id:'mktg_'+Date.now(), title:d.title.trim(), sectorId:ACTIVE_SECTOR.id, objective:d.objective,
+    segmentId:d.segmentId, status:'En ligne', startDate:d.startDate, endDate:d.endDate,
+    budget:d.budget, timeEstimated:0, timeReal:0, responsable:'Sophie',
+    offre:'', message:'', cta:'', targets:{leads:0,clients:0,cpl:0},
+    checklist:[1,1,1,1,0,0,0,0,1,1],
+    channelBudgets:{ [ch]:d.budget },
+    diffusion:{ [ch]:{statut:'Active',extId:d.extId,url:PLATFORM_URLS[ch]||''} },
+    utm:{ source:'', medium:'', campaign:'', content:'', term:'' },
+    results:{}, notes:'Campagne importée depuis '+d.platform+'.', sourceIdeaText:null,
+    createdAt:new Date().toISOString()
+  });
+  saveKey('marketing-os:actions', campaigns);
+  closeImport(); refreshMktgAll();
+  openCampaignDetail(campaigns[0].id);
+}
+
+/* ---- Actions sur une campagne existante ---- */
+function duplicateCampaign(id){
+  const c = campaigns.find(x=>x.id===id); if(!c) return;
+  const copy = JSON.parse(JSON.stringify(c));
+  copy.id = 'mktg_'+Date.now();
+  copy.title = c.title + ' (copie)';
+  copy.status = 'Brouillon';
+  copy.results = {};
+  copy.timeReal = 0;
+  copy.startDate = ''; copy.endDate = '';
+  Object.keys(copy.diffusion||{}).forEach(ch=>{ copy.diffusion[ch] = {statut:'Non créée',extId:'',url:''}; });
+  copy.checklist = copy.checklist.map((v,i)=> i<5 ? v : 0);
+  copy.createdAt = new Date().toISOString();
+  campaigns.unshift(copy);
+  saveKey('marketing-os:actions', campaigns);
+  refreshMktgAll(); openCampaignDetail(copy.id);
+}
+function setDiffusionStatus(id, ch, statut){
+  const c = campaigns.find(x=>x.id===id); if(!c) return;
+  if(!c.diffusion) c.diffusion = {};
+  if(!c.diffusion[ch]) c.diffusion[ch] = {statut:'Non créée',extId:'',url:''};
+  c.diffusion[ch].statut = statut;
+  saveKey('marketing-os:actions', campaigns);
+  renderCampaignDetail(); refreshMktgAll();
+}
+function setDiffusionField(id, ch, field, val){
+  const c = campaigns.find(x=>x.id===id); if(!c) return;
+  if(!c.diffusion) c.diffusion = {};
+  if(!c.diffusion[ch]) c.diffusion[ch] = {statut:'Non créée',extId:'',url:''};
+  c.diffusion[ch][field] = val;
+  if(field==='extId' && val && c.diffusion[ch].statut==='Non créée') c.diffusion[ch].statut = 'Créée';
+  saveKey('marketing-os:actions', campaigns);
+  renderCampaignDetail(); refreshMktgAll();
+}
+function openPlatform(ch){
+  const url = PLATFORM_URLS[ch];
+  if(url) window.open(url, '_blank', 'noopener');
+}
+function generateUTM(id){
+  const c = campaigns.find(x=>x.id===id); if(!c) return;
+  const chs = Object.keys(c.channelBudgets||{});
+  const first = chs[0]||'';
+  c.utm = {
+    source: (first||'').toLowerCase().replace(/\s/g,'-'),
+    medium: first==='SEO' ? 'organic' : (first==='Email' ? 'email' : 'paid-social'),
+    campaign: (c.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),
+    content: '', term: ''
+  };
+  const idx = CHECKLIST_ITEMS.indexOf('Tracking UTM configuré');
+  if(idx>=0 && c.checklist) c.checklist[idx] = 1;
+  saveKey('marketing-os:actions', campaigns);
+  renderCampaignDetail(); refreshMktgAll();
+}
+function tryLaunchCampaign(id){
+  const c = campaigns.find(x=>x.id===id); if(!c) return;
+  const miss = missingItems(c);
+  const notCreated = Object.entries(c.diffusion||{}).filter(([,d])=>d.statut==='Non créée'||d.statut==='À créer').map(([ch])=>ch);
+  if(miss.length || notCreated.length){
+    const parts = [];
+    if(miss.length) parts.push(miss.map(m=>'• '+m).join('\n'));
+    if(notCreated.length) parts.push(notCreated.map(ch=>'• Créer sur '+ch).join('\n'));
+    alert("Cette campagne n'est pas prête.\n\n"+parts.join('\n')+"\n\nComplétez ces éléments avant de la passer en ligne.");
+    campTab = 0; renderCampaignDetail();
+    return;
+  }
+  if(!confirm("Passer « "+c.title+" » en ligne ?")) return;
+  c.status = 'En ligne';
+  Object.keys(c.diffusion||{}).forEach(ch=>{ if(c.diffusion[ch].statut==='Créée') c.diffusion[ch].statut='Active'; });
+  saveKey('marketing-os:actions', campaigns);
+  renderCampaignDetail(); refreshMktgAll();
+}
+function pauseCampaign(id){
+  const c = campaigns.find(x=>x.id===id); if(!c) return;
+  if(!confirm("Mettre « "+c.title+" » en pause ?")) return;
+  c.status = 'En pause';
+  Object.keys(c.diffusion||{}).forEach(ch=>{ if(c.diffusion[ch].statut==='Active') c.diffusion[ch].statut='En pause'; });
+  saveKey('marketing-os:actions', campaigns);
+  renderCampaignDetail(); refreshMktgAll();
+}
+function resumeCampaign(id){
+  const c = campaigns.find(x=>x.id===id); if(!c) return;
+  c.status = 'En ligne';
+  Object.keys(c.diffusion||{}).forEach(ch=>{ if(c.diffusion[ch].statut==='En pause') c.diffusion[ch].statut='Active'; });
+  saveKey('marketing-os:actions', campaigns);
+  renderCampaignDetail(); refreshMktgAll();
+}
+function endCampaign(id){
+  const c = campaigns.find(x=>x.id===id); if(!c) return;
+  if(!confirm("Terminer définitivement « "+c.title+" » ?")) return;
+  c.status = 'Terminée';
+  Object.keys(c.diffusion||{}).forEach(ch=>{ c.diffusion[ch].statut='Terminée'; });
+  saveKey('marketing-os:actions', campaigns);
+  renderCampaignDetail(); refreshMktgAll();
 }
 
 /* ---- Fiche campagne ---- */
@@ -2184,7 +2610,7 @@ function renderCampaignDetail(){
   const pct = checklistPct(c);
   const miss = missingItems(c);
   const relContents = CONTENTS.filter(ct=>ct.segmentId===c.segmentId).slice(0,4);
-  const tabs = ['Vue d\'ensemble','Audience & message','Canaux & contenus','Résultats'];
+  const tabs = ['Vue d\'ensemble','Audience & message','Diffusion','Contenus','Résultats'];
   let body = '';
 
   if(campTab===0){
@@ -2269,6 +2695,49 @@ function renderCampaignDetail(){
   }
   else if(campTab===2){
     body = `
+      <div class="hint-bar" style="margin-bottom:18px">${ic('ti-bulb',16)}<span><b>TigerHub pilote, les plateformes exécutent.</b> Créez la campagne sur chaque plateforme, puis renseignez son identifiant ici pour la suivre. Aucune synchronisation automatique en V1.</span></div>
+      ${chs.length ? chs.map(ch=>{
+        const d = (c.diffusion&&c.diffusion[ch]) || {statut:'Non créée',extId:'',url:''};
+        const st = CHANNEL_STYLE[ch]||{};
+        const hasUrl = !!PLATFORM_URLS[ch];
+        return `<div class="card" style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+            <div style="width:38px;height:38px;border-radius:11px;background:${st.tint||'var(--th-bg-alt)'};display:flex;align-items:center;justify-content:center;color:${st.c||'var(--th-text-2)'}">${ic(st.icon||'ti-target',19)}</div>
+            <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:800">${esc(ch)}</div>
+              <div style="font-size:11.5px;color:var(--th-text-2)">Budget ${c.channelBudgets[ch]} €</div></div>
+            ${diffusionBadge(d.statut)}
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:14px">
+            <div><label class="wiz-lab">Statut de diffusion</label>
+              <select class="wiz-input" onchange="setDiffusionStatus('${c.id}','${ch}',this.value)">
+                ${DIFFUSION_STATUSES.map(s=>`<option ${d.statut===s?'selected':''}>${s}</option>`).join('')}</select></div>
+            <div><label class="wiz-lab">Identifiant de campagne</label>
+              <input type="text" class="wiz-input" value="${esc(d.extId||'')}" placeholder="Ex : LI-2026-001" onchange="setDiffusionField('${c.id}','${ch}','extId',this.value)"></div>
+            <div><label class="wiz-lab">Dernière synchronisation</label>
+              <div style="padding:11px 0;font-size:12.5px;color:var(--th-text-3)">Manuelle — API à venir</div></div>
+          </div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap">
+            ${hasUrl ? (d.statut==='Non créée'||d.statut==='À créer'
+              ? `<button class="add-btn" onclick="openPlatform('${ch}')">Créer sur ${esc(ch)} ↗</button>`
+              : `<button class="btn-ghost" onclick="openPlatform('${ch}')">Ouvrir ${esc(ch)} ↗</button>`)
+              : `<span style="font-size:12px;color:var(--th-text-3);padding:9px 0">Canal sans plateforme externe</span>`}
+          </div>
+        </div>`;
+      }).join('') : `<div class="empty">${ic('ti-share',24)}Aucun canal configuré. Ajoutez-en dans l'onglet Contenus.</div>`}
+
+      <p class="section-label" style="margin-top:24px">Tracking UTM</p>
+      <div class="card">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px">
+          ${['source','medium','campaign','content','term'].map(f=>`<div>
+            <label class="wiz-lab">${f}</label>
+            <div class="utm-val">${esc((c.utm&&c.utm[f])||'—')}</div></div>`).join('')}
+        </div>
+        ${c.utm&&c.utm.source ? `<div style="background:var(--th-bg-alt);border-radius:10px;padding:12px;font-family:monospace;font-size:11px;word-break:break-all;margin-bottom:12px">?utm_source=${esc(c.utm.source)}&utm_medium=${esc(c.utm.medium)}&utm_campaign=${esc(c.utm.campaign)}</div>` : ''}
+        <button class="btn-ghost" onclick="generateUTM('${c.id}')">${ic('ti-link',14)} Générer les UTM</button>
+      </div>`;
+  }
+  else if(campTab===3){
+    body = `
       <p class="section-label">Canaux utilisés</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:24px">
         ${MKTG_CHANNELS.slice(0,8).map(ch=>{
@@ -2293,7 +2762,7 @@ function renderCampaignDetail(){
         }).join('')}</div>`
         : `<div class="empty">${ic('ti-photo',24)}Aucun contenu associé pour l'instant.</div>`}`;
   }
-  else {
+  else if(campTab===4){
     const rows = chs.map(ch=>{
       const r = (c.results&&c.results[ch]) || {impressions:0,clicks:0,leads:0,conversions:0,cost:0};
       const st = CHANNEL_STYLE[ch]||{};
@@ -2338,8 +2807,22 @@ function renderCampaignDetail(){
           <span>${ic('ti-user-check',13)} ${esc(c.responsable||'—')}</span>
         </div>
       </div>
-      <select class="status-select" onchange="updateCampField('${c.id}','status',this.value)">${CAMPAIGN_STATUSES.map(s=>`<option ${c.status===s?'selected':''}>${s}</option>`).join('')}</select>
+      <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
+        <select class="status-select" onchange="updateCampField('${c.id}','status',this.value)">${CAMPAIGN_STATUSES.map(s=>`<option ${c.status===s?'selected':''}>${s}</option>`).join('')}</select>
+        <button class="btn-ghost" onclick="duplicateCampaign('${c.id}')">${ic('ti-versions',14)} Dupliquer</button>
+        ${c.status==='En ligne'
+          ? `<button class="btn-ghost" onclick="pauseCampaign('${c.id}')">${ic('ti-alert-octagon',14)} Mettre en pause</button>
+             <button class="btn-ghost" onclick="endCampaign('${c.id}')">Terminer</button>`
+          : c.status==='En pause'
+          ? `<button class="add-btn" onclick="resumeCampaign('${c.id}')">Reprendre</button>
+             <button class="btn-ghost" onclick="endCampaign('${c.id}')">Terminer</button>`
+          : c.status!=='Terminée'
+          ? `<button class="add-btn" onclick="tryLaunchCampaign('${c.id}')">${ic('ti-rocket',14)} Lancer la campagne</button>` : ''}
+      </div>
     </div>
+    ${c.status!=='En ligne'&&c.status!=='Terminée' ? (isReadyToLaunch(c)
+      ? `<div class="alert opp" style="margin-bottom:16px"><div class="alert-icon">${ic('ti-circle-check',14)}</div><div class="alert-text"><b>Campagne prête à être lancée.</b> Checklist complète, campagnes créées sur les plateformes.</div></div>`
+      : `<div class="alert warn" style="margin-bottom:16px"><div class="alert-icon">${ic('ti-alert-triangle',14)}</div><div class="alert-text"><b>Cette campagne n'est pas prête.</b> ${missingItems(c).length} élément${missingItems(c).length>1?'s':''} de préparation manquant${missingItems(c).length>1?'s':''}${Object.values(c.diffusion||{}).some(d=>d.statut==='Non créée'||d.statut==='À créer')?', et des campagnes restent à créer sur les plateformes':''}.</div></div>`) : ''}
     <div class="tabs">${tabs.map((t2,i)=>`<div class="tab${i===campTab?' active':''}" onclick="switchCampTab(${i})">${t2}</div>`).join('')}</div>
     ${body}
     <p class="section-label" style="margin-top:26px">Connexions</p>
