@@ -312,6 +312,9 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ch-metric .v{font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .ch-metric .l{font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-top:1px}
 .ch-spark{flex-shrink:0}
+.cc-pill{font-size:10.5px;font-weight:700;border-radius:7px;padding:3px 8px;white-space:nowrap}
+.ch-card.cc-empty{opacity:.5;cursor:default}
+.ch-card.cc-empty:hover{transform:none;box-shadow:var(--th-shadow);border-color:var(--th-border)}
 .pipeline{display:flex;gap:0;overflow-x:auto;padding:10px 0 4px}
 .pipe-step{flex:1;min-width:88px;text-align:center;position:relative;padding-top:22px;cursor:pointer}
 .pipe-step::before{content:'';position:absolute;top:6px;left:50%;right:-50%;height:2px;background:var(--th-border)}
@@ -1547,7 +1550,7 @@ const CONTENTS = [
     objectif:'Capture de leads', responsable:'Sophie', parentId:null, timeEst:12, timeReal:16, costEst:0, costReal:0,
     brief:"Guide PDF de 12 pages reprenant les obligations HACCP et les preuves de passage exigées.",
     message:"Traçabilité réglementaire automatique, prête pour vos audits", cta:"Télécharger le guide",
-    autresCanaux:['Email'], url:'/guides/obligations-deratiseur',
+    autresCanaux:['Blog','LinkedIn','Email'], url:'/guides/obligations-deratiseur',
     seo:{ motCle:'obligations réglementaires dératisation', intention:'Informationnelle', position:8, title:"Obligations réglementaires du dératiseur — Guide complet 2026", meta:"Toutes les obligations HACCP et preuves de passage exigées aux entreprises de dératisation. Guide gratuit à télécharger." },
     versions:[{nom:'guide-v3-final.pdf',date:'10 juil.'},{nom:'guide-v2.pdf',date:'4 juil.'}] },
 
@@ -1555,7 +1558,7 @@ const CONTENTS = [
     objectif:'Acquisition', responsable:'Sophie', parentId:'ct1', timeEst:4, timeReal:5, costEst:0, costReal:0,
     brief:"Décliner le chapitre 3 du guide en article de blog optimisé.",
     message:"Vos preuves de passage doivent être opposables", cta:"Lire le guide complet",
-    url:'/blog/preuve-de-passage-loi',
+    autresCanaux:['Blog','LinkedIn'], url:'/blog/preuve-de-passage-loi',
     seo:{ motCle:'preuve de passage dératisation', intention:'Informationnelle', position:4, title:"Preuve de passage en dératisation : ce que la loi exige", meta:"Quelles preuves de passage fournir à vos clients professionnels ? Cadre légal et bonnes pratiques." } },
 
   { id:'ct3', titre:"Vidéo démo — Compte rendu depuis le terrain", type:'Vidéo', statut:'Prêt', canal:'YouTube', sectorId:'derat', segmentId:'seg1', campIdx:0, date:'2026-09-08',
@@ -1567,7 +1570,7 @@ const CONTENTS = [
 
   { id:'ct4', titre:"Post LinkedIn — Coulisses du développement", type:'Post', statut:'Publié', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:1, date:'2026-08-06',
     objectif:'Notoriété', responsable:'Sophie', parentId:null, timeEst:1, timeReal:1, costEst:0, costReal:0,
-    message:"Coulisses de la construction de TigerFlow avec des dératiseurs", cta:"Suivre le projet" },
+    message:"Coulisses de la construction de TigerFlow avec des dératiseurs", cta:"Suivre le projet", autresCanaux:['Instagram'] },
 
   { id:'ct5', titre:"Landing page — Lancement 1er octobre", type:'Landing page', statut:'En production', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:0, date:'2026-09-12',
     objectif:'Conversion', responsable:'Sophie', parentId:null, timeEst:10, timeReal:4, costEst:0, costReal:0,
@@ -1599,7 +1602,7 @@ const CONTENTS = [
     objectif:'Acquisition', responsable:'Sophie', parentId:null, timeEst:5, timeReal:5, costEst:0, costReal:0,
     brief:"Article transversal, réutilisable pour tous les futurs secteurs.",
     message:"Un seul outil pour le planning, les interventions et la facturation", cta:"Découvrir TigerFlow",
-    url:'/blog/gagner-du-temps-entreprises-terrain',
+    autresCanaux:['Blog'], url:'/blog/gagner-du-temps-entreprises-terrain',
     seo:{ motCle:'logiciel gestion entreprise terrain', intention:'Informationnelle', position:12, title:"Comment un logiciel de terrain fait gagner du temps aux artisans", meta:"Planning, interventions, devis : où se perd le temps dans une entreprise de terrain et comment le récupérer." } },
 
   { id:'ct11', titre:"Email — Reprise du guide réglementaire", type:'Email', statut:'Idée', canal:'Email', sectorId:'derat', segmentId:'seg2', campIdx:null, date:'2026-10-08',
@@ -3400,6 +3403,15 @@ function contentStatusBadge(s){
   return `<span class="badge" style="color:${st.c};background:${st.bg}">${esc(s)}</span>`;
 }
 function contentById(id){ return CONTENTS.find(c=>c.id===id); }
+/* Un contenu = une seule fiche, mais plusieurs diffusions.
+   Cette fonction unifie canal principal + canaux secondaires. */
+function contentChannels(ct){
+  const list = [ct.canal, ...(ct.autresCanaux||[])];
+  return [...new Set(list.filter(Boolean))];
+}
+function contentsOnChannel(chName){
+  return sectorContents().filter(c=>contentChannels(c).includes(chName));
+}
 function contentChildren(id){ return CONTENTS.filter(c=>c.parentId===id); }
 function contentCampaign(ct){ return ct.campIdx!==null && ct.campIdx!==undefined ? campaigns[ct.campIdx] : null; }
 /* Performance : jamais saisie ici, dérivée de la campagne et du canal */
@@ -3417,7 +3429,7 @@ let calOffset = 0;
 let calView = 'mois';
 let openContentId = null;
 let contentDetailTab = 0;
-function switchContentTab(i){ contentTab = i; openContentId = null; renderMktgContents(); }
+function switchContentTab(i){ contentTab = i; openContentId = null; openContentChannel = null; renderMktgContents(); }
 function setContentStatus(v){ contentStatusFilter = v; renderMktgContents(); }
 function setContentType(v){ contentTypeFilter = v; renderMktgContents(); }
 function setContentSearch(v){ contentSearch = v.toLowerCase(); renderMktgContents(); }
@@ -3534,16 +3546,20 @@ function renderMktgContents(){
       body = `
         <div class="grid-2">
           <div class="card"><div class="card-header"><div class="card-title">${ic('ti-share',17)}<span>Diffusion</span></div></div>
-            <div style="font-size:12.5px;line-height:2.2">
-              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Canal principal</span>
-                <span class="badge" style="cursor:pointer" onclick="goToChannel('${ct.canal}')">${esc(ct.canal)} →</span></div>
+            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:8px">Diffusé sur ${contentChannels(ct).length} canal${contentChannels(ct).length>1?'ux':''}</div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px">
+              ${contentChannels(ct).map((c,i)=>{ const cs = CHANNEL_STYLE[c]||{};
+                return `<div class="decl-row" onclick="goToChannel('${c}')" style="padding:9px 0">
+                  <div class="decl-icon" style="background:${cs.tint||'var(--th-bg-alt)'};color:${cs.c||'var(--th-text-2)'}">${ic(cs.icon||'ti-share',13)}</div>
+                  <span style="flex:1;font-size:12.5px;font-weight:600">${esc(c)}</span>
+                  ${i===0?'<span class="badge">Principal</span>':''}
+                  <span class="obj-link">→</span></div>`; }).join('')}
+            </div>
+            <div style="font-size:12.5px;line-height:2.2;padding-top:14px;border-top:1px solid var(--th-border)">
               <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Statut</span>${contentStatusBadge(ct.statut)}</div>
               <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Date de publication</span><b>${fmtDate(ct.date)}</b></div>
               ${ct.url?`<div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">URL</span><b style="font-size:11.5px">${esc(ct.url)}</b></div>`:''}
             </div>
-            ${(ct.autresCanaux&&ct.autresCanaux.length)?`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border)">
-              <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:7px">Également diffusé sur</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">${ct.autresCanaux.map(c=>`<span class="badge" style="cursor:pointer" onclick="goToChannel('${c}')">${esc(c)} →</span>`).join('')}</div></div>`:''}
             ${camp&&camp.utm?`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border)">
               <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">UTM hérités de la campagne</div>
               <div style="background:var(--th-bg-alt);border-radius:9px;padding:10px;font-family:monospace;font-size:10.5px;word-break:break-all">utm_source=${esc(camp.utm.source||'—')}&utm_medium=${esc(camp.utm.medium||'—')}&utm_campaign=${esc(camp.utm.campaign||'—')}</div></div>`:''}
@@ -3605,7 +3621,7 @@ function renderMktgContents(){
 
   /* ========== VUES PRINCIPALES ========== */
   const scoped = sectorContents();
-  const tabs = ['Pilotage','Bibliothèque','Calendrier'];
+  const tabs = ['Pilotage','Bibliothèque','Par canaux','Calendrier'];
   let body = '';
 
   if(contentTab===0){
@@ -3713,13 +3729,17 @@ function renderMktgContents(){
             <td><span class="badge">${esc(c.type)}</span></td>
             <td>${sectorBadge(c.sectorId)}</td>
             <td style="font-size:12px;color:var(--th-text-2)">${esc(segName(c.segmentId))}</td>
-            <td style="font-size:12px">${esc(c.canal)}</td>
+            <td style="font-size:12px">${contentChannels(c).length>1?`${esc(c.canal)} <span class="badge" style="font-size:10px">+${contentChannels(c).length-1}</span>`:esc(c.canal)}</td>
             <td style="font-size:12px;color:var(--th-text-2)">${camp?esc(camp.title):'—'}</td>
             <td style="font-size:12px;white-space:nowrap">${fmtDate(c.date)}</td>
             <td>${contentStatusBadge(c.statut)}</td></tr>`; }).join('')
           || `<tr><td colspan="8" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun contenu pour ces filtres.</td></tr>`}
       </tbody></table>
       <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Cette bibliothèque est la <b>source de vérité des contenus</b>. Le calendrier en est une autre vue, pas une seconde liste.</span></div>`;
+  }
+  else if(contentTab===2){
+    /* --- PAR CANAUX : autre angle sur la même bibliothèque --- */
+    body = renderContentsByChannel();
   }
   else {
     /* --- CALENDRIER : même données, autre vue --- */
@@ -3769,6 +3789,168 @@ function renderMktgContents(){
   }
 
   el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===contentTab?' active':''}" onclick="switchContentTab(${i})">${t}</div>`).join('')}</div>${body}`;
+}
+
+/* ---- Vue « Par canaux » : où mes contenus sont-ils diffusés ? ----
+   Vue de la bibliothèque, pas une seconde liste. Un contenu diffusé
+   sur 4 canaux apparaît dans les 4, mais reste une seule fiche. */
+
+let openContentChannel = null;
+let ccFilterSegment = 'Tous';
+let ccFilterCampaign = 'Toutes';
+let ccFilterType = 'Tous';
+let ccFilterStatus = 'Tous';
+function openContentChannelView(ch){
+  openContentChannel = ch;
+  ccFilterSegment = 'Tous'; ccFilterCampaign = 'Toutes'; ccFilterType = 'Tous'; ccFilterStatus = 'Tous';
+  renderMktgContents();
+}
+function closeContentChannelView(){ openContentChannel = null; renderMktgContents(); }
+function setCcFilter(kind, v){
+  if(kind==='segment') ccFilterSegment = v;
+  else if(kind==='campaign') ccFilterCampaign = v;
+  else if(kind==='type') ccFilterType = v;
+  else ccFilterStatus = v;
+  renderMktgContents();
+}
+
+function renderContentsByChannel(){
+  /* --- Détail d'un canal --- */
+  if(openContentChannel){
+    const chName = openContentChannel;
+    const chDef = CHANNEL_PORTFOLIO.find(x=>x.mappedChannel===chName || x.nom===chName);
+    let list = contentsOnChannel(chName);
+
+    const segsUsed = [...new Set(list.map(c=>c.segmentId))];
+    const campsUsed = [...new Set(list.map(c=>c.campIdx).filter(i=>i!==null&&i!==undefined))];
+    const typesUsed = [...new Set(list.map(c=>c.type))];
+    const statusUsed = [...new Set(list.map(c=>c.statut))];
+
+    if(ccFilterSegment!=='Tous') list = list.filter(c=>c.segmentId===ccFilterSegment);
+    if(ccFilterCampaign!=='Toutes') list = list.filter(c=>String(c.campIdx)===ccFilterCampaign);
+    if(ccFilterType!=='Tous') list = list.filter(c=>c.type===ccFilterType);
+    if(ccFilterStatus!=='Tous') list = list.filter(c=>c.statut===ccFilterStatus);
+
+    const all = contentsOnChannel(chName);
+    const st = CHANNEL_STYLE[chName] || (chDef ? {c:chDef.c,tint:chDef.tint,icon:chDef.icon} : {});
+    const perf = chDef ? channelPerf(chDef) : null;
+
+    return `
+      <div class="btn-back" onclick="closeContentChannelView()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux canaux</div>
+      <div class="page-head">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:44px;height:44px;border-radius:12px;background:${st.tint||'var(--th-bg-alt)'};display:flex;align-items:center;justify-content:center;color:${st.c||'var(--th-text-2)'}">${ic(st.icon||'ti-share',22)}</div>
+          <div><h1 style="margin-bottom:2px">${esc(chName)}</h1>
+            <p class="subtitle">${all.length} contenu${all.length>1?'s':''} diffusé${all.length>1?'s':''} sur ce canal</p></div>
+        </div>
+        ${chDef?`<button class="btn-ghost" onclick="goToChannel('${chName}')">Voir la fiche canal →</button>`:''}
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+        ${[['À créer',['Idée','Brief','À créer']],['En production',['En production','À valider']],['Prêts',['Prêt']],['Programmés',['Programmé']],['Publiés',['Publié']]].map(([lab,sts])=>{
+          const n = all.filter(c=>sts.includes(c.statut)).length;
+          const cls = lab==='Publiés'?'green':lab==='Prêts'?'blue':lab==='Programmés'?'purple':'';
+          return `<div class="stat-card ${cls}"><div class="val">${n}</div><div class="label">${lab}</div></div>`;
+        }).join('')}
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:20px 0 14px">
+        <select class="status-select" onchange="setCcFilter('segment',this.value)">
+          <option value="Tous" ${ccFilterSegment==='Tous'?'selected':''}>Toutes les audiences</option>
+          ${segsUsed.map(s=>`<option value="${s}" ${ccFilterSegment===s?'selected':''}>${esc(segName(s))}</option>`).join('')}</select>
+        <select class="status-select" onchange="setCcFilter('campaign',this.value)">
+          <option value="Toutes" ${ccFilterCampaign==='Toutes'?'selected':''}>Toutes les campagnes</option>
+          ${campsUsed.map(i=>`<option value="${i}" ${ccFilterCampaign===String(i)?'selected':''}>${esc((campaigns[i]||{}).title||'—')}</option>`).join('')}</select>
+        <select class="status-select" onchange="setCcFilter('type',this.value)">
+          <option value="Tous" ${ccFilterType==='Tous'?'selected':''}>Tous les types</option>
+          ${typesUsed.map(t=>`<option ${ccFilterType===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
+        <select class="status-select" onchange="setCcFilter('status',this.value)">
+          <option value="Tous" ${ccFilterStatus==='Tous'?'selected':''}>Tous les statuts</option>
+          ${statusUsed.map(s=>`<option ${ccFilterStatus===s?'selected':''}>${esc(s)}</option>`).join('')}</select>
+        <span style="font-size:12px;color:var(--th-text-3);margin-left:auto">${list.length} affiché${list.length>1?'s':''}</span>
+      </div>
+
+      <table class="data-table"><thead><tr><th>Contenu</th><th>Type</th><th>Secteur</th><th>Audience</th><th>Campagne</th><th>Date</th><th>Statut</th></tr></thead><tbody>
+        ${list.map(c=>{ const camp = contentCampaign(c); const others = contentChannels(c).filter(x=>x!==chName);
+          return `<tr onclick="openContent('${c.id}')" style="cursor:pointer">
+            <td><div class="dt-title">${esc(c.titre)}</div>${others.length?`<div class="dt-sub">Aussi sur ${esc(others.join(', '))}</div>`:''}</td>
+            <td><span class="badge">${esc(c.type)}</span></td>
+            <td>${sectorBadge(c.sectorId)}</td>
+            <td style="font-size:12px;color:var(--th-text-2)">${esc(segName(c.segmentId))}</td>
+            <td style="font-size:12px;color:var(--th-text-2)">${camp?esc(camp.title):'—'}</td>
+            <td style="font-size:12px;white-space:nowrap">${fmtDate(c.date)}</td>
+            <td>${contentStatusBadge(c.statut)}</td></tr>`; }).join('')
+          || `<tr><td colspan="7" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun contenu pour ces filtres.</td></tr>`}
+      </tbody></table>
+
+      ${perf?`<p class="section-label" style="margin-top:24px">Performance du canal</p>
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card blue"><div class="val">${perf.leads}</div><div class="label">Leads</div></div>
+        <div class="stat-card green"><div class="val">${perf.conversions}</div><div class="label">Clients</div></div>
+        <div class="stat-card red"><div class="val">${perf.cost} €</div><div class="label">Dépensé</div></div>
+        <div class="stat-card"><div class="val">${perf.leads?Math.round(perf.cost/perf.leads)+' €':'—'}</div><div class="label">Coût / lead</div></div>
+      </div>
+      <div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',16)}<span>Ces chiffres viennent des <b>campagnes</b> utilisant ce canal, pas des contenus eux-mêmes.</span></div>`:''}`;
+  }
+
+  /* --- Grille des canaux par catégorie --- */
+  const scoped = sectorContents();
+  const usedChannels = [...new Set(scoped.flatMap(c=>contentChannels(c)))];
+
+  const card = chName => {
+    const list = contentsOnChannel(chName);
+    const chDef = CHANNEL_PORTFOLIO.find(x=>x.mappedChannel===chName || x.nom===chName);
+    const st = CHANNEL_STYLE[chName] || (chDef ? {c:chDef.c,tint:chDef.tint,icon:chDef.icon} : {c:'#6E6A7A',tint:'#EFEEF4',icon:'ti-share'});
+    const counts = {
+      aCreer: list.filter(c=>['Idée','Brief','À créer'].includes(c.statut)).length,
+      enProd: list.filter(c=>['En production','À valider'].includes(c.statut)).length,
+      prets: list.filter(c=>c.statut==='Prêt').length,
+      prog: list.filter(c=>c.statut==='Programmé').length,
+      pub: list.filter(c=>c.statut==='Publié').length,
+    };
+    const campsCount = new Set(list.map(c=>c.campIdx).filter(i=>i!==null&&i!==undefined)).size;
+    const perf = chDef ? channelPerf(chDef) : null;
+    const empty = list.length===0;
+
+    return `<div class="ch-card ${empty?'cc-empty':''}" onclick="${empty?'':`openContentChannelView('${chName.replace(/'/g,"\\\\'")}')`}">
+      <div class="ch-head">
+        <div class="ch-logo" style="background:${st.tint};color:${st.c}">${ic(st.icon,18)}</div>
+        <div style="min-width:0;flex:1"><div class="ch-name" style="font-size:14.5px">${esc(chName)}</div>
+          <div class="ch-sub">${list.length} contenu${list.length>1?'s':''}${campsCount?` · ${campsCount} campagne${campsCount>1?'s':''}`:''}</div></div>
+      </div>
+      ${empty
+        ? `<div style="border-top:1px solid var(--th-border);padding-top:12px;font-size:11.5px;color:var(--th-text-3)">Aucun contenu diffusé sur ce canal</div>`
+        : `<div style="border-top:1px solid var(--th-border);padding-top:12px;display:flex;gap:5px;flex-wrap:wrap">
+            ${counts.aCreer?`<span class="cc-pill" style="color:var(--th-orange);background:var(--th-orange-bg)">${counts.aCreer} à créer</span>`:''}
+            ${counts.enProd?`<span class="cc-pill" style="color:var(--th-text-2);background:var(--th-bg-alt)">${counts.enProd} en production</span>`:''}
+            ${counts.prets?`<span class="cc-pill" style="color:var(--th-blue);background:var(--th-blue-bg)">${counts.prets} prêt${counts.prets>1?'s':''}</span>`:''}
+            ${counts.prog?`<span class="cc-pill" style="color:var(--th-purple);background:var(--th-purple-bg)">${counts.prog} programmé${counts.prog>1?'s':''}</span>`:''}
+            ${counts.pub?`<span class="cc-pill" style="color:var(--th-green);background:var(--th-green-bg)">${counts.pub} publié${counts.pub>1?'s':''}</span>`:''}
+          </div>
+          ${perf&&perf.leads?`<div style="margin-top:10px;font-size:11.5px;color:var(--th-text-2)">${perf.leads} leads · ${perf.leads?Math.round(perf.cost/perf.leads):0} € / lead</div>`:''}`}
+    </div>`;
+  };
+
+  /* Chaque catégorie liste ses canaux : ceux du portefeuille + ceux utilisés par des contenus */
+  const cats = CHANNEL_CATEGORIES.map(cat=>{
+    const fromPortfolio = CHANNEL_PORTFOLIO.filter(c=>c.cat===cat).map(c=>c.mappedChannel||c.nom);
+    return { cat, channels:[...new Set(fromPortfolio)] };
+  });
+  /* Canaux présents dans les contenus mais absents du portefeuille */
+  const known = new Set(cats.flatMap(c=>c.channels));
+  const autres = usedChannels.filter(ch=>!known.has(ch));
+
+  return `
+    <div class="hint-bar" style="margin-bottom:18px">${ic('ti-bulb',16)}<span>Cette vue est un <b>autre angle sur la même bibliothèque</b>. Un contenu diffusé sur plusieurs canaux apparaît dans chacun d'eux — il reste une seule fiche.</span></div>
+    ${cats.map(({cat,channels})=>{
+      const withContent = channels.filter(ch=>contentsOnChannel(ch).length>0);
+      const without = channels.filter(ch=>contentsOnChannel(ch).length===0);
+      const ordered = [...withContent, ...without];
+      if(!ordered.length) return '';
+      return `<p class="section-label">${esc(cat)} <span style="color:var(--th-text-3);font-weight:600;text-transform:none;letter-spacing:0">· ${withContent.length} canal${withContent.length>1?'ux':''} alimenté${withContent.length>1?'s':''}</span></p>
+        <div class="ch-grid">${ordered.map(card).join('')}</div>`;
+    }).join('')}
+    ${autres.length?`<p class="section-label">Autres</p><div class="ch-grid">${autres.map(card).join('')}</div>`:''}`;
 }
 
 function calHeader(label){
