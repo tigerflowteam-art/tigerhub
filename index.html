@@ -312,6 +312,23 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ch-metric .v{font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .ch-metric .l{font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-top:1px}
 .ch-spark{flex-shrink:0}
+.exp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px;margin-bottom:8px}
+.exp-card{background:var(--th-card);border:1px solid var(--th-border);border-left:3px solid var(--th-blue);border-radius:16px;padding:18px;box-shadow:var(--th-shadow-sm);cursor:pointer;transition:all .14s}
+.exp-card:hover{box-shadow:var(--th-shadow-lg);transform:translateY(-2px)}
+.exp-card.ok{border-left-color:var(--th-green)}
+.exp-card.ko{border-left-color:var(--th-red)}
+.exp-mini{background:var(--th-bg-alt);border-radius:10px;padding:10px 13px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.exp-measure{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.exp-m-item{text-align:center;flex:1}
+.exp-m-val{font-size:19px;font-weight:800;letter-spacing:-0.02em;line-height:1.1}
+.exp-m-lab{font-size:10.5px;color:var(--th-text-3);font-weight:700;text-transform:uppercase;margin-top:3px}
+.exp-m-arrow{color:var(--th-text-3);transform:rotate(180deg);flex-shrink:0}
+.exp-decision-pending{border-left:3px solid var(--th-orange);background:linear-gradient(180deg,var(--th-orange-bg) 0%,var(--th-card) 60px)}
+.ana-filters{display:flex;gap:20px;flex-wrap:wrap;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;padding:15px 18px;margin-bottom:18px;box-shadow:var(--th-shadow-sm)}
+.ana-filter-group{display:flex;flex-direction:column;gap:6px}
+.ana-filter-lab{font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.ana-check{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--th-green);background:var(--th-green-bg);border-radius:10px;padding:10px 14px;margin-top:12px}
+.future-kpi{background:var(--th-bg-alt);border-radius:13px;padding:16px;text-align:center}
 .cc-pill{font-size:10.5px;font-weight:700;border-radius:7px;padding:3px 8px;white-space:nowrap}
 .ch-card.cc-empty{opacity:.5;cursor:default}
 .ch-card.cc-empty:hover{transform:none;box-shadow:var(--th-shadow);border-color:var(--th-border)}
@@ -1611,10 +1628,72 @@ const CONTENTS = [
 ];
 
 /* ---------- Expérimentations : hypothèse + conclusion obligatoires ---------- */
+const EXP_STATUSES = ['À préparer','En cours','À analyser','Décision à prendre','Validée','Arrêtée','Abandonnée'];
+const EXP_STATUS_STYLE = {
+  'À préparer':{c:'var(--th-text-2)',bg:'var(--th-bg-alt)'},
+  'En cours':{c:'var(--th-blue)',bg:'var(--th-blue-bg)'},
+  'À analyser':{c:'var(--th-purple)',bg:'var(--th-purple-bg)'},
+  'Décision à prendre':{c:'var(--th-orange)',bg:'var(--th-orange-bg)'},
+  'Validée':{c:'var(--th-green)',bg:'var(--th-green-bg)'},
+  'Arrêtée':{c:'var(--th-red)',bg:'var(--th-red-bg)'},
+  'Abandonnée':{c:'var(--th-text-3)',bg:'var(--th-bg-alt)'},
+};
+const EXP_DECISIONS = ['Déployer','Modifier','Continuer à tester','Arrêter'];
+
 const EXPERIMENTS = [
-  { titre:"Message réglementaire vs message gain de temps", sectorId:'derat', hypothese:"Sur les entreprises sous contrat sanitaire, le message réglementaire convertit mieux que le message gain de temps.", segmentId:'seg2', canal:'LinkedIn', objectif:"Taux de clic", budget:120, duree:'3 semaines', attendu:"+2 points de clic", reel:"+4,1 points (5,8% vs 1,7%)", conclusion:"Continuer", enseignement:"Sur ce segment, parler conformité plutôt que confort." },
-  { titre:"Google Ads sur un marché de niche", sectorId:'derat', hypothese:"Le search payant peut générer des leads dératisation sous 25 € le lead.", segmentId:'seg1', canal:'Google Ads', objectif:"Coût par lead", budget:300, duree:'3 semaines', attendu:"Coût/lead inférieur à 25 €", reel:"16 € de coût/lead mais 1 seule conversion", conclusion:"Arrêter", enseignement:"Volume de recherche trop faible sur ce métier — privilégier LinkedIn et le SEO." },
-  { titre:"Démo enregistrée vs démo en direct", sectorId:'derat', hypothese:"Une démo enregistrée de 3 minutes convertit autant qu'une démo en direct, pour beaucoup moins de temps investi.", segmentId:'seg1', canal:'LinkedIn', objectif:"Temps investi par client", budget:0, duree:'En cours', attendu:"Conversion stable, temps divisé par 4", reel:"Mesure en cours jusqu'au lancement", conclusion:null, enseignement:null },
+  { id:'exp1', titre:"Message conformité vs message gain de temps", sectorId:'derat', segmentId:'seg2',
+    canal:'LinkedIn', campId:'mktg_demo_3', contenuId:'ct6', status:'Validée',
+    hypothese:"Sur les entreprises de dératisation sous contrat sanitaire, un message axé sur la conformité réglementaire convertira mieux qu'un message axé sur le gain de temps.",
+    aDemontrer:"Que le déclencheur d'achat de ce segment est la peur du contrôle, pas le confort.",
+    kpi:'Taux de clic', depart:1.7, objectif:3.7, resultat:5.8, unite:'%',
+    kpiSecondaires:[{nom:'Leads',valeur:24},{nom:'Coût / lead',valeur:'16 €'}],
+    debut:'2026-07-01', finPrevue:'2026-07-22', finReelle:'2026-07-22',
+    budgetPrevu:120, depense:118, tempsPrevu:6, tempsReel:5,
+    hypotheseValidee:'Validée', decision:'Déployer',
+    enseignement:"Sur ce segment, la conformité réglementaire est un déclencheur plus fort que le gain de temps.",
+    aTesterEnsuite:"Comparer conformité réglementaire vs réduction du risque financier." },
+
+  { id:'exp2', titre:"Google Ads sur un marché de niche", sectorId:'derat', segmentId:'seg1',
+    canal:'Google Ads', campId:'mktg_demo_7', contenuId:null, status:'Arrêtée',
+    hypothese:"Le search payant peut générer des leads dératisation sous 25 € le lead avec un volume suffisant.",
+    aDemontrer:"Que le volume de recherche justifie un investissement publicitaire sur ce métier.",
+    kpi:'Coût par lead', depart:null, objectif:25, resultat:16, unite:'€', inverse:true,
+    kpiSecondaires:[{nom:'Leads',valeur:18},{nom:'Clients',valeur:1}],
+    debut:'2026-08-01', finPrevue:'2026-08-21', finReelle:'2026-08-20',
+    budgetPrevu:300, depense:290, tempsPrevu:6, tempsReel:7,
+    hypotheseValidee:'Incertaine', decision:'Arrêter',
+    enseignement:"Le coût par lead est bon mais le volume est trop faible : 18 leads en 3 semaines et une seule conversion. Le marché ne cherche pas encore ce type d'outil.",
+    aTesterEnsuite:"Retester dans 6 mois, quand la catégorie sera plus connue." },
+
+  { id:'exp3', titre:"Démo enregistrée vs démo en direct", sectorId:'derat', segmentId:'seg1',
+    canal:'LinkedIn', campId:'mktg_demo_0', contenuId:'ct3', status:'Décision à prendre',
+    hypothese:"Une démo enregistrée de 3 minutes convertit autant qu'une démo en direct, pour beaucoup moins de temps investi.",
+    aDemontrer:"Qu'on peut diviser par 4 le temps commercial sans perdre en conversion.",
+    kpi:'Taux de conversion', depart:9, objectif:9, resultat:7.5, unite:'%',
+    kpiSecondaires:[{nom:'Temps par client',valeur:'0,4 h'},{nom:'Démos vues',valeur:42}],
+    debut:'2026-07-15', finPrevue:'2026-08-19', finReelle:null,
+    budgetPrevu:0, depense:0, tempsPrevu:10, tempsReel:9,
+    hypotheseValidee:null, decision:null, enseignement:null, aTesterEnsuite:null },
+
+  { id:'exp4', titre:"Objet d'email avec prénom du dirigeant", sectorId:'derat', segmentId:'seg2',
+    canal:'Email', campId:'mktg_demo_3', contenuId:'ct6', status:'En cours',
+    hypothese:"Personnaliser l'objet avec le prénom du dirigeant augmente le taux d'ouverture d'au moins 5 points.",
+    aDemontrer:"Que la personnalisation vaut le temps de préparation supplémentaire.",
+    kpi:"Taux d'ouverture", depart:38, objectif:43, resultat:47, unite:'%',
+    kpiSecondaires:[{nom:'Emails envoyés',valeur:180}],
+    debut:'2026-08-05', finPrevue:'2026-08-26', finReelle:null,
+    budgetPrevu:0, depense:0, tempsPrevu:3, tempsReel:2,
+    hypotheseValidee:null, decision:null, enseignement:null, aTesterEnsuite:null },
+
+  { id:'exp5', titre:"Article réglementaire vs article générique", sectorId:'derat', segmentId:'seg2',
+    canal:'SEO', campId:'mktg_demo_5', contenuId:'ct2', status:'À préparer',
+    hypothese:"Un article centré sur une obligation légale précise génère plus de leads qualifiés qu'un article généraliste sur le métier.",
+    aDemontrer:"Que l'angle réglementaire est le bon axe éditorial pour ce segment.",
+    kpi:'Leads par article', depart:4, objectif:10, resultat:null, unite:'',
+    kpiSecondaires:[],
+    debut:'2026-09-01', finPrevue:'2026-10-15', finReelle:null,
+    budgetPrevu:0, depense:0, tempsPrevu:8, tempsReel:0,
+    hypotheseValidee:null, decision:null, enseignement:null, aTesterEnsuite:null },
 ];
 
 /* ---------- Apprentissages ---------- */
@@ -3968,127 +4047,592 @@ function calHeader(label){
   </div>`;
 }
 
-/* ---- 6. Analyse & résultats ---- */
-let analysisTab = 0;
-function switchAnalysisTab(i){ analysisTab = i; renderMktgAnalysis(); }
+/* ---- 6. Analyse & résultats — vue de lecture pure ----
+   Règle absolue : AUCUNE saisie ici. Tout est agrégé depuis les campagnes.
+
+   Cohérence garantie par construction : une seule fonction (analysisScope)
+   produit le jeu de campagnes filtré, et tous les tableaux — global, canal,
+   segment, campagne — dérivent de ce même jeu. Le total ne peut donc pas
+   diverger de la somme des lignes. */
+
+let anaTab = 0;
+let anaPeriod = 'all';
+let anaChannel = 'Tous';
+let anaSegment = 'Tous';
+let anaCampaign = 'Toutes';
+let anaCustomFrom = '';
+let anaCustomTo = '';
+function switchAnalysisTab(i){ anaTab = i; renderMktgAnalysis(); }
+function setAnaFilter(kind, v){
+  if(kind==='period') anaPeriod = v;
+  else if(kind==='channel') anaChannel = v;
+  else if(kind==='segment') anaSegment = v;
+  else if(kind==='campaign') anaCampaign = v;
+  renderMktgAnalysis();
+}
+function setAnaCustom(which, v){
+  if(which==='from') anaCustomFrom = v; else anaCustomTo = v;
+  if(anaCustomFrom && anaCustomTo) renderMktgAnalysis();
+}
+
+const ANA_PERIODS = {
+  'all':      { label:'Tout' },
+  '7d':       { label:'7 jours', days:7 },
+  '30d':      { label:'30 jours', days:30 },
+  'month':    { label:'Ce mois' },
+  'quarter':  { label:'Ce trimestre' },
+  'year':     { label:'Cette année' },
+  'custom':   { label:'Personnalisée' },
+};
+
+function periodBounds(){
+  const now = new Date();
+  if(anaPeriod==='all') return null;
+  if(anaPeriod==='custom'){
+    if(!anaCustomFrom || !anaCustomTo) return null;
+    return { from:new Date(anaCustomFrom), to:new Date(anaCustomTo) };
+  }
+  if(anaPeriod==='month') return { from:new Date(now.getFullYear(),now.getMonth(),1), to:now };
+  if(anaPeriod==='quarter'){ const q=Math.floor(now.getMonth()/3); return { from:new Date(now.getFullYear(),q*3,1), to:now }; }
+  if(anaPeriod==='year') return { from:new Date(now.getFullYear(),0,1), to:now };
+  const d = ANA_PERIODS[anaPeriod].days;
+  return { from:new Date(now.getTime()-d*86400000), to:now };
+}
+
+/* Une campagne entre dans le périmètre si sa fenêtre chevauche la période */
+function campInPeriod(c, bounds){
+  if(!bounds) return true;
+  if(!c.startDate) return false;
+  const s = new Date(c.startDate);
+  const e = c.endDate ? new Date(c.endDate) : s;
+  return e >= bounds.from && s <= bounds.to;
+}
+
+/* SOURCE DE CALCUL UNIQUE — tout le module lit ceci */
+function analysisScope(){
+  const bounds = periodBounds();
+  return sectorCampaigns().filter(c=>{
+    if(!campInPeriod(c, bounds)) return false;
+    if(anaSegment!=='Tous' && c.segmentId!==anaSegment) return false;
+    if(anaCampaign!=='Toutes' && c.id!==anaCampaign) return false;
+    if(anaChannel!=='Tous' && !Object.keys(c.results||{}).includes(anaChannel) && !Object.keys(c.channelBudgets||{}).includes(anaChannel)) return false;
+    return true;
+  });
+}
+/* Résultats d'une campagne restreints au canal filtré, pour que les
+   totaux correspondent exactement à ce qu'affichent les lignes */
+function scopedTotals(c){
+  const r = c.results || {};
+  const chans = anaChannel==='Tous' ? Object.keys(r) : Object.keys(r).filter(ch=>ch===anaChannel);
+  return chans.reduce((a,ch)=>({
+    impressions:a.impressions+(r[ch].impressions||0), clicks:a.clicks+(r[ch].clicks||0),
+    leads:a.leads+(r[ch].leads||0), conversions:a.conversions+(r[ch].conversions||0), cost:a.cost+(r[ch].cost||0)
+  }), {impressions:0,clicks:0,leads:0,conversions:0,cost:0});
+}
+function scopedBudget(c){
+  const b = c.channelBudgets || {};
+  if(anaChannel==='Tous') return c.budget||0;
+  return b[anaChannel]||0;
+}
+
+/* Verdict calculé, jamais simulé */
+function verdictFor(leads, conversions, cost, time){
+  if(leads < 10) return { k:'gray', label:'Pas assez de données', why:"Moins de 10 leads : impossible de conclure." };
+  const cpl = cost/leads;
+  const convRate = conversions/leads;
+  if(cpl <= 15 && convRate >= 0.08) return { k:'green', label:'À renforcer', why:`${Math.round(cpl)} € par lead et ${Math.round(convRate*100)}% de conversion : les deux indicateurs sont bons.` };
+  if(cpl > 40) return { k:'red', label:'À surveiller', why:`${Math.round(cpl)} € par lead, au-dessus du seuil de 40 €.` };
+  if(convRate < 0.04) return { k:'red', label:'À surveiller', why:`Seulement ${Math.round(convRate*100)}% des leads deviennent clients.` };
+  if(time && leads && (time/leads) > 0.5) return { k:'orange', label:'À optimiser', why:`${(time/leads).toFixed(2)} h de travail par lead : coûteux en temps.` };
+  return { k:'orange', label:'À optimiser', why:`${Math.round(cpl)} € par lead : correct mais améliorable.` };
+}
+function verdictBadgeAna(v){
+  const style = v.k==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':'';
+  return `<span class="badge ${v.k}" style="${style}" title="${esc(v.why)}">${esc(v.label)}</span>`;
+}
+
 function renderMktgAnalysis(){
   const el = document.getElementById('marketing-analysisContent'); if(!el) return;
-  const tabs = ['Performance','Budget & temps'];
-  const chAgg = aggregateByChannel();
-  const segAgg = aggregateBySegment();
-  const scoped = sectorCampaigns();
-  const glob = scoped.reduce((a,c)=>{ const t=campTotals(c); return {leads:a.leads+t.leads,conv:a.conv+t.conversions,cost:a.cost+t.cost,budget:a.budget+(c.budget||0),time:a.time+(c.timeReal||0),timeEst:a.timeEst+(c.timeEstimated||0)}; },{leads:0,conv:0,cost:0,budget:0,time:0,timeEst:0});
-  let body='';
 
-  if(analysisTab===0){
-    body = `
-      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
-        <div class="stat-card blue"><div class="val">${glob.leads}</div><div class="label">Leads</div></div>
-        <div class="stat-card green"><div class="val">${glob.conv}</div><div class="label">Conversions</div></div>
-        <div class="stat-card"><div class="val">${glob.leads?Math.round(glob.cost/glob.leads):0} €</div><div class="label">Coût / lead</div></div>
-        <div class="stat-card purple"><div class="val">${glob.leads?Math.round(glob.conv/glob.leads*100):0}%</div><div class="label">Taux de conversion</div></div>
-        <div class="stat-card ${glob.cost&&glob.conv?'green':'gray'}"><div class="val">${glob.conv?Math.round(glob.cost/glob.conv):0} €</div><div class="label">Coût d'acquisition</div></div>
+  const scope = analysisScope();
+  /* Tous les agrégats dérivent de scope — cohérence garantie */
+  const glob = scope.reduce((a,c)=>{ const t=scopedTotals(c);
+    return { impressions:a.impressions+t.impressions, clicks:a.clicks+t.clicks, leads:a.leads+t.leads,
+             conv:a.conv+t.conversions, cost:a.cost+t.cost, budget:a.budget+scopedBudget(c),
+             time:a.time+(c.timeReal||0), timeEst:a.timeEst+(c.timeEstimated||0) }; },
+    {impressions:0,clicks:0,leads:0,conv:0,cost:0,budget:0,time:0,timeEst:0});
+
+  const byChannel = {};
+  scope.forEach(c=>{
+    const r = c.results||{};
+    Object.keys(r).forEach(ch=>{
+      if(anaChannel!=='Tous' && ch!==anaChannel) return;
+      if(!byChannel[ch]) byChannel[ch] = {leads:0,conv:0,cost:0,time:0,camps:0,clicks:0,impressions:0};
+      const a = byChannel[ch];
+      a.leads+=r[ch].leads||0; a.conv+=r[ch].conversions||0; a.cost+=r[ch].cost||0;
+      a.clicks+=r[ch].clicks||0; a.impressions+=r[ch].impressions||0; a.camps++;
+      a.time += (c.timeReal||0) / Math.max(1, Object.keys(r).length);
+    });
+  });
+
+  const bySegment = {};
+  scope.forEach(c=>{ const t=scopedTotals(c);
+    if(!bySegment[c.segmentId]) bySegment[c.segmentId] = {leads:0,conv:0,cost:0,time:0,camps:0};
+    const a = bySegment[c.segmentId];
+    a.leads+=t.leads; a.conv+=t.conversions; a.cost+=t.cost; a.time+=(c.timeReal||0); a.camps++;
+  });
+
+  /* --- Filtres globaux --- */
+  const allChannels = [...new Set(sectorCampaigns().flatMap(c=>Object.keys(c.results||{}).concat(Object.keys(c.channelBudgets||{}))))];
+  const filters = `
+    <div class="ana-filters">
+      <div class="ana-filter-group">
+        <span class="ana-filter-lab">Période</span>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${Object.entries(ANA_PERIODS).map(([k,p])=>`<button class="filter-chip${anaPeriod===k?' active':''}" onclick="setAnaFilter('period','${k}')">${p.label}</button>`).join('')}
+        </div>
       </div>
-      ${SECTORS.filter(s=>s.actif).length>1 ? `<p class="section-label">Comparaison par canal entre secteurs</p>
-      <table class="data-table"><thead><tr><th>Canal</th>${SECTORS.filter(s=>s.actif).map(s=>`<th>${esc(s.nom)}</th>`).join('')}</tr></thead><tbody>
-        ${[...new Set(campaigns.flatMap(c=>Object.keys(c.channelBudgets||{})))].map(ch=>{
-          const cells = SECTORS.filter(s=>s.actif).map(s=>{
-            const cs = campaigns.filter(c=>c.sectorId===s.id && (c.results||{})[ch]);
-            const a = cs.reduce((x,c)=>({leads:x.leads+c.results[ch].leads,cost:x.cost+c.results[ch].cost}),{leads:0,cost:0});
-            return `<td>${a.leads?Math.round(a.cost/a.leads)+' € / lead':'—'}</td>`;
-          }).join('');
-          return `<tr><td class="dt-title">${esc(ch)}</td>${cells}</tr>`;
-        }).join('')}
-      </tbody></table>` : ''}
-      <p class="section-label" style="margin-top:24px">Par secteur</p>
-      <table class="data-table"><thead><tr><th>Secteur</th><th>Statut</th><th>Campagnes</th><th>Leads</th><th>Conversions</th><th>Coût</th><th>Temps</th></tr></thead><tbody>
-        ${SECTORS.map(sec=>{
-          const cs = campaigns.filter(c=>c.sectorId===sec.id);
-          const a = cs.reduce((x,c)=>{ const t=campTotals(c); return {leads:x.leads+t.leads,conv:x.conv+t.conversions,cost:x.cost+t.cost,time:x.time+(c.timeReal||0)}; },{leads:0,conv:0,cost:0,time:0});
-          return `<tr style="${sec.actif?'':'opacity:.5'}"><td class="dt-title">${esc(sec.nom)}</td>
-          <td>${sec.actif?'<span class="badge green">Actif</span>':'<span class="badge gray">À venir</span>'}</td>
-          <td>${cs.length}</td><td>${a.leads}</td><td>${a.conv}</td><td>${a.cost} €</td><td>${a.time} h</td></tr>`;
-        }).join('')}
-      </tbody></table>
-      <p class="section-label" style="margin-top:24px">Par canal</p>
-      <table class="data-table"><thead><tr><th>Canal</th><th>Leads</th><th>Conversions</th><th>Taux</th><th>Coût</th><th>Coût/lead</th><th>Temps</th></tr></thead><tbody>
-        ${Object.entries(chAgg).sort((a,b)=>b[1].leads-a[1].leads).map(([ch,a])=>{ const st=CHANNEL_STYLE[ch]||{};
-          return `<tr onclick="goToChannel('${ch}')" style="cursor:pointer"><td><span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span></td>
-          <td>${a.leads}</td><td>${a.conversions}</td><td><span class="badge ${a.leads&&a.conversions/a.leads>0.08?'green':'gray'}">${a.leads?Math.round(a.conversions/a.leads*100):0}%</span></td>
-          <td>${a.cost} €</td><td>${a.leads?Math.round(a.cost/a.leads)+' €':'—'}</td><td>${Math.round(a.time)} h</td></tr>`; }).join('')}
-      </tbody></table>
-      <p class="section-label" style="margin-top:24px">Par segment</p>
-      <table class="data-table"><thead><tr><th>Segment</th><th>Campagnes</th><th>Leads</th><th>Conversions</th><th>Taux</th><th>Coût/lead</th><th>Temps</th></tr></thead><tbody>
-        ${sectorAudiences().map(s=>{ const a=segAgg[s.id]||{leads:0,conversions:0,cost:0,time:0,campaigns:0};
-          return `<tr onclick="goToAudience('${s.id}')" style="cursor:pointer"><td class="dt-title">${esc(s.nom)} →</td><td>${a.campaigns}</td><td>${a.leads}</td><td>${a.conversions}</td>
-          <td><span class="badge ${a.leads&&a.conversions/a.leads>0.08?'green':'gray'}">${a.leads?Math.round(a.conversions/a.leads*100):0}%</span></td>
-          <td>${a.leads?Math.round(a.cost/a.leads)+' €':'—'}</td><td>${a.time} h</td></tr>`; }).join('')}
-      </tbody></table>
-      <p class="section-label" style="margin-top:24px">Par campagne</p>
-      <table class="data-table"><thead><tr><th>Campagne</th><th>Leads</th><th>Conversions</th><th>Coût</th><th>Coût/lead</th><th>ROI estimé</th></tr></thead><tbody>
-        ${scoped.map(c=>{ const t=campTotals(c); const roi = t.cost? Math.round((t.conversions*900 - t.cost)/t.cost*100) : 0;
-          return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer"><td class="dt-title">${esc(c.title)}</td><td>${t.leads}</td><td>${t.conversions}</td><td>${t.cost} €</td>
-          <td>${cpl(t)?cpl(t)+' €':'—'}</td><td>${t.cost?`<span class="badge ${roi>=0?'green':'red'}">${roi>=0?'+':''}${roi}%</span>`:'—'}</td></tr>`; }).join('')}
-      </tbody></table>`;
-  } else {
+      ${anaPeriod==='custom'?`<div class="ana-filter-group">
+        <span class="ana-filter-lab">Du / au</span>
+        <div style="display:flex;gap:7px">
+          <input type="date" class="status-select" value="${anaCustomFrom}" onchange="setAnaCustom('from',this.value)">
+          <input type="date" class="status-select" value="${anaCustomTo}" onchange="setAnaCustom('to',this.value)">
+        </div></div>`:''}
+      <div class="ana-filter-group">
+        <span class="ana-filter-lab">Canal</span>
+        <select class="status-select" onchange="setAnaFilter('channel',this.value)">
+          <option value="Tous" ${anaChannel==='Tous'?'selected':''}>Tous les canaux</option>
+          ${allChannels.map(ch=>`<option ${anaChannel===ch?'selected':''}>${esc(ch)}</option>`).join('')}</select>
+      </div>
+      <div class="ana-filter-group">
+        <span class="ana-filter-lab">Audience</span>
+        <select class="status-select" onchange="setAnaFilter('segment',this.value)">
+          <option value="Tous" ${anaSegment==='Tous'?'selected':''}>Toutes les audiences</option>
+          ${sectorAudiences().map(a=>`<option value="${a.id}" ${anaSegment===a.id?'selected':''}>${esc(a.nom)}</option>`).join('')}</select>
+      </div>
+      <div class="ana-filter-group">
+        <span class="ana-filter-lab">Campagne</span>
+        <select class="status-select" onchange="setAnaFilter('campaign',this.value)">
+          <option value="Toutes" ${anaCampaign==='Toutes'?'selected':''}>Toutes les campagnes</option>
+          ${sectorCampaigns().map(c=>`<option value="${c.id}" ${anaCampaign===c.id?'selected':''}>${esc(c.title)}</option>`).join('')}</select>
+      </div>
+      <div style="margin-left:auto;font-size:11.5px;color:var(--th-text-3);align-self:flex-end;padding-bottom:8px">
+        ${scope.length} campagne${scope.length>1?'s':''} dans le périmètre
+      </div>
+    </div>`;
+
+  /* --- Points d'attention : règles analytiques simples --- */
+  const attention = [];
+  scope.forEach(c=>{
+    const t = scopedTotals(c);
+    const b = scopedBudget(c);
+    if(b>0 && t.cost>b) attention.push({ k:'red', icon:'ti-wallet', txt:`<b>${esc(c.title)}</b> a dépassé son budget de ${t.cost-b} €.`, id:c.id });
+    if(t.leads>0 && (t.cost/t.leads)>40) attention.push({ k:'red', icon:'ti-coin', txt:`<b>${esc(c.title)}</b> coûte ${Math.round(t.cost/t.leads)} € par lead, au-dessus du seuil de 40 €.`, id:c.id });
+    if(c.status==='En ligne' && t.cost>200 && t.leads===0) attention.push({ k:'red', icon:'ti-alert-triangle', txt:`<b>${esc(c.title)}</b> n'a produit aucun lead malgré ${t.cost} € dépensés.`, id:c.id });
+    if(t.leads>=20 && t.conversions>0 && (t.cost/t.conversions)<200) attention.push({ k:'green', icon:'ti-trophy', txt:`<b>${esc(c.title)}</b> acquiert un client pour ${Math.round(t.cost/t.conversions)} € — performance à répliquer.`, id:c.id });
+    if(t.leads>=10 && (t.conversions/t.leads)<0.04) attention.push({ k:'orange', icon:'ti-trending-down', txt:`<b>${esc(c.title)}</b> convertit à ${Math.round(t.conversions/t.leads*100)}% seulement — le problème est probablement après le lead.`, id:c.id });
+    if(c.timeEstimated>0 && c.timeReal>c.timeEstimated*1.3) attention.push({ k:'orange', icon:'ti-history', txt:`<b>${esc(c.title)}</b> a demandé ${c.timeReal} h au lieu des ${c.timeEstimated} h estimées.`, id:c.id });
+  });
+  Object.entries(byChannel).forEach(([ch,a])=>{
+    if(a.leads>0 && (a.time/a.leads)>0.6) attention.push({ k:'orange', icon:'ti-history', txt:`<b>${esc(ch)}</b> demande ${(a.time/a.leads).toFixed(2)} h de travail par lead — canal chronophage.`, ch });
+  });
+
+  const tabs = ['Vue globale','Par canal','Par audience','Par campagne','Budget & temps'];
+  let body = '';
+
+  /* --- KPI communs à tous les onglets : mêmes chiffres partout --- */
+  const kpis = `
+    <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-users')}</div><div class="val">${glob.leads}</div><div class="label">Leads</div></div>
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${glob.conv}</div><div class="label">Clients</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-coin')}</div><div class="val">${glob.leads?Math.round(glob.cost/glob.leads)+' €':'—'}</div><div class="label">Coût / lead</div></div>
+      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-chart-donut-3')}</div><div class="val">${glob.leads?Math.round(glob.conv/glob.leads*100)+'%':'—'}</div><div class="label">Taux de conversion</div></div>
+      <div class="stat-card red"><div class="stat-card-icon">${ic('ti-wallet')}</div><div class="val">${glob.cost} €</div><div class="label">Dépensé</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-history')}</div><div class="val">${glob.time} h</div><div class="label">Temps réellement investi</div></div>
+    </div>`;
+
+  if(anaTab===0){
+    const v = verdictFor(glob.leads, glob.conv, glob.cost, glob.time);
+    body = kpis + `
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-alert-triangle',17)}<span>Points d'attention</span></div>
+            ${attention.length?`<span class="badge ${attention.some(a=>a.k==='red')?'red':'orange'}" style="${attention.some(a=>a.k==='red')?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${attention.length}</span>`:''}</div>
+          ${attention.length ? attention.slice(0,6).map(a=>`
+            <div class="alert ${a.k==='green'?'opp':'warn'}" ${a.id?`onclick="goToCampaign('${a.id}')"`:a.ch?`onclick="goToChannel('${a.ch}')"`:''} style="cursor:pointer">
+              <div class="alert-icon">${ic(a.icon,14)}</div><div class="alert-text">${a.txt}</div></div>`).join('')
+            : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div><div class="alert-text">Aucun point d'attention sur ce périmètre.</div></div>`}
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-target',17)}<span>Lecture globale</span></div>${verdictBadgeAna(v)}</div>
+          <p style="font-size:13px;line-height:1.8;color:var(--th-text-2);margin-bottom:16px">${esc(v.why)}</p>
+          <div style="font-size:12.5px;line-height:2.1;padding-top:14px;border-top:1px solid var(--th-border)">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Impressions</span><b>${glob.impressions.toLocaleString('fr-FR')}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Clics</span><b>${glob.clicks.toLocaleString('fr-FR')}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Taux de clic</span><b>${glob.impressions?((glob.clicks/glob.impressions)*100).toFixed(2)+'%':'—'}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Coût par client</span><b>${glob.conv?Math.round(glob.cost/glob.conv)+' €':'—'}</b></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="section-label">Rentabilité</p>
+      <div class="card">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
+          ${[['CA généré','Développement commercial'],['CAC','Développement commercial'],['ROI','Finances'],['Marge générée','Finances']].map(([lab,src])=>`
+            <div class="future-kpi">
+              <div style="font-size:20px;font-weight:800;color:var(--th-text-3);margin-bottom:3px">—</div>
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px">${lab}</div>
+              <div class="placeholder-badge" style="font-size:10px">Source à venir</div>
+              <div style="font-size:10.5px;color:var(--th-text-3);margin-top:5px">${src}</div>
+            </div>`).join('')}
+        </div>
+        <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Ces indicateurs nécessitent le chiffre d'affaires réel par client. Ils seront calculés dès que <b>Développement commercial</b> et <b>Finances</b> alimenteront TigerHub — aucune valeur n'est inventée d'ici là.</span></div>
+      </div>`;
+  }
+  else if(anaTab===1){
+    const rows = Object.entries(byChannel).sort((a,b)=>b[1].leads-a[1].leads).map(([ch,a])=>{
+      const st = CHANNEL_STYLE[ch]||{};
+      const v = verdictFor(a.leads, a.conv, a.cost, a.time);
+      return `<tr onclick="goToChannel('${ch}')" style="cursor:pointer">
+        <td><span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span></td>
+        <td>${a.camps}</td><td>${a.leads}</td><td>${a.conv}</td>
+        <td>${a.leads?Math.round(a.conv/a.leads*100)+'%':'—'}</td>
+        <td>${a.cost} €</td><td>${a.leads?Math.round(a.cost/a.leads)+' €':'—'}</td>
+        <td>${Math.round(a.time)} h</td><td>${verdictBadgeAna(v)}</td></tr>`;
+    }).join('');
+    body = kpis + `<p class="section-label">Par canal</p>
+      <table class="data-table"><thead><tr><th>Canal</th><th>Campagnes</th><th>Leads</th><th>Clients</th><th>Conversion</th><th>Dépensé</th><th>Coût/lead</th><th>Temps</th><th>Verdict</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="9" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun résultat sur ce périmètre.</td></tr>`}</tbody></table>
+      ${rows?`<div class="ana-check">${ic('ti-circle-check',14)} Total de ce tableau : <b>${Object.values(byChannel).reduce((s,a)=>s+a.leads,0)} leads</b> · <b>${Object.values(byChannel).reduce((s,a)=>s+a.conv,0)} clients</b> — identique aux indicateurs ci-dessus.</div>`:''}`;
+  }
+  else if(anaTab===2){
+    const rows = sectorAudiences().map(s=>{
+      const a = bySegment[s.id];
+      if(!a) return '';
+      const v = verdictFor(a.leads, a.conv, a.cost, a.time);
+      return `<tr onclick="goToAudience('${s.id}')" style="cursor:pointer">
+        <td class="dt-title">${esc(s.nom)}</td><td>${a.camps}</td><td>${a.leads}</td><td>${a.conv}</td>
+        <td>${a.leads?Math.round(a.conv/a.leads*100)+'%':'—'}</td>
+        <td>${a.cost} €</td><td>${a.leads?Math.round(a.cost/a.leads)+' €':'—'}</td>
+        <td>${a.time} h</td><td>${verdictBadgeAna(v)}</td></tr>`;
+    }).filter(Boolean).join('');
+    body = kpis + `<p class="section-label">Par audience</p>
+      <table class="data-table"><thead><tr><th>Audience</th><th>Campagnes</th><th>Leads</th><th>Clients</th><th>Conversion</th><th>Dépensé</th><th>Coût/lead</th><th>Temps</th><th>Verdict</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="9" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun résultat sur ce périmètre.</td></tr>`}</tbody></table>
+      ${rows?`<div class="ana-check">${ic('ti-circle-check',14)} Total de ce tableau : <b>${Object.values(bySegment).reduce((s,a)=>s+a.leads,0)} leads</b> · <b>${Object.values(bySegment).reduce((s,a)=>s+a.conv,0)} clients</b> — identique aux indicateurs ci-dessus.</div>`:''}`;
+  }
+  else if(anaTab===3){
+    const rows = scope.map(c=>{
+      const t = scopedTotals(c);
+      const v = verdictFor(t.leads, t.conversions, t.cost, c.timeReal||0);
+      return `<tr onclick="goToCampaign('${c.id}')" style="cursor:pointer">
+        <td><div class="dt-title">${esc(c.title)}</div><div class="dt-sub">${esc(segName(c.segmentId))}</div></td>
+        <td>${statusBadge(c.status)}</td><td>${t.leads}</td><td>${t.conversions}</td>
+        <td>${t.leads?Math.round(t.conversions/t.leads*100)+'%':'—'}</td>
+        <td>${t.cost} €</td><td>${t.leads?Math.round(t.cost/t.leads)+' €':'—'}</td>
+        <td>${c.timeReal||0} h</td><td>${verdictBadgeAna(v)}</td></tr>`;
+    }).join('');
+    body = kpis + `<p class="section-label">Par campagne</p>
+      <table class="data-table"><thead><tr><th>Campagne</th><th>Statut</th><th>Leads</th><th>Clients</th><th>Conversion</th><th>Dépensé</th><th>Coût/lead</th><th>Temps</th><th>Verdict</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="9" style="text-align:center;color:var(--th-text-2);padding:26px">Aucune campagne sur ce périmètre.</td></tr>`}</tbody></table>
+      ${rows?`<div class="ana-check">${ic('ti-circle-check',14)} Total de ce tableau : <b>${scope.reduce((s,c)=>s+scopedTotals(c).leads,0)} leads</b> · <b>${scope.reduce((s,c)=>s+scopedTotals(c).conversions,0)} clients</b> — identique aux indicateurs ci-dessus.</div>`:''}`;
+  }
+  else {
+    const rows = scope.map(c=>{
+      const t = scopedTotals(c);
+      const b = scopedBudget(c);
+      const ec = t.cost-b;
+      const et = (c.timeReal||0)-(c.timeEstimated||0);
+      return `<tr onclick="goToCampaign('${c.id}')" style="cursor:pointer">
+        <td class="dt-title">${esc(c.title)}</td>
+        <td>${b} €</td><td>${t.cost} €</td>
+        <td><span class="badge ${ec<=0?'green':'red'}">${ec>0?'+':''}${ec} €</span></td>
+        <td>${c.timeEstimated||0} h</td><td>${c.timeReal||0} h</td>
+        <td><span class="badge ${et<=0?'green':'red'}">${et>0?'+':''}${et} h</span></td>
+        <td>${t.leads?Math.round(t.cost/t.leads)+' €':'—'}</td>
+        <td>${t.leads?((c.timeReal||0)/t.leads).toFixed(2)+' h':'—'}</td></tr>`;
+    }).join('');
     body = `
       <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
         <div class="stat-card"><div class="val">${glob.budget} €</div><div class="label">Budget prévu</div></div>
         <div class="stat-card red"><div class="val">${glob.cost} €</div><div class="label">Dépensé</div></div>
         <div class="stat-card green"><div class="val">${glob.budget-glob.cost} €</div><div class="label">Disponible</div></div>
-        <div class="stat-card purple"><div class="val">${glob.time} h</div><div class="label">Temps réel investi</div></div>
         <div class="stat-card blue"><div class="val">${glob.timeEst} h</div><div class="label">Temps estimé</div></div>
+        <div class="stat-card purple"><div class="val">${glob.time} h</div><div class="label">Temps réellement investi</div></div>
       </div>
-      <div class="hint-bar" style="margin:0 0 18px">${ic('ti-bulb',16)}<span>Le <b>temps investi fait partie du coût réel</b>. Un canal peu cher en euros peut être très coûteux en heures — c'est ce que compare ce tableau.</span></div>
-      <p class="section-label">Coût réel par canal — argent ET temps</p>
-      <table class="data-table"><thead><tr><th>Canal</th><th>Dépensé</th><th>Temps réel</th><th>Leads</th><th>Coût € / lead</th><th>Temps / lead</th><th>Verdict</th></tr></thead><tbody>
-        ${Object.entries(chAgg).sort((a,b)=>b[1].leads-a[1].leads).map(([ch,a])=>{ const st=CHANNEL_STYLE[ch]||{};
-          const eurLead = a.leads?Math.round(a.cost/a.leads):null;
-          const hLead = a.leads?(a.time/a.leads).toFixed(2):null;
-          const cheap = eurLead!==null && eurLead<20, fast = hLead!==null && hLead<0.5;
-          const verdict = cheap&&fast?['green','Efficace']:cheap&&!fast?['orange','Peu cher mais chronophage']:!cheap&&fast?['blue','Rapide mais coûteux']:['red','À revoir'];
-          return `<tr><td><span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span></td>
-          <td>${a.cost} €</td><td>${Math.round(a.time)} h</td><td>${a.leads}</td><td>${eurLead!==null?eurLead+' €':'—'}</td><td>${hLead!==null?hLead+' h':'—'}</td>
-          <td><span class="badge ${verdict[0]}" style="${verdict[0]==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${verdict[1]}</span></td></tr>`; }).join('')}
-      </tbody></table>
-      <p class="section-label" style="margin-top:24px">Budget par campagne</p>
-      <table class="data-table"><thead><tr><th>Campagne</th><th>Prévu</th><th>Dépensé</th><th>Écart</th><th>Temps estimé</th><th>Temps réel</th><th>Écart temps</th></tr></thead><tbody>
-        ${scoped.map(c=>{ const t=campTotals(c); const ec=t.cost-(c.budget||0); const et=(c.timeReal||0)-(c.timeEstimated||0);
-          return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer"><td class="dt-title">${esc(c.title)}</td><td>${c.budget||0} €</td><td>${t.cost} €</td>
-          <td><span class="badge ${ec<=0?'green':'red'}">${ec>0?'+':''}${ec} €</span></td>
-          <td>${c.timeEstimated||0} h</td><td>${c.timeReal||0} h</td>
-          <td><span class="badge ${et<=0?'green':'red'}">${et>0?'+':''}${et} h</span></td></tr>`; }).join('')}
-      </tbody></table>`;
+      <div class="hint-bar" style="margin:0 0 18px">${ic('ti-bulb',16)}<span>Le <b>temps réellement investi</b> fait partie du coût réel. Un canal peu cher en euros peut être très coûteux en heures — c'est ce que compare ce tableau.</span></div>
+      <table class="data-table"><thead><tr><th>Campagne</th><th>Budget</th><th>Dépensé</th><th>Écart</th><th>Temps estimé</th><th>Temps réellement investi</th><th>Écart</th><th>Coût/lead</th><th>Temps/lead</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="9" style="text-align:center;color:var(--th-text-2);padding:26px">Aucune campagne sur ce périmètre.</td></tr>`}</tbody></table>`;
   }
-  el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===analysisTab?' active':''}" onclick="switchAnalysisTab(${i})">${t}</div>`).join('')}</div>${body}`;
+
+  el.innerHTML = sectorSelector() + filters
+    + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===anaTab?' active':''}" onclick="switchAnalysisTab(${i})">${t}</div>`).join('')}</div>`
+    + body
+    + `<div class="hint-bar" style="margin-top:20px">${ic('ti-alert-triangle',16)}<span><b>Vue de lecture uniquement.</b> Aucun résultat ne se saisit ici : tout est agrégé depuis les fiches campagne, canal par canal.</span></div>`;
 }
 
-/* ---- 7. Expérimentations ---- */
+/* ---- 7. Expérimentations ----
+   Rôle unique : Hypothèse → Test → Mesure → Résultat → Décision → Apprentissage.
+   Ce module ne gère ni campagnes, ni contenus, ni analyses : il s'y connecte. */
+
+let openExpId = null;
+function openExp(id){ openExpId = id; renderMktgExperiments(); }
+function closeExp(){ openExpId = null; renderMktgExperiments(); }
+function expStatusBadge(s){
+  const st = EXP_STATUS_STYLE[s] || EXP_STATUS_STYLE['À préparer'];
+  return `<span class="badge" style="color:${st.c};background:${st.bg}">${esc(s)}</span>`;
+}
+function expDaysLeft(e){
+  if(!e.finPrevue || e.finReelle) return null;
+  return Math.ceil((new Date(e.finPrevue) - new Date()) / 86400000);
+}
+/* Progression vers l'objectif, en tenant compte des KPI où « moins vaut mieux » */
+function expProgress(e){
+  if(e.resultat===null || e.objectif===null) return null;
+  const start = e.depart!==null ? e.depart : 0;
+  if(e.inverse){
+    if(e.resultat<=e.objectif) return 100;
+    return Math.max(0, Math.round((e.objectif/e.resultat)*100));
+  }
+  const span = e.objectif - start;
+  if(span<=0) return e.resultat>=e.objectif ? 100 : 0;
+  return Math.max(0, Math.min(140, Math.round(((e.resultat-start)/span)*100)));
+}
+function expVerdict(e){
+  const p = expProgress(e);
+  if(p===null) return null;
+  if(p>=100) return { k:'green', label:'Objectif atteint' };
+  if(p>=70) return { k:'orange', label:'Proche de l\'objectif' };
+  return { k:'red', label:'En dessous de l\'objectif' };
+}
+function expCampaign(e){ return e.campId ? campaigns.find(c=>c.id===e.campId) : null; }
+
+/* Une expérimentation validée peut devenir une campagne — sans ressaisie */
+function campaignFromExp(expId){
+  const e = EXPERIMENTS.find(x=>x.id===expId); if(!e) return;
+  if(!confirm(`Créer une campagne à partir de « ${e.titre} » ?\n\nLe secteur, l'audience, le canal et le message seront préremplis.`)) return;
+  const chBudget = {};
+  if(e.canal) chBudget[e.canal] = 0;
+  campaigns.unshift({
+    id:'mktg_'+Date.now(), title:e.titre.replace(/^Message |^Test /,'')+' — déploiement',
+    sectorId:e.sectorId, objective:'Acquisition', segmentId:e.segmentId, status:'Brouillon',
+    startDate:'', endDate:'', budget:0, timeEstimated:0, timeReal:0, responsable:'Sophie',
+    offre:'', message:e.enseignement||'', cta:'',
+    targets:{leads:0,clients:0,cpl:0},
+    checklist:[1,1,0,0,e.enseignement?1:0,0,0,0,0,0],
+    channelBudgets:chBudget,
+    diffusion: e.canal ? { [e.canal]:{statut:'Non créée',extId:'',url:''} } : {},
+    utm:{source:'',medium:'',campaign:'',content:'',term:''},
+    results:{}, notes:`Créée depuis l'expérimentation « ${e.titre} ».\n\nEnseignement : ${e.enseignement||'—'}`,
+    sourceExpId:e.id, sourceIdeaText:null, createdAt:new Date().toISOString()
+  });
+  saveKey('marketing-os:actions', campaigns);
+  refreshMktgAll();
+  goToCampaign(campaigns[0].id);
+}
+
 function renderMktgExperiments(){
   const el = document.getElementById('marketing-experimentsContent'); if(!el) return;
+  const scoped = sectorExperiments();
+
+  /* ===== FICHE EXPÉRIMENTATION ===== */
+  if(openExpId){
+    const e = scoped.find(x=>x.id===openExpId) || EXPERIMENTS.find(x=>x.id===openExpId);
+    if(!e){ openExpId=null; return renderMktgExperiments(); }
+    const camp = expCampaign(e);
+    const ct = e.contenuId ? contentById(e.contenuId) : null;
+    const seg = AUDIENCES.find(a=>a.id===e.segmentId);
+    const p = expProgress(e);
+    const v = expVerdict(e);
+    const dLeft = expDaysLeft(e);
+    const chSt = CHANNEL_STYLE[e.canal]||{};
+    const needsDecision = ['Décision à prendre','À analyser'].includes(e.status);
+    const decided = ['Validée','Arrêtée','Abandonnée'].includes(e.status);
+
+    el.innerHTML = sectorSelector() + `
+      <div class="btn-back" onclick="closeExp()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux expérimentations</div>
+      <div class="page-head">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px"><h1 style="margin-bottom:0">${esc(e.titre)}</h1>${expStatusBadge(e.status)}</div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
+            ${sectorBadge(e.sectorId)}
+            <span style="cursor:pointer" onclick="goToAudience('${e.segmentId}')">${ic('ti-users',13)} ${esc(segName(e.segmentId))} →</span>
+            <span style="cursor:pointer" onclick="goToChannel('${e.canal}')">${ic('ti-share',13)} ${esc(e.canal)} →</span>
+            <span>${ic('ti-calendar',13)} ${fmtDate(e.debut)} → ${e.finReelle?fmtDate(e.finReelle):fmtDate(e.finPrevue)}</span>
+          </div>
+        </div>
+        ${e.status==='Validée'?`<button class="add-btn" onclick="campaignFromExp('${e.id}')">${ic('ti-target-arrow',14)} Créer une campagne</button>`:''}
+      </div>
+
+      ${dLeft!==null && dLeft<=7 && dLeft>=0 ? `<div class="alert warn" style="margin-bottom:16px"><div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+        <div class="alert-text"><b>J-${dLeft} avant décision.</b> Cette expérimentation arrive à son terme le ${fmtDate(e.finPrevue)}.</div></div>` : ''}
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:18px">
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-flask',17)}<span>Hypothèse</span></div></div>
+          <p style="font-size:13.5px;line-height:1.75;margin-bottom:14px">« ${esc(e.hypothese)} »</p>
+          ${e.aDemontrer?`<div style="padding-top:14px;border-top:1px solid var(--th-border)">
+            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Ce qu'on cherche à démontrer</div>
+            <div style="font-size:12.5px;color:var(--th-text-2);line-height:1.7">${esc(e.aDemontrer)}</div></div>`:''}
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-chart-line',17)}<span>Mesure</span></div>${v?`<span class="badge ${v.k}" style="${v.k==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${v.label}</span>`:''}</div>
+          <div style="font-size:11px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">${esc(e.kpi)}</div>
+          <div class="exp-measure">
+            <div class="exp-m-item"><div class="exp-m-val" style="color:var(--th-text-3)">${e.depart!==null?e.depart+e.unite:'—'}</div><div class="exp-m-lab">Départ</div></div>
+            <div class="exp-m-arrow">${ic('ti-arrow-left',14)}</div>
+            <div class="exp-m-item"><div class="exp-m-val" style="color:var(--th-text-2)">${e.objectif!==null?e.objectif+e.unite:'—'}</div><div class="exp-m-lab">Objectif</div></div>
+            <div class="exp-m-arrow">${ic('ti-arrow-left',14)}</div>
+            <div class="exp-m-item"><div class="exp-m-val" style="color:${v?(v.k==='green'?'var(--th-green)':v.k==='orange'?'var(--th-orange)':'var(--th-red)'):'var(--th-text-3)'};font-size:24px">${e.resultat!==null?e.resultat+e.unite:'—'}</div><div class="exp-m-lab">Résultat</div></div>
+          </div>
+          ${p!==null?`<div style="margin-top:16px">
+            <div style="background:var(--th-bg-alt);border-radius:8px;height:9px;overflow:hidden">
+              <div style="height:100%;width:${Math.min(100,p)}%;border-radius:8px;background:${p>=100?'linear-gradient(90deg,#4ADE80,var(--th-green))':p>=70?'linear-gradient(90deg,#FDBA74,var(--th-orange))':'linear-gradient(90deg,#FCA5A5,var(--th-red))'}"></div></div>
+            <div style="font-size:11.5px;color:var(--th-text-2);margin-top:6px">${p}% de l'objectif${p>100?` — dépassé de ${p-100}%`:''}</div></div>`:''}
+          ${e.kpiSecondaires&&e.kpiSecondaires.length?`<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--th-border);font-size:12.5px;line-height:2">
+            ${e.kpiSecondaires.map(k=>`<div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">${esc(k.nom)}</span><b>${esc(String(k.valeur))}</b></div>`).join('')}</div>`:''}
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-wallet',17)}<span>Coût réel</span></div></div>
+          <div style="font-size:12.5px;line-height:2.2">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Budget prévu</span><b>${e.budgetPrevu} €</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Dépensé</span><b>${e.depense} €</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Temps prévu</span><b>${e.tempsPrevu} h</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Temps réellement investi</span><b>${e.tempsReel} h</b></div>
+          </div>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border);font-size:12px;color:var(--th-text-2);line-height:1.7">
+            ${e.depense===0&&e.tempsReel>0
+              ? `Aucun budget, mais <b style="color:var(--th-text)">${e.tempsReel} h</b> de travail — c'est le vrai coût de ce test.`
+              : `Coût total : <b style="color:var(--th-text)">${e.depense} €</b> et <b style="color:var(--th-text)">${e.tempsReel} h</b>.`}
+            ${e.tempsReel>e.tempsPrevu?` Dépassement de ${e.tempsReel-e.tempsPrevu} h sur l'estimation.`:''}
+          </div>
+        </div>
+      </div>
+
+      ${decided||needsDecision ? `<p class="section-label">Décision</p>
+      <div class="card ${needsDecision?'exp-decision-pending':''}">
+        ${decided ? `
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-bottom:18px">
+            <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Hypothèse</div>
+              <span class="badge ${e.hypotheseValidee==='Validée'?'green':e.hypotheseValidee==='Incertaine'?'orange':'red'}" style="${e.hypotheseValidee==='Incertaine'?'color:var(--th-orange);background:var(--th-orange-bg)':''};font-size:13px;padding:5px 12px">${esc(e.hypotheseValidee||'—')}</span></div>
+            <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Décision prise</div>
+              <span class="badge ${e.decision==='Déployer'?'green':e.decision==='Arrêter'?'red':'blue'}" style="font-size:13px;padding:5px 12px">${esc(e.decision||'—')}</span></div>
+          </div>
+          ${e.enseignement?`<div style="padding-top:16px;border-top:1px solid var(--th-border);margin-bottom:14px">
+            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Enseignement</div>
+            <p style="font-size:13.5px;line-height:1.75;color:var(--th-orange);font-weight:600">${esc(e.enseignement)}</p></div>`:''}
+          ${e.aTesterEnsuite?`<div style="padding-top:14px;border-top:1px solid var(--th-border)">
+            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">À tester ensuite</div>
+            <p style="font-size:13px;line-height:1.7;color:var(--th-text-2)">${esc(e.aTesterEnsuite)}</p></div>`:''}`
+        : `
+          <p style="font-size:13px;color:var(--th-text-2);line-height:1.75;margin-bottom:18px">Cette expérimentation est arrivée à son terme. Une décision est nécessaire pour qu'elle produise un enseignement exploitable.</p>
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:8px">L'hypothèse est-elle validée ?</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+            ${['Validée','Non validée','Incertaine'].map(x=>`<button class="filter-chip">${x}</button>`).join('')}</div>
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:8px">Quelle décision ?</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+            ${EXP_DECISIONS.map(x=>`<button class="filter-chip">${x}</button>`).join('')}</div>
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Enseignement</div>
+          <textarea style="width:100%;min-height:80px;border:1px solid var(--th-border);border-radius:11px;padding:12px;font-size:13px;font-family:inherit;line-height:1.7;resize:vertical" placeholder="Qu'avez-vous appris de ce test ?"></textarea>`}
+      </div>` : ''}
+
+      <p class="section-label">Connexions</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+        <div class="conn-card" onclick="goToAudience('${e.segmentId}')" style="cursor:pointer">
+          <div class="conn-icon">${ic('ti-users',15)}</div>
+          <div><div class="conn-label">Audience testée</div><div class="conn-val">${esc(segName(e.segmentId))} →</div></div></div>
+        <div class="conn-card" onclick="goToChannel('${e.canal}')" style="cursor:pointer">
+          <div class="conn-icon">${ic('ti-share',15)}</div>
+          <div><div class="conn-label">Canal</div><div class="conn-val">${esc(e.canal)} →</div></div></div>
+        ${camp?`<div class="conn-card" onclick="goToCampaign('${camp.id}')" style="cursor:pointer">
+          <div class="conn-icon">${ic('ti-target-arrow',15)}</div>
+          <div><div class="conn-label">Campagne support</div><div class="conn-val">${esc(camp.title)} →</div></div></div>`:''}
+        ${ct?`<div class="conn-card" onclick="goToContents()" style="cursor:pointer">
+          <div class="conn-icon">${ic('ti-photo',15)}</div>
+          <div><div class="conn-label">Contenu testé</div><div class="conn-val">${esc(ct.titre)} →</div></div></div>`:''}
+        ${e.enseignement?`<div class="conn-card" onclick="gotoMktg('intelligence')" style="cursor:pointer">
+          <div class="conn-icon">${ic('ti-bulb',15)}</div>
+          <div><div class="conn-label">Enseignement</div><div class="conn-val">Alimente Intelligence marketing →</div></div></div>`:''}
+      </div>
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Cette expérimentation <b>utilise</b> l'audience, le canal, la campagne et le contenu — elle ne les recrée pas.</span></div>`;
+    return;
+  }
+
+  /* ===== TROIS ZONES ===== */
+  const enCours = scoped.filter(e=>['À préparer','En cours'].includes(e.status));
+  const aDecider = scoped.filter(e=>['À analyser','Décision à prendre'].includes(e.status));
+  const historique = scoped.filter(e=>['Validée','Arrêtée','Abandonnée'].includes(e.status));
+  const validees = scoped.filter(e=>e.status==='Validée').length;
+  const arretees = scoped.filter(e=>e.status==='Arrêtée').length;
+  const budget = scoped.reduce((s,e)=>s+(e.depense||0),0);
+  const temps = scoped.reduce((s,e)=>s+(e.tempsReel||0),0);
+
+  const card = (e, compact) => {
+    const p = expProgress(e);
+    const v = expVerdict(e);
+    const dLeft = expDaysLeft(e);
+    const chSt = CHANNEL_STYLE[e.canal]||{};
+    return `<div class="exp-card ${e.status==='Validée'?'ok':e.status==='Arrêtée'?'ko':''}" onclick="openExp('${e.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14.5px;font-weight:700;margin-bottom:6px;line-height:1.4">${esc(e.titre)}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${sectorBadge(e.sectorId)}
+            <span class="badge">${esc(segName(e.segmentId))}</span>
+            <span class="badge" style="background:${chSt.tint||'var(--th-bg-alt)'};color:${chSt.c||'var(--th-text-2)'}">${esc(e.canal)}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          ${expStatusBadge(e.status)}
+          ${dLeft!==null&&dLeft<=7&&dLeft>=0?`<span class="badge red">J-${dLeft}</span>`:''}
+        </div>
+      </div>
+      <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.65;margin-bottom:12px">« ${esc(e.hypothese)} »</p>
+      ${e.resultat!==null?`<div class="exp-mini">
+        <span style="font-size:11px;color:var(--th-text-3);font-weight:700">${esc(e.kpi)}</span>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="font-size:12px;color:var(--th-text-3)">${e.depart!==null?e.depart+e.unite:'—'}</span>
+          <span style="color:var(--th-text-3);font-size:11px">objectif ${e.objectif}${e.unite}</span>
+          <span style="font-size:16px;font-weight:800;color:${v?(v.k==='green'?'var(--th-green)':v.k==='orange'?'var(--th-orange)':'var(--th-red)'):'var(--th-text)'}">${e.resultat}${e.unite}</span>
+        </div>
+      </div>`:`<div class="exp-mini"><span style="font-size:11.5px;color:var(--th-text-3)">${esc(e.kpi)} — mesure en attente</span></div>`}
+      ${e.enseignement?`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--th-border);font-size:12.5px;line-height:1.65">
+        <span style="color:var(--th-orange);font-weight:700">${esc(e.decision||'Enseignement')} : </span><span style="color:var(--th-text-2)">${esc(e.enseignement)}</span></div>`:''}
+      <div style="margin-top:12px;display:flex;gap:14px;font-size:11.5px;color:var(--th-text-3)">
+        <span>${e.depense} €</span><span>${e.tempsReel} h investies</span>
+        <span style="margin-left:auto">${fmtDate(e.debut)} → ${e.finReelle?fmtDate(e.finReelle):fmtDate(e.finPrevue)}</span>
+      </div>
+    </div>`;
+  };
+
   el.innerHTML = sectorSelector() + `
-    <div class="hint-bar" style="margin-bottom:18px">${ic('ti-flask',16)}<span>Une expérimentation a obligatoirement <b>une hypothèse écrite</b> et <b>une décision finale</b>. Sans ça, c'est juste une campagne.</span></div>
-    ${sectorExperiments().map(e=>{
-      const st = CHANNEL_STYLE[e.canal]||{};
-      const cc = e.conclusion==='Continuer'?'green':e.conclusion==='Arrêter'?'red':e.conclusion==='Modifier'?'orange':'gray';
-      return `<div class="card" style="margin-bottom:14px;border-left:3px solid ${e.conclusion?'var(--th-green)':'var(--th-orange)'}">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px;flex-wrap:wrap">
-          <div><div style="font-size:14.5px;font-weight:700;margin-bottom:5px">${esc(e.titre)}</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap">${sectorBadge(e.sectorId)}
-            <span class="badge" style="cursor:pointer" onclick="goToAudience('${e.segmentId}')">${esc(segName(e.segmentId))} →</span>
-            <span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'};cursor:pointer" onclick="goToChannel('${e.canal}')">${esc(e.canal)} →</span>
-            <span class="badge">${esc(e.duree)}</span>${e.budget?`<span class="badge">${e.budget} €</span>`:''}</div></div>
-          ${e.conclusion?`<span class="badge ${cc}" style="${cc==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(e.conclusion)}</span>`:`<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">Conclusion attendue</span>`}
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;font-size:12.5px;line-height:1.7">
-          <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:700;text-transform:uppercase;margin-bottom:3px">Hypothèse</div>${esc(e.hypothese)}</div>
-          <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:700;text-transform:uppercase;margin-bottom:3px">Résultat attendu</div><span style="color:var(--th-text-2)">${esc(e.attendu)}</span></div>
-          <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:700;text-transform:uppercase;margin-bottom:3px">Résultat réel</div><b>${esc(e.reel)}</b></div>
-        </div>
-        ${e.enseignement?`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--th-border);font-size:12.5px"><span style="color:var(--th-orange);font-weight:700">Enseignement : </span>${esc(e.enseignement)}</div>`:''}
-      </div>`;
-    }).join('')}
-    <button class="add-btn">${ic('ti-plus',14)} Nouvelle expérimentation</button>`;
+    <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-flask')}</div><div class="val">${enCours.length}</div><div class="label">En cours</div></div>
+      <div class="stat-card ${aDecider.length?'red':''}"><div class="stat-card-icon">${ic('ti-alert-triangle')}</div><div class="val">${aDecider.length}</div><div class="label">À décider</div></div>
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${validees}</div><div class="label">Validées</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-circle-x')}</div><div class="val">${arretees}</div><div class="label">Arrêtées</div></div>
+      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-wallet')}</div><div class="val">${budget} €</div><div class="label">Budget investi</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-history')}</div><div class="val">${temps} h</div><div class="label">Temps investi</div></div>
+    </div>
+
+    ${aDecider.length ? `
+      <div class="zone-label zone-red">${ic('ti-alert-triangle',14)} Décisions à prendre</div>
+      <div class="exp-grid">${aDecider.map(e=>card(e)).join('')}</div>` : ''}
+
+    <div class="zone-label zone-blue" style="display:flex;justify-content:space-between;align-items:center">
+      <span style="display:flex;align-items:center;gap:7px">${ic('ti-flask',14)} Expérimentations en cours</span>
+      <button class="add-btn" style="text-transform:none;letter-spacing:0">${ic('ti-plus',13)} Nouvelle expérimentation</button>
+    </div>
+    ${enCours.length ? `<div class="exp-grid">${enCours.map(e=>card(e)).join('')}</div>`
+      : `<div class="empty">${ic('ti-flask',24)}Aucune expérimentation en cours.</div>`}
+
+    ${historique.length ? `
+      <div class="zone-label zone-green">${ic('ti-books',14)} Historique</div>
+      <div class="exp-grid">${historique.map(e=>card(e)).join('')}</div>` : ''}
+
+    <div class="hint-bar" style="margin-top:20px">${ic('ti-bulb',16)}<span>Une expérimentation a obligatoirement <b>une hypothèse écrite</b> et <b>une décision finale</b>. Sans décision, elle ne produit aucun apprentissage — ce n'est alors qu'une campagne.</span></div>`;
 }
 
 /* ---- 8. Intelligence marketing ---- */
