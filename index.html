@@ -407,11 +407,26 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .tour-icon{width:38px;height:38px;border-radius:12px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .tour-stop{display:flex;align-items:flex-start;gap:14px;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;padding:15px 17px;margin-bottom:10px;box-shadow:var(--th-shadow-sm)}
 .tour-num{width:28px;height:28px;border-radius:9px;background:var(--th-orange);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
-.pipe-board{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
-.pipe-col{min-width:190px;flex:1;background:var(--th-bg-alt);border-radius:14px;padding:12px}
-.pipe-col-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:9px;margin-bottom:11px}
-.pipe-card{background:var(--th-card);border:1px solid var(--th-border);border-radius:11px;padding:12px;margin-bottom:8px;cursor:pointer;box-shadow:var(--th-shadow-sm);transition:all .12s}
+.pipe-board{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;align-items:flex-start}
+.pipe-col{min-width:200px;flex:1;background:var(--th-bg-alt);border-radius:14px;padding:12px;border:2px solid transparent;transition:all .12s}
+.pipe-col.drop{border-color:var(--th-orange);background:var(--th-orange-bg)}
+.pipe-col-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:9px;margin-bottom:8px}
+.pipe-col-meta{display:flex;gap:9px;flex-wrap:wrap;font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-bottom:11px;padding-bottom:9px;border-bottom:1px dashed var(--th-border)}
+.pipe-card{background:var(--th-card);border:1px solid var(--th-border);border-radius:11px;padding:12px;margin-bottom:8px;cursor:grab;box-shadow:var(--th-shadow-sm);transition:all .12s}
 .pipe-card:hover{box-shadow:var(--th-shadow);transform:translateY(-1px)}
+.pipe-card:active{cursor:grabbing}
+.pipe-card.alert-red{border-left:3px solid var(--th-red)}
+.pipe-card.alert-orange{border-left:3px solid var(--th-orange)}
+.pipe-mode{color:var(--th-orange);flex-shrink:0}
+.pipe-alerts{display:flex;flex-direction:column;gap:4px;margin-bottom:7px}
+.pipe-alert{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;border-radius:6px;padding:3px 6px;line-height:1.3}
+.pipe-alert.red{color:var(--th-red);background:var(--th-red-bg)}
+.pipe-alert.orange{color:var(--th-orange);background:var(--th-orange-bg)}
+.pipe-foot{display:flex;justify-content:space-between;font-size:10px;color:var(--th-text-3);font-weight:600}
+.pipe-next{font-size:10.5px;color:var(--th-orange);font-weight:600;margin-top:5px;padding-top:5px;border-top:1px dashed var(--th-border);line-height:1.4}
+.pipe-empty{font-size:11px;color:var(--th-text-3);text-align:center;padding:18px 8px;border:1px dashed var(--th-border);border-radius:10px}
+.blocked-row{display:flex;align-items:center;gap:13px;background:var(--th-card);border:1px solid var(--th-border);border-left:3px solid var(--th-red);border-radius:14px;padding:14px 17px;margin-bottom:10px;box-shadow:var(--th-shadow-sm);cursor:pointer;flex-wrap:wrap}
+.blocked-row:hover{box-shadow:var(--th-shadow)}
 .meeting-row{display:flex;align-items:center;gap:14px;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;padding:14px 17px;margin-bottom:10px;box-shadow:var(--th-shadow-sm);cursor:pointer;flex-wrap:wrap}
 .meeting-row:hover{box-shadow:var(--th-shadow)}
 .meeting-date{width:44px;text-align:center;flex-shrink:0;background:var(--th-bg-alt);border-radius:10px;padding:7px 0}
@@ -6625,45 +6640,258 @@ function renderProspection(){
     <div class="hint-bar" style="margin-top:20px">${ic('ti-bulb',16)}<span>Chaque saisie met à jour <b>la fiche prospect existante</b> : étape, dernier contact et prochaine action. Aucune donnée n'est créée en double.</span></div>`;
 }
 
-/* ---------- 4. PIPELINE ---------- */
-let pipeFilterRep = 'Tous';
-function setPipeRep(v){ pipeFilterRep = v; renderSalesPipeline(); }
+/* ---------- 4. PIPELINE ----------
+   Cockpit du closing : où en est chaque affaire, laquelle bloque,
+   et combien de MRR est réellement en jeu.
+   Les colonnes regroupent les étapes du prospect — aucune donnée propre. */
+
+/* 6 colonnes, chacune couvrant une ou plusieurs étapes du parcours */
+const PIPE_COLS = [
+  { id:'contact',  lab:'Contact',       icon:'ti-phone',            stages:['Nouveau','À contacter','Contacté','À rappeler'], c:'var(--th-text-2)', bg:'var(--th-bg-alt)' },
+  { id:'qualifie', lab:'Qualifié',      icon:'ti-user-check',       stages:['Qualifié'],          c:'var(--th-blue)',   bg:'var(--th-blue-bg)' },
+  { id:'rdv',      lab:'RDV / Démo',    icon:'ti-calendar',         stages:['RDV obtenu','Démonstration'], c:'var(--th-purple)', bg:'var(--th-purple-bg)' },
+  { id:'devis',    lab:'Devis',         icon:'ti-file-invoice',     stages:['Devis envoyé'],      c:'var(--th-orange)', bg:'var(--th-orange-bg)' },
+  { id:'contrat',  lab:'Contrat',       icon:'ti-file-certificate', stages:['Contrat envoyé','Signature en attente'], c:'var(--th-orange)', bg:'var(--th-orange-bg)' },
+  { id:'gagne',    lab:'Gagné',         icon:'ti-trophy',           stages:['Gagné'],             c:'var(--th-green)',  bg:'var(--th-green-bg)' },
+];
+/* Étape par défaut quand on dépose une carte dans une colonne */
+const COL_DEFAULT_STAGE = { contact:'Contacté', qualifie:'Qualifié', rdv:'RDV obtenu', devis:'Devis envoyé', contrat:'Contrat envoyé', gagne:'Gagné' };
+/* Seuils d'inactivité par colonne — au-delà, l'affaire est signalée */
+const PIPE_STALE_DAYS = { contact:7, qualifie:10, rdv:7, devis:10, contrat:5, gagne:null };
+
+let pipeRep = 'Tous';
+let pipeSource = 'Toutes';
+let pipeMode = 'Tous';
+let pipeShowLost = false;
+let pipeDragId = null;
+
+function setPipe(kind, v){
+  if(kind==='rep') pipeRep = v;
+  else if(kind==='source') pipeSource = v;
+  else if(kind==='mode') pipeMode = v;
+  renderSalesPipeline();
+}
+function togglePipeLost(){ pipeShowLost = !pipeShowLost; renderSalesPipeline(); }
+
+function colOf(stage){ return PIPE_COLS.find(c=>c.stages.includes(stage)); }
+function daysSince(iso){ if(!iso) return null; return Math.floor((new Date()-new Date(iso))/86400000); }
+/* Jours d'inactivité : depuis le dernier contact, sinon depuis la création */
+function inactiveDays(p){ return daysSince(p.dernierContact || p.cree) || 0; }
+function isStale(p){
+  const col = colOf(p.stage); if(!col) return false;
+  const seuil = PIPE_STALE_DAYS[col.id];
+  return seuil !== null && seuil !== undefined && inactiveDays(p) > seuil;
+}
+/* Alertes calculées, jamais inventées */
+function pipeAlerts(p){
+  const a = [];
+  if(isStale(p)){
+    const col = colOf(p.stage);
+    a.push({ k:'red', txt:`Sans contact depuis ${inactiveDays(p)} j`, why:`Seuil de ${PIPE_STALE_DAYS[col.id]} j dépassé à cette étape` });
+  }
+  if(!['Gagné','Perdu'].includes(p.stage) && (!p.prochaineAction || !p.prochainContact))
+    a.push({ k:'red', txt:'Aucune action prévue', why:"Cette affaire risque d'être oubliée" });
+  else if(p.prochainContact && p.prochainContact < todayISO())
+    a.push({ k:'orange', txt:`Relance en retard de ${Math.abs(daysFromToday(p.prochainContact))} j`, why:'' });
+  const q = prospectQuotes(p.id).find(x=>['Envoyé','Vu'].includes(x.statut));
+  if(q && q.validite){
+    const d = daysFromToday(q.validite);
+    if(d !== null && d < 0) a.push({ k:'red', txt:'Devis expiré', why:`Validité dépassée depuis ${Math.abs(d)} j` });
+    else if(d !== null && d <= 5) a.push({ k:'orange', txt:`Devis expire dans ${d} j`, why:'' });
+  }
+  const ct = prospectContracts(p.id).find(x=>['Envoyé','Ouvert','Signature en attente'].includes(x.statut));
+  if(ct && ct.envoye){
+    const d = daysSince(ct.envoye);
+    if(d >= 7) a.push({ k:'red', txt:`Contrat non signé depuis ${d} j`, why:'' });
+  }
+  return a;
+}
+
+/* --- Drag & drop : déplacer une carte change l'étape du prospect --- */
+function pipeDragStart(ev, id){ pipeDragId = id; ev.dataTransfer.effectAllowed = 'move'; }
+function pipeDragOver(ev, colId){
+  ev.preventDefault();
+  const el = document.getElementById('pipecol-'+colId);
+  if(el) el.classList.add('drop');
+}
+function pipeDragLeave(colId){
+  const el = document.getElementById('pipecol-'+colId);
+  if(el) el.classList.remove('drop');
+}
+function pipeDrop(ev, colId){
+  ev.preventDefault();
+  pipeDragLeave(colId);
+  const p = prospectById(pipeDragId);
+  if(!p) return;
+  const nouvelle = COL_DEFAULT_STAGE[colId];
+  if(!nouvelle || p.stage === nouvelle){ pipeDragId = null; return renderSalesPipeline(); }
+  const ancienne = p.stage;
+  p.stage = nouvelle;
+  p.dernierContact = todayISO();
+  /* Gagné : la fiche devient client, sans ressaisie */
+  if(nouvelle === 'Gagné' && !clientOf(p.id)){
+    alert(`« ${p.entreprise} » passe en Gagné.\n\nLe client sera créé depuis le contrat signé, dans le sous-module Contrats — aucune fiche à recréer.`);
+    p.prochaineAction = null; p.prochainContact = null;
+  } else if(!p.prochaineAction){
+    p.prochaineAction = 'Définir la prochaine action';
+    p.prochainContact = todayISO();
+  }
+  pipeDragId = null;
+  renderSalesAll();
+}
+function markLost(id){
+  const p = prospectById(id); if(!p) return;
+  const motif = prompt(`Perdre « ${p.entreprise} » ?\n\nMotif :`);
+  if(motif === null) return;
+  p.stage = 'Perdu';
+  p.prochaineAction = null; p.prochainContact = null;
+  if(motif.trim()) p.notes = (p.notes ? p.notes + '\n\n' : '') + 'Perdu : ' + motif.trim();
+  renderSalesAll();
+}
+
 function renderSalesPipeline(){
   const el = document.getElementById('sales-pipelineContent'); if(!el) return;
+
   let list = scopedProspects();
-  if(pipeFilterRep!=='Tous') list = list.filter(p=>p.repId===pipeFilterRep);
-  const cols = PROSPECT_STAGES.filter(s=>s!=='Perdu');
-  const totalValeur = list.filter(p=>!['Gagné','Perdu'].includes(p.stage)).reduce((s,p)=>s+p.valeur,0);
+  if(!canSeeAllReps()) list = list.filter(p=>p.repId===CURRENT_USER.id);
+  else if(pipeRep !== 'Tous') list = list.filter(p=>p.repId===pipeRep);
+  if(pipeSource !== 'Toutes') list = list.filter(p=>p.source===pipeSource);
+  if(pipeMode !== 'Tous') list = list.filter(p=>prospectingMode(p)===pipeMode);
+
+  const ouvertes = list.filter(p=>!['Gagné','Perdu'].includes(p.stage));
+  const perdus = list.filter(p=>p.stage==='Perdu');
+  const gagnes = list.filter(p=>p.stage==='Gagné');
+
+  /* Prévisionnel : seules les affaires ouvertes comptent */
+  const mrrOuvert = ouvertes.reduce((s,p)=>s+prospectMRR(p),0);
+  const annuelOuvert = ouvertes.reduce((s,p)=>s+p.valeur,0);
+  const mrrGagne = gagnes.reduce((s,p)=>s+prospectMRR(p),0);
+  const bloquees = ouvertes.filter(p=>pipeAlerts(p).some(a=>a.k==='red')).length;
+  const tauxGlobal = (gagnes.length+perdus.length) ? Math.round(gagnes.length/(gagnes.length+perdus.length)*100) : 0;
+
+  const sourcesUsed = [...new Set(scopedProspects().map(p=>p.source))];
+
+  /* Carte d'affaire */
+  const card = p => {
+    const alerts = pipeAlerts(p);
+    const rouge = alerts.some(a=>a.k==='red');
+    const orange = !rouge && alerts.length>0;
+    const mode = prospectingMode(p);
+    return `<div class="pipe-card ${rouge?'alert-red':orange?'alert-orange':''}" draggable="true"
+        ondragstart="pipeDragStart(event,'${p.id}')" onclick="openProspect('${p.id}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px">
+        <div style="font-size:12.5px;font-weight:700;line-height:1.35">${esc(p.entreprise)}</div>
+        ${mode==='Marketing'?`<span class="pipe-mode" title="Vient du Marketing">${ic('ti-target-arrow',11)}</span>`:''}
+      </div>
+      <div style="font-size:11px;color:var(--th-text-2);margin-bottom:7px">${esc(p.contact)}</div>
+      ${p.valeur?`<div style="font-size:12.5px;font-weight:800;color:var(--th-green);margin-bottom:6px">${prospectMRR(p)} € MRR<span style="font-size:10.5px;color:var(--th-text-3);font-weight:600"> · ${p.valeur} €/an</span></div>`:''}
+      ${alerts.length?`<div class="pipe-alerts">${alerts.slice(0,2).map(a=>`
+        <div class="pipe-alert ${a.k}" title="${esc(a.why||'')}">${ic('ti-alert-triangle',10)}${esc(a.txt)}</div>`).join('')}</div>`:''}
+      <div class="pipe-foot">
+        <span>${esc(repName(p.repId))}</span>
+        <span>${inactiveDays(p)} j</span>
+      </div>
+      ${p.prochaineAction?`<div class="pipe-next">${esc(p.prochaineAction)}${p.prochainContact?` · ${fmtDate(p.prochainContact)}`:''}</div>`:''}
+    </div>`;
+  };
 
   el.innerHTML = sectorSelector() + `
-    <div class="filter-bar">
-      <button class="filter-chip${pipeFilterRep==='Tous'?' active':''}" onclick="setPipeRep('Tous')">Tous les commerciaux</button>
-      ${SALES_REPS.map(r=>`<button class="filter-chip${pipeFilterRep===r.id?' active':''}" onclick="setPipeRep('${r.id}')">${esc(r.nom)}</button>`).join('')}
-      <span style="margin-left:auto;font-size:12.5px;color:var(--th-text-2)">Valeur en pipeline : <b style="color:var(--th-text)">${totalValeur} €</b></span>
+    <div class="ana-filters" style="margin-bottom:16px">
+      ${canSeeAllReps()?`<div class="ana-filter-group"><span class="ana-filter-lab">Commercial</span>
+        <select class="status-select" onchange="setPipe('rep',this.value)">
+          <option value="Tous" ${pipeRep==='Tous'?'selected':''}>Tous</option>
+          ${SALES_REPS.map(r=>`<option value="${r.id}" ${pipeRep===r.id?'selected':''}>${esc(r.nom)}</option>`).join('')}</select></div>`
+        :`<div class="ana-filter-group"><span class="ana-filter-lab">Commercial</span>
+          <div style="padding:9px 0"><span class="badge">${esc(CURRENT_USER.nom)}</span>
+            <span style="font-size:11px;color:var(--th-text-3);margin-left:6px">${ic('ti-lock',12)} vos affaires</span></div></div>`}
+      <div class="ana-filter-group"><span class="ana-filter-lab">Source</span>
+        <select class="status-select" onchange="setPipe('source',this.value)">
+          <option value="Toutes" ${pipeSource==='Toutes'?'selected':''}>Toutes</option>
+          ${sourcesUsed.map(s=>`<option ${pipeSource===s?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Mode</span>
+        <select class="status-select" onchange="setPipe('mode',this.value)">
+          <option value="Tous" ${pipeMode==='Tous'?'selected':''}>Tous</option>
+          ${PROSPECTING_MODES.map(m=>`<option ${pipeMode===m?'selected':''}>${esc(m)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Perdus</span>
+        <button class="filter-chip${pipeShowLost?' active':''}" onclick="togglePipeLost()">${pipeShowLost?'Masquer':'Afficher'} · ${perdus.length}</button></div>
+      <div style="margin-left:auto;font-size:11.5px;color:var(--th-text-3);align-self:flex-end;padding-bottom:8px">
+        ${ouvertes.length} affaire${ouvertes.length>1?'s':''} ouverte${ouvertes.length>1?'s':''}</div>
     </div>
+
+    <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-timeline')}</div>
+        <div class="val">${mrrOuvert} €</div><div class="label">MRR en jeu · ${annuelOuvert} €/an</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-briefcase')}</div>
+        <div class="val">${ouvertes.length}</div><div class="label">Affaires ouvertes</div></div>
+      <div class="stat-card ${bloquees?'red':''}"><div class="stat-card-icon">${ic('ti-alert-triangle')}</div>
+        <div class="val">${bloquees}</div><div class="label">Affaires bloquées</div></div>
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-trophy')}</div>
+        <div class="val">${mrrGagne} €</div><div class="label">MRR signé · ${gagnes.length} client${gagnes.length>1?'s':''}</div></div>
+      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-chart-donut-3')}</div>
+        <div class="val">${tauxGlobal}%</div><div class="label">Taux de closing global</div></div>
+    </div>
+
     <div class="pipe-board">
-      ${cols.map(stage=>{
-        const items = list.filter(p=>p.stage===stage);
-        const st = STAGE_STYLE[stage];
-        return `<div class="pipe-col">
-          <div class="pipe-col-head" style="border-bottom:2px solid ${st.c}">
-            <span style="font-size:11.5px;font-weight:800">${esc(stage)}</span>
-            <span class="badge" style="color:${st.c};background:${st.bg}">${items.length}</span></div>
-          ${items.map(p=>`<div class="pipe-card" onclick="openProspect('${p.id}')">
-            <div style="font-size:12.5px;font-weight:700;margin-bottom:4px">${esc(p.entreprise)}</div>
-            <div style="font-size:11px;color:var(--th-text-2);margin-bottom:6px">${esc(p.contact)}</div>
-            ${p.valeur?`<div style="font-size:12px;font-weight:700;color:var(--th-green);margin-bottom:5px">${p.valeur} € / an</div>`:''}
-            <div style="font-size:10.5px;color:var(--th-text-3)">${esc(repName(p.repId))}${p.prochainContact?` · ${fmtDate(p.prochainContact)}`:''}</div>
-            ${p.prochaineAction?`<div style="font-size:10.5px;color:var(--th-orange);font-weight:600;margin-top:4px">${esc(p.prochaineAction)}</div>`:''}
-          </div>`).join('') || '<div style="font-size:11px;color:var(--th-text-3);text-align:center;padding:12px 0">—</div>'}
+      ${PIPE_COLS.map(col=>{
+        const items = list.filter(p=>col.stages.includes(p.stage));
+        const mrr = items.reduce((s,p)=>s+prospectMRR(p),0);
+        const bloq = items.filter(p=>pipeAlerts(p).some(a=>a.k==='red')).length;
+        /* Taux de passage : combien franchissent cette étape */
+        const idx = PIPE_COLS.indexOf(col);
+        const atteints = list.filter(p=>{
+          const c = colOf(p.stage);
+          return c && PIPE_COLS.indexOf(c) >= idx;
+        }).length;
+        const precedents = idx===0 ? list.length : list.filter(p=>{
+          const c = colOf(p.stage);
+          return c && PIPE_COLS.indexOf(c) >= idx-1;
+        }).length;
+        const passage = precedents ? Math.round(atteints/precedents*100) : 0;
+        return `<div class="pipe-col" id="pipecol-${col.id}"
+            ondragover="pipeDragOver(event,'${col.id}')" ondragleave="pipeDragLeave('${col.id}')" ondrop="pipeDrop(event,'${col.id}')">
+          <div class="pipe-col-head" style="border-bottom:2px solid ${col.c}">
+            <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
+              <span style="color:${col.c}">${ic(col.icon,14)}</span>
+              <span style="font-size:11.5px;font-weight:800">${col.lab}</span></div>
+            <span class="badge" style="color:${col.c};background:${col.bg}">${items.length}</span>
+          </div>
+          <div class="pipe-col-meta">
+            <span>${mrr} € MRR</span>
+            ${idx>0?`<span title="Taux de passage depuis l'étape précédente">${passage}%</span>`:''}
+            ${bloq?`<span style="color:var(--th-red);font-weight:700">${bloq} bloquée${bloq>1?'s':''}</span>`:''}
+          </div>
+          ${items.map(card).join('') || '<div class="pipe-empty">Déposez une affaire ici</div>'}
         </div>`;
       }).join('')}
     </div>
-    ${list.filter(p=>p.stage==='Perdu').length?`<p class="section-label" style="margin-top:20px">Perdus</p>
-    <div class="card">${list.filter(p=>p.stage==='Perdu').map(p=>`<div class="hist-row" onclick="openProspect('${p.id}')" style="cursor:pointer">
-      <div class="hist-icon" style="background:var(--th-red-bg);color:var(--th-red)">${ic('ti-circle-x',14)}</div>
-      <div style="flex:1"><div style="font-size:13px;font-weight:700">${esc(p.entreprise)}</div>
-        <div style="font-size:12px;color:var(--th-text-2)">${esc(p.notes||'')}</div></div></div>`).join('')}</div>`:''}`;
+
+    <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Glissez une carte d'une colonne à l'autre pour <b>faire avancer l'affaire</b>. L'étape et la date de dernier contact du prospect sont mises à jour — rien n'est saisi deux fois.</span></div>
+
+    ${bloquees ? `<p class="section-label" style="margin-top:24px">Affaires bloquées</p>
+    ${ouvertes.filter(p=>pipeAlerts(p).some(a=>a.k==='red')).map(p=>{
+      const alerts = pipeAlerts(p).filter(a=>a.k==='red');
+      return `<div class="blocked-row" onclick="openProspect('${p.id}')">
+        <div class="hist-icon" style="background:var(--th-red-bg);color:var(--th-red)">${ic('ti-alert-triangle',14)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:3px">
+            <span style="font-size:13.5px;font-weight:700">${esc(p.entreprise)}</span>${stageBadge(p.stage)}
+            ${p.valeur?`<span class="badge purple" style="color:var(--th-purple);background:var(--th-purple-bg)">${prospectMRR(p)} € MRR</span>`:''}</div>
+          <div style="font-size:12px;color:var(--th-red);font-weight:600">${alerts.map(a=>esc(a.txt)).join(' · ')}</div>
+          <div style="font-size:11.5px;color:var(--th-text-3);margin-top:2px">${esc(repName(p.repId))}</div>
+        </div>
+        <button class="btn-ghost" onclick="event.stopPropagation();markLost('${p.id}')">Marquer perdu</button>
+      </div>`;
+    }).join('')}` : ''}
+
+    ${pipeShowLost && perdus.length ? `<p class="section-label" style="margin-top:24px">Affaires perdues</p>
+    <table class="data-table"><thead><tr><th>Entreprise</th><th>Étape atteinte</th><th>Valeur</th><th>Commercial</th><th>Motif</th></tr></thead><tbody>
+      ${perdus.map(p=>`<tr onclick="openProspect('${p.id}')" style="cursor:pointer">
+        <td class="dt-title">${esc(p.entreprise)}</td>
+        <td><span class="badge gray">Contact</span></td>
+        <td>${p.valeur?p.valeur+' €/an':'—'}</td>
+        <td style="font-size:12px;color:var(--th-text-2)">${esc(repName(p.repId))}</td>
+        <td style="font-size:12px;color:var(--th-text-2);max-width:320px">${esc(p.notes||'Non renseigné')}</td></tr>`).join('')}
+    </tbody></table>` : ''}`;
 }
 
 /* ---------- 5. RENDEZ-VOUS ---------- */
