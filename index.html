@@ -312,6 +312,22 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ch-metric .v{font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .ch-metric .l{font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-top:1px}
 .ch-spark{flex-shrink:0}
+.pipeline{display:flex;gap:0;overflow-x:auto;padding:10px 0 4px}
+.pipe-step{flex:1;min-width:88px;text-align:center;position:relative;padding-top:22px;cursor:pointer}
+.pipe-step::before{content:'';position:absolute;top:6px;left:50%;right:-50%;height:2px;background:var(--th-border)}
+.pipe-step:last-child::before{display:none}
+.pipe-step.done::before{background:var(--th-green)}
+.pipe-dot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--th-bg-alt);border:2px solid var(--th-card);z-index:1;display:flex;align-items:center;justify-content:center;color:#fff}
+.pipe-step.done .pipe-dot{background:var(--th-green)}
+.pipe-step.cur .pipe-dot{background:var(--th-orange);width:17px;height:17px;top:-2px;box-shadow:0 0 0 3px var(--th-orange-bg)}
+.pipe-label{font-size:11px;font-weight:600;color:var(--th-text-3)}
+.pipe-step.done .pipe-label{color:var(--th-text-2)}
+.pipe-step.cur .pipe-label{color:var(--th-orange);font-weight:800}
+.pipe-step:hover .pipe-label{color:var(--th-orange)}
+.decl-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--th-border);cursor:pointer}
+.decl-row:last-child{border-bottom:none}
+.decl-row:hover{background:var(--th-bg-alt)}
+.decl-icon{width:26px;height:26px;border-radius:8px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .collect-step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--th-border)}
 .collect-step:last-of-type{border-bottom:none}
 .collect-dot{width:20px;height:20px;border-radius:7px;border:1.6px solid var(--th-border);background:var(--th-card);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
@@ -1527,16 +1543,68 @@ function aggregateBySegment(){
 
 /* ---------- Contenus : bibliothèque unique ---------- */
 const CONTENTS = [
-  { id:'ct1', titre:"Guide — Obligations réglementaires du dératiseur", type:'Document', statut:'Publié', canal:'SEO', sectorId:'derat', segmentId:'seg2', campIdx:2, date:'2026-07-12' },
-  { id:'ct2', titre:"Article — Preuve de passage : ce que la loi exige", type:'Article', statut:'Publié', canal:'SEO', sectorId:'derat', segmentId:'seg2', campIdx:2, date:'2026-08-04' },
-  { id:'ct3', titre:"Vidéo démo — Compte rendu depuis le terrain", type:'Vidéo', statut:'Prêt', canal:'YouTube', sectorId:'derat', segmentId:'seg1', campIdx:0, date:'2026-09-08' },
-  { id:'ct4', titre:"Post LinkedIn — Coulisses du développement", type:'Post', statut:'Publié', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:1, date:'2026-08-06' },
-  { id:'ct5', titre:"Landing page — Lancement 1er octobre", type:'Landing page', statut:'À préparer', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:0, date:'2026-09-12' },
-  { id:'ct6', titre:"Séquence email — Prospection contrats sanitaires", type:'Email', statut:'Programmé', canal:'Email', sectorId:'derat', segmentId:'seg2', campIdx:3, date:'2026-08-20' },
-  { id:'ct7', titre:"Étude de cas — Dératiseur 6 salariés", type:'Article', statut:'À créer', canal:'SEO', sectorId:'derat', segmentId:'seg2', campIdx:null, date:'2026-09-25' },
-  { id:'ct8', titre:"Carrousel — 3 erreurs de tournée", type:'Post', statut:'À créer', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:1, date:'2026-09-18' },
-  { id:'ct9', titre:"Kit stand salon", type:'Document', statut:'À créer', canal:'Événement', sectorId:'derat', segmentId:'seg2', campIdx:5, date:'2026-11-05' },
-  { id:'ct10', titre:"Pourquoi TigerFlow fait gagner du temps aux entreprises de terrain", type:'Article', statut:'Publié', canal:'SEO', sectorId:'all', segmentId:'seg1', campIdx:null, date:'2026-07-20' },
+  { id:'ct1', titre:"Guide — Obligations réglementaires du dératiseur", type:'Document', statut:'Publié', canal:'SEO', sectorId:'derat', segmentId:'seg2', campIdx:5, date:'2026-07-12',
+    objectif:'Capture de leads', responsable:'Sophie', parentId:null, timeEst:12, timeReal:16, costEst:0, costReal:0,
+    brief:"Guide PDF de 12 pages reprenant les obligations HACCP et les preuves de passage exigées.",
+    message:"Traçabilité réglementaire automatique, prête pour vos audits", cta:"Télécharger le guide",
+    autresCanaux:['Email'], url:'/guides/obligations-deratiseur',
+    seo:{ motCle:'obligations réglementaires dératisation', intention:'Informationnelle', position:8, title:"Obligations réglementaires du dératiseur — Guide complet 2026", meta:"Toutes les obligations HACCP et preuves de passage exigées aux entreprises de dératisation. Guide gratuit à télécharger." },
+    versions:[{nom:'guide-v3-final.pdf',date:'10 juil.'},{nom:'guide-v2.pdf',date:'4 juil.'}] },
+
+  { id:'ct2', titre:"Article — Preuve de passage : ce que la loi exige", type:'Article', statut:'Publié', canal:'SEO', sectorId:'derat', segmentId:'seg2', campIdx:5, date:'2026-08-04',
+    objectif:'Acquisition', responsable:'Sophie', parentId:'ct1', timeEst:4, timeReal:5, costEst:0, costReal:0,
+    brief:"Décliner le chapitre 3 du guide en article de blog optimisé.",
+    message:"Vos preuves de passage doivent être opposables", cta:"Lire le guide complet",
+    url:'/blog/preuve-de-passage-loi',
+    seo:{ motCle:'preuve de passage dératisation', intention:'Informationnelle', position:4, title:"Preuve de passage en dératisation : ce que la loi exige", meta:"Quelles preuves de passage fournir à vos clients professionnels ? Cadre légal et bonnes pratiques." } },
+
+  { id:'ct3', titre:"Vidéo démo — Compte rendu depuis le terrain", type:'Vidéo', statut:'Prêt', canal:'YouTube', sectorId:'derat', segmentId:'seg1', campIdx:0, date:'2026-09-08',
+    objectif:'Conversion', responsable:'Sophie', parentId:null, timeEst:8, timeReal:6, costEst:200, costReal:180,
+    brief:"Vidéo de 3 minutes montrant la saisie d'un compte rendu sur mobile, en conditions réelles.",
+    message:"Vos comptes rendus d'intervention prêts en 2 minutes, depuis le terrain", cta:"Demander une démonstration",
+    autresCanaux:['LinkedIn'],
+    versions:[{nom:'demo-terrain-v2.mp4',date:'6 sept.'}] },
+
+  { id:'ct4', titre:"Post LinkedIn — Coulisses du développement", type:'Post', statut:'Publié', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:1, date:'2026-08-06',
+    objectif:'Notoriété', responsable:'Sophie', parentId:null, timeEst:1, timeReal:1, costEst:0, costReal:0,
+    message:"Coulisses de la construction de TigerFlow avec des dératiseurs", cta:"Suivre le projet" },
+
+  { id:'ct5', titre:"Landing page — Lancement 1er octobre", type:'Landing page', statut:'En production', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:0, date:'2026-09-12',
+    objectif:'Conversion', responsable:'Sophie', parentId:null, timeEst:10, timeReal:4, costEst:0, costReal:0,
+    brief:"Page d'atterrissage de la campagne de lancement : offre 2 mois offerts, formulaire court.",
+    message:"Vos comptes rendus d'intervention prêts en 2 minutes", cta:"Réserver ma démonstration",
+    url:'/lancement-deratisation',
+    seo:{ motCle:'logiciel dératisation', intention:'Transactionnelle', position:null, title:"Logiciel de gestion pour entreprises de dératisation — TigerFlow", meta:"Planning, interventions, comptes rendus et facturation. 2 mois offerts pour le lancement." } },
+
+  { id:'ct6', titre:"Séquence email — Prospection contrats sanitaires", type:'Email', statut:'Programmé', canal:'Email', sectorId:'derat', segmentId:'seg2', campIdx:3, date:'2026-08-20',
+    objectif:'Leads qualifiés', responsable:'Sophie', parentId:null, timeEst:5, timeReal:4, costEst:0, costReal:0,
+    brief:"Séquence de 4 emails sur le thème de la conformité, espacés de 5 jours.",
+    message:"Traçabilité réglementaire automatique, prête pour vos audits", cta:"Réserver une démonstration" },
+
+  { id:'ct7', titre:"Étude de cas — Dératiseur 6 salariés", type:'Étude de cas', statut:'Brief', canal:'SEO', sectorId:'derat', segmentId:'seg2', campIdx:null, date:'2026-09-25',
+    objectif:'Preuve sociale', responsable:'Sophie', parentId:null, timeEst:6, timeReal:0, costEst:0, costReal:0,
+    brief:"Interviewer le premier client signé et documenter son avant/après.",
+    message:"", cta:"" },
+
+  { id:'ct8', titre:"Carrousel — 3 erreurs de tournée", type:'Post', statut:'À créer', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:1, date:'2026-09-18',
+    objectif:'Notoriété', responsable:'Sophie', parentId:'ct2', timeEst:2, timeReal:0, costEst:0, costReal:0,
+    brief:"Décliner l'article en carrousel de 6 slides.", message:"", cta:"" },
+
+  { id:'ct9', titre:"Kit stand salon", type:'Document', statut:'Bloqué', canal:'Événement', sectorId:'derat', segmentId:'seg2', campIdx:8, date:'2026-11-05',
+    objectif:'Leads terrain', responsable:'Sophie', parentId:null, timeEst:8, timeReal:1, costEst:600, costReal:0,
+    blocage:"En attente de validation du budget stand",
+    brief:"Roll-up, flyers et démonstration tablette pour le salon de novembre.", message:"", cta:"" },
+
+  { id:'ct10', titre:"Pourquoi TigerFlow fait gagner du temps aux entreprises de terrain", type:'Article', statut:'Publié', canal:'SEO', sectorId:'all', segmentId:'seg1', campIdx:null, date:'2026-07-20',
+    objectif:'Acquisition', responsable:'Sophie', parentId:null, timeEst:5, timeReal:5, costEst:0, costReal:0,
+    brief:"Article transversal, réutilisable pour tous les futurs secteurs.",
+    message:"Un seul outil pour le planning, les interventions et la facturation", cta:"Découvrir TigerFlow",
+    url:'/blog/gagner-du-temps-entreprises-terrain',
+    seo:{ motCle:'logiciel gestion entreprise terrain', intention:'Informationnelle', position:12, title:"Comment un logiciel de terrain fait gagner du temps aux artisans", meta:"Planning, interventions, devis : où se perd le temps dans une entreprise de terrain et comment le récupérer." } },
+
+  { id:'ct11', titre:"Email — Reprise du guide réglementaire", type:'Email', statut:'Idée', canal:'Email', sectorId:'derat', segmentId:'seg2', campIdx:null, date:'2026-10-08',
+    objectif:'Réactivation', responsable:'Sophie', parentId:'ct1', timeEst:2, timeReal:0, costEst:0, costReal:0,
+    brief:"Renvoyer le guide aux contacts qui ne l'ont pas ouvert.", message:"", cta:"" },
 ];
 
 /* ---------- Expérimentations : hypothèse + conclusion obligatoires ---------- */
@@ -3308,70 +3376,414 @@ function renderMktgChannels(){
     <div class="hint-bar" style="margin-top:20px">${ic('ti-bulb',16)}<span>Les performances sont <b>calculées depuis le Plan de campagnes</b>, jamais saisies ici. Un canal n'a de résultats que si une campagne l'utilise — et aucune fiche partenaire, campagne ou contenu n'est dupliquée dans ce module.</span></div>`;
 }
 
-/* ---- 5. Contenus ---- */
+/* ---- 5. Contenus — centre de production marketing ----
+   Question : « Qu'est-ce que je dois créer, qu'est-ce qui sort, et qu'est-ce qui marche ? »
+   Source de vérité : la bibliothèque. Le calendrier en est une VUE, pas un module.
+   Campagnes, audiences, canaux et performances viennent d'ailleurs — jamais dupliqués. */
+
+const CONTENT_TYPES = ['Article','Vidéo','Image','Post','Email','Landing page','Document','Infographie','Étude de cas'];
+const CONTENT_PIPELINE = ['Idée','Brief','À créer','En production','À valider','Prêt','Programmé','Publié','Archivé'];
+const CONTENT_STATUS_STYLE = {
+  'Idée':          { c:'var(--th-text-2)', bg:'var(--th-bg-alt)' },
+  'Brief':         { c:'var(--th-text-2)', bg:'var(--th-bg-alt)' },
+  'À créer':       { c:'var(--th-orange)', bg:'var(--th-orange-bg)' },
+  'En production': { c:'var(--th-orange)', bg:'var(--th-orange-bg)' },
+  'À valider':     { c:'var(--th-purple)', bg:'var(--th-purple-bg)' },
+  'Prêt':          { c:'var(--th-blue)',   bg:'var(--th-blue-bg)' },
+  'Programmé':     { c:'var(--th-purple)', bg:'var(--th-purple-bg)' },
+  'Publié':        { c:'var(--th-green)',  bg:'var(--th-green-bg)' },
+  'Archivé':       { c:'var(--th-text-3)', bg:'var(--th-bg-alt)' },
+  'Bloqué':        { c:'var(--th-red)',    bg:'var(--th-red-bg)' },
+};
+function contentStatusBadge(s){
+  const st = CONTENT_STATUS_STYLE[s] || CONTENT_STATUS_STYLE['Idée'];
+  return `<span class="badge" style="color:${st.c};background:${st.bg}">${esc(s)}</span>`;
+}
+function contentById(id){ return CONTENTS.find(c=>c.id===id); }
+function contentChildren(id){ return CONTENTS.filter(c=>c.parentId===id); }
+function contentCampaign(ct){ return ct.campIdx!==null && ct.campIdx!==undefined ? campaigns[ct.campIdx] : null; }
+/* Performance : jamais saisie ici, dérivée de la campagne et du canal */
+function contentPerf(ct){
+  const camp = contentCampaign(ct);
+  if(!camp || !camp.results || !camp.results[ct.canal]) return null;
+  return camp.results[ct.canal];
+}
+
 let contentTab = 0;
 let contentStatusFilter = 'Tous';
+let contentTypeFilter = 'Tous';
 let contentSearch = '';
 let calOffset = 0;
-function switchContentTab(i){ contentTab = i; renderMktgContents(); }
+let calView = 'mois';
+let openContentId = null;
+let contentDetailTab = 0;
+function switchContentTab(i){ contentTab = i; openContentId = null; renderMktgContents(); }
 function setContentStatus(v){ contentStatusFilter = v; renderMktgContents(); }
+function setContentType(v){ contentTypeFilter = v; renderMktgContents(); }
 function setContentSearch(v){ contentSearch = v.toLowerCase(); renderMktgContents(); }
 function shiftCal(d){ calOffset += d; renderMktgContents(); }
+function setCalView(v){ calView = v; renderMktgContents(); }
+function openContent(id){ openContentId = id; contentDetailTab = 0; renderMktgContents(); }
+function closeContent(){ openContentId = null; renderMktgContents(); }
+function switchContentDetailTab(i){ contentDetailTab = i; renderMktgContents(); }
+function updateContentStatus(id, statut){
+  const ct = contentById(id); if(!ct) return;
+  ct.statut = statut;
+  renderMktgContents(); refreshMktgAll();
+}
+
 function renderMktgContents(){
   const el = document.getElementById('marketing-contentsContent'); if(!el) return;
-  const tabs = ['Bibliothèque','Calendrier éditorial'];
+
+  /* ========== FICHE CONTENU ========== */
+  if(openContentId){
+    const ct = contentById(openContentId);
+    if(!ct){ openContentId=null; return renderMktgContents(); }
+    const camp = contentCampaign(ct);
+    const perf = contentPerf(ct);
+    const parent = ct.parentId ? contentById(ct.parentId) : null;
+    const children = contentChildren(ct.id);
+    const chDef = CHANNEL_PORTFOLIO.find(x=>x.mappedChannel===ct.canal || x.nom===ct.canal);
+    const tabs = ['Vue d\'ensemble','Production','Diffusion & SEO','Performance'];
+    let body = '';
+
+    if(contentDetailTab===0){
+      body = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-file-text',17)}<span>Informations</span></div></div>
+            <div style="font-size:12.5px;line-height:2.2">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Type</span><b>${esc(ct.type)}</b></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Secteur</span>${sectorBadge(ct.sectorId)}</div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Objectif</span><b>${esc(ct.objectif||'—')}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Responsable</span><b>${esc(ct.responsable||'Sophie')}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Date prévue</span><b>${fmtDate(ct.date)}</b></div>
+            </div></div>
+          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-message-2',17)}<span>Brief &amp; message</span></div></div>
+            ${ct.brief?`<div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Brief</div>
+              <div style="font-size:12.5px;color:var(--th-text-2);line-height:1.7;margin-bottom:14px">${esc(ct.brief)}</div>`:''}
+            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Message principal</div>
+            <div style="font-size:13px;font-weight:700;color:var(--th-orange);line-height:1.6;margin-bottom:14px">${ct.message?`« ${esc(ct.message)} »`:'—'}</div>
+            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Appel à l'action</div>
+            <div style="font-size:12.5px">${esc(ct.cta||'—')}</div></div>
+          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-wallet',17)}<span>Effort</span></div></div>
+            <div style="font-size:12.5px;line-height:2.2">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Temps estimé</span><b>${ct.timeEst||0} h</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Temps réel</span><b>${ct.timeReal||0} h</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Coût estimé</span><b>${ct.costEst||0} €</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Coût réel</span><b>${ct.costReal||0} €</b></div>
+            </div>
+            ${ct.timeReal>ct.timeEst&&ct.timeEst?`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--th-border);font-size:11.5px;color:var(--th-orange);font-weight:600">Dépassement de ${ct.timeReal-ct.timeEst} h sur l'estimation</div>`:''}
+          </div>
+        </div>
+
+        <p class="section-label" style="margin-top:24px">Connexions</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+          <div class="conn-card" onclick="goToAudience('${ct.segmentId}')" style="cursor:pointer">
+            <div class="conn-icon">${ic('ti-users',15)}</div>
+            <div><div class="conn-label">Audience</div><div class="conn-val">${esc(segName(ct.segmentId))} →</div></div></div>
+          ${camp?`<div class="conn-card" onclick="goToCampaign('${camp.id}')" style="cursor:pointer">
+            <div class="conn-icon">${ic('ti-target-arrow',15)}</div>
+            <div><div class="conn-label">Campagne</div><div class="conn-val">${esc(camp.title)} →</div></div></div>`
+            :`<div class="conn-card" style="opacity:.6"><div class="conn-icon">${ic('ti-target-arrow',15)}</div>
+            <div><div class="conn-label">Campagne</div><div class="conn-val">Aucune campagne associée</div></div></div>`}
+          <div class="conn-card" onclick="goToChannel('${ct.canal}')" style="cursor:pointer">
+            <div class="conn-icon">${ic('ti-share',15)}</div>
+            <div><div class="conn-label">Canal</div><div class="conn-val">${esc(ct.canal)} →</div></div></div>
+          ${perf?`<div class="conn-card" onclick="goToAnalysis()" style="cursor:pointer">
+            <div class="conn-icon">${ic('ti-chart-line',15)}</div>
+            <div><div class="conn-label">Résultats</div><div class="conn-val">${perf.leads} leads →</div></div></div>`:''}
+        </div>
+
+        ${(parent||children.length)?`<p class="section-label" style="margin-top:24px">Déclinaisons</p>
+        <div class="card">
+          ${parent?`<div style="margin-bottom:14px"><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:7px">Contenu parent</div>
+            <div class="decl-row" onclick="openContent('${parent.id}')"><div class="decl-icon">${ic('ti-file-text',14)}</div>
+              <span style="flex:1;font-size:12.5px;font-weight:600">${esc(parent.titre)}</span>
+              <span class="badge">${esc(parent.type)}</span>${contentStatusBadge(parent.statut)}</div></div>`:''}
+          ${children.length?`<div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:7px">Déclinaisons (${children.length})</div>
+            ${children.map(c=>`<div class="decl-row" onclick="openContent('${c.id}')"><div class="decl-icon">${ic('ti-share',14)}</div>
+              <span style="flex:1;font-size:12.5px;font-weight:600">${esc(c.titre)}</span>
+              <span class="badge">${esc(c.type)}</span>${contentStatusBadge(c.statut)}</div>`).join('')}</div>`:''}
+        </div>`:''}`;
+    }
+    else if(contentDetailTab===1){
+      const curIdx = CONTENT_PIPELINE.indexOf(ct.statut);
+      body = `
+        <p class="section-label">Étape de production</p>
+        <div class="pipeline">
+          ${CONTENT_PIPELINE.map((s,i)=>{
+            const cls = i<curIdx ? 'done' : i===curIdx ? 'cur' : '';
+            return `<div class="pipe-step ${cls}" onclick="updateContentStatus('${ct.id}','${s}')" title="Passer à cette étape">
+              <div class="pipe-dot">${i<curIdx?ic('ti-circle-check',10):''}</div>
+              <div class="pipe-label">${s}</div></div>`;
+          }).join('')}
+        </div>
+        <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',15)}<span>Cliquez sur une étape pour faire avancer le contenu. Le statut est repris dans la bibliothèque et le calendrier — <b>une seule source</b>.</span></div>
+        ${ct.statut==='Bloqué'||ct.blocage?`<div class="alert warn" style="margin-top:16px"><div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+          <div class="alert-text"><b>Contenu bloqué :</b> ${esc(ct.blocage||'raison non précisée')}</div></div>`:''}
+        <p class="section-label" style="margin-top:24px">Fichiers &amp; versions</p>
+        <div class="card">
+          ${(ct.versions&&ct.versions.length)?ct.versions.map(v=>`<div class="decl-row" style="cursor:default">
+            <div class="decl-icon">${ic('ti-file-text',14)}</div>
+            <span style="flex:1;font-size:12.5px;font-weight:600">${esc(v.nom)}</span>
+            <span class="badge">${esc(v.date)}</span></div>`).join('')
+            :`<p class="empty-hint">Aucun fichier attaché. Le stockage de fichiers sera disponible dans la version réelle.</p>`}
+        </div>`;
+    }
+    else if(contentDetailTab===2){
+      body = `
+        <div class="grid-2">
+          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-share',17)}<span>Diffusion</span></div></div>
+            <div style="font-size:12.5px;line-height:2.2">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Canal principal</span>
+                <span class="badge" style="cursor:pointer" onclick="goToChannel('${ct.canal}')">${esc(ct.canal)} →</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Statut</span>${contentStatusBadge(ct.statut)}</div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Date de publication</span><b>${fmtDate(ct.date)}</b></div>
+              ${ct.url?`<div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">URL</span><b style="font-size:11.5px">${esc(ct.url)}</b></div>`:''}
+            </div>
+            ${(ct.autresCanaux&&ct.autresCanaux.length)?`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border)">
+              <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:7px">Également diffusé sur</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">${ct.autresCanaux.map(c=>`<span class="badge" style="cursor:pointer" onclick="goToChannel('${c}')">${esc(c)} →</span>`).join('')}</div></div>`:''}
+            ${camp&&camp.utm?`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border)">
+              <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">UTM hérités de la campagne</div>
+              <div style="background:var(--th-bg-alt);border-radius:9px;padding:10px;font-family:monospace;font-size:10.5px;word-break:break-all">utm_source=${esc(camp.utm.source||'—')}&utm_medium=${esc(camp.utm.medium||'—')}&utm_campaign=${esc(camp.utm.campaign||'—')}</div></div>`:''}
+          </div>
+          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-search',17)}<span>SEO</span></div>
+            <span class="badge gray">Saisie manuelle</span></div>
+            ${ct.seo?`<div style="font-size:12.5px;line-height:2.1">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Mot-clé cible</span><b>${esc(ct.seo.motCle)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Intention</span><b>${esc(ct.seo.intention)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Position</span><b>${ct.seo.position?'#'+ct.seo.position:'—'}</b></div>
+            </div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border);font-size:12px;line-height:1.8">
+              <div style="color:var(--th-text-3);font-weight:700;font-size:10.5px;text-transform:uppercase;margin-bottom:4px">Title</div>
+              <div style="margin-bottom:10px">${esc(ct.seo.title||'—')}</div>
+              <div style="color:var(--th-text-3);font-weight:700;font-size:10.5px;text-transform:uppercase;margin-bottom:4px">Meta description</div>
+              <div style="color:var(--th-text-2)">${esc(ct.seo.meta||'—')}</div>
+            </div>`
+            : `<div class="waiting-block">${ic('ti-search',22)}<p>Aucune donnée SEO pour ce contenu.<br><span style="font-size:11.5px">Pertinent surtout pour les articles et pages de destination.</span></p></div>`}
+            <div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>Les positions se relèvent à la main. <b>Connexion Search Console à venir.</b></span></div>
+          </div>
+        </div>`;
+    }
+    else {
+      body = perf ? `
+        <div class="hint-bar" style="margin-bottom:16px">${ic('ti-bulb',16)}<span>Ces chiffres viennent de la campagne <b>${esc(camp.title)}</b> sur le canal <b>${esc(ct.canal)}</b>. Ils ne se saisissent pas ici.</span></div>
+        <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+          <div class="stat-card"><div class="val">${perf.impressions.toLocaleString('fr-FR')}</div><div class="label">Impressions</div></div>
+          <div class="stat-card"><div class="val">${perf.clicks}</div><div class="label">Clics</div></div>
+          <div class="stat-card blue"><div class="val">${perf.leads}</div><div class="label">Leads</div></div>
+          <div class="stat-card green"><div class="val">${perf.conversions}</div><div class="label">Clients</div></div>
+          <div class="stat-card purple"><div class="val">${perf.impressions?((perf.clicks/perf.impressions)*100).toFixed(1)+'%':'—'}</div><div class="label">Taux de clic</div></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+          <button class="btn-ghost" onclick="goToCampaign('${camp.id}')">Voir la campagne →</button></div>`
+        : `<div class="waiting-block">${ic('ti-chart-line',22)}
+            <p>${ct.statut==='Publié'?"Ce contenu est publié mais sa campagne n'a pas encore de résultats renseignés.":'Les performances apparaîtront une fois ce contenu publié dans une campagne.'}<br>
+            <span style="font-size:11.5px">Les résultats se saisissent dans la fiche campagne, canal par canal — jamais ici.</span></p></div>`;
+    }
+
+    el.innerHTML = sectorSelector() + `
+      <div class="btn-back" onclick="closeContent()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux contenus</div>
+      <div class="page-head">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px"><h1 style="margin-bottom:0">${esc(ct.titre)}</h1>${contentStatusBadge(ct.statut)}</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
+            <span>${ic('ti-file-text',13)} ${esc(ct.type)}</span>
+            <span>${ic('ti-share',13)} ${esc(ct.canal)}</span>
+            <span>${ic('ti-users',13)} ${esc(segName(ct.segmentId))}</span>
+            <span>${ic('ti-calendar',13)} ${fmtDate(ct.date)}</span>
+          </div>
+        </div>
+        <select class="status-select" onchange="updateContentStatus('${ct.id}',this.value)">
+          ${CONTENT_PIPELINE.concat(['Bloqué']).map(s=>`<option ${ct.statut===s?'selected':''}>${s}</option>`).join('')}</select>
+      </div>
+      <div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===contentDetailTab?' active':''}" onclick="switchContentDetailTab(${i})">${t}</div>`).join('')}</div>
+      ${body}`;
+    return;
+  }
+
+  /* ========== VUES PRINCIPALES ========== */
+  const scoped = sectorContents();
+  const tabs = ['Pilotage','Bibliothèque','Calendrier'];
   let body = '';
 
   if(contentTab===0){
-    let list = contentStatusFilter==='Tous' ? sectorContents() : sectorContents().filter(c=>c.statut===contentStatusFilter);
+    /* --- PILOTAGE : simple et actionnable --- */
+    const aCreer = scoped.filter(c=>['Idée','Brief','À créer'].includes(c.statut));
+    const enProd = scoped.filter(c=>['En production','À valider'].includes(c.statut));
+    const aPublier = scoped.filter(c=>['Prêt','Programmé'].includes(c.statut));
+    const publies = scoped.filter(c=>c.statut==='Publié');
+    const bloques = scoped.filter(c=>c.statut==='Bloqué');
+    const orphelins = scoped.filter(c=>(c.campIdx===null||c.campIdx===undefined) && c.statut!=='Archivé');
+
+    const today = new Date();
+    const urgents = scoped.filter(c=>{
+      if(['Publié','Archivé'].includes(c.statut)) return false;
+      const d = Math.ceil((new Date(c.date)-today)/86400000);
+      return d>=0 && d<=10;
+    }).sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+    const prochaines = scoped.filter(c=>['Prêt','Programmé'].includes(c.statut))
+      .sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,5);
+
+    const performants = scoped.filter(c=>{ const p=contentPerf(c); return p && p.leads>=10; })
+      .sort((a,b)=>contentPerf(b).leads-contentPerf(a).leads).slice(0,3);
+
+    body = `
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+        <div class="stat-card"><div class="stat-card-icon">${ic('ti-bulb')}</div><div class="val">${aCreer.length}</div><div class="label">À créer</div></div>
+        <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-tools')}</div><div class="val">${enProd.length}</div><div class="label">En production</div></div>
+        <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-calendar')}</div><div class="val">${aPublier.length}</div><div class="label">À publier</div></div>
+        <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${publies.length}</div><div class="label">Publiés</div></div>
+        <div class="stat-card ${bloques.length?'red':''}"><div class="stat-card-icon">${ic('ti-alert-triangle')}</div><div class="val">${bloques.length}</div><div class="label">Bloqués</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-bolt',17)}<span>À faire maintenant</span></div>
+            ${urgents.length?`<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">${urgents.length}</span>`:''}</div>
+          ${urgents.length ? urgents.slice(0,5).map(c=>{
+            const d = Math.ceil((new Date(c.date)-today)/86400000);
+            return `<div class="todo-row" onclick="openContent('${c.id}')">
+              <span class="todo-dot" style="background:${d<=3?'var(--th-red)':'var(--th-orange)'}"></span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13.5px;font-weight:700;margin-bottom:3px">${esc(c.titre)}</div>
+                <div style="font-size:12px;color:var(--th-text-2)">${esc(c.statut)} · prévu ${d===0?"aujourd'hui":`dans ${d} jour${d>1?'s':''}`}</div>
+              </div>
+              <span class="todo-action">Ouvrir →</span></div>`;
+          }).join('') : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div><div class="alert-text">Aucun contenu urgent dans les 10 prochains jours.</div></div>`}
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-calendar',17)}<span>Prochaines publications</span></div>
+            <span class="card-link" onclick="switchContentTab(2)">Calendrier →</span></div>
+          ${prochaines.length ? prochaines.map(c=>`<div class="launch-row" onclick="openContent('${c.id}')">
+            <div class="launch-date"><div style="font-size:16px;font-weight:800;line-height:1">${new Date(c.date).getDate()}</div>
+              <div style="font-size:10px;color:var(--th-text-3);text-transform:uppercase;font-weight:700">${new Date(c.date).toLocaleDateString('fr-FR',{month:'short'}).replace('.','')}</div></div>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;margin-bottom:3px">${esc(c.titre)}</div>
+              <div style="font-size:11.5px;color:var(--th-text-2)">${esc(c.canal)}</div></div>
+            ${contentStatusBadge(c.statut)}</div>`).join('') : '<p class="empty-hint">Aucune publication programmée.</p>'}
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-alert-triangle',17)}<span>Contenus sans campagne</span></div>
+            ${orphelins.length?`<span class="badge gray">${orphelins.length}</span>`:''}</div>
+          ${orphelins.length ? orphelins.slice(0,5).map(c=>`<div class="todo-row" onclick="openContent('${c.id}')">
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${esc(c.titre)}</div>
+              <div style="font-size:11.5px;color:var(--th-text-2)">${esc(c.type)} · ${esc(c.canal)}</div></div>
+            <span class="todo-action">Rattacher →</span></div>`).join('')
+            : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div><div class="alert-text">Tous les contenus sont rattachés à une campagne.</div></div>`}
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-trophy',17)}<span>Contenus à réutiliser</span></div></div>
+          ${performants.length ? performants.map(c=>{ const p=contentPerf(c);
+            return `<div class="todo-row" onclick="openContent('${c.id}')">
+              <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${esc(c.titre)}</div>
+                <div style="font-size:11.5px;color:var(--th-text-2)">${esc(c.canal)} · ${contentChildren(c.id).length} déclinaison${contentChildren(c.id).length>1?'s':''}</div></div>
+              <span class="badge green">${p.leads} leads</span></div>`; }).join('')
+            : `<div class="waiting-block">${ic('ti-trophy',22)}<p>Les contenus performants apparaîtront ici une fois les premières campagnes mesurées.</p></div>`}
+        </div>
+      </div>`;
+  }
+  else if(contentTab===1){
+    /* --- BIBLIOTHÈQUE : source de vérité --- */
+    let list = scoped;
+    if(contentStatusFilter!=='Tous') list = list.filter(c=>c.statut===contentStatusFilter);
+    if(contentTypeFilter!=='Tous') list = list.filter(c=>c.type===contentTypeFilter);
     if(contentSearch) list = list.filter(c=>c.titre.toLowerCase().includes(contentSearch));
+
     body = `
       <div class="filter-bar">
-        ${['Tous',...CONTENT_STATUSES].map(s=>`<button class="filter-chip${contentStatusFilter===s?' active':''}" onclick="setContentStatus('${s}')">${s}</button>`).join('')}
+        ${['Tous',...CONTENT_PIPELINE].map(s=>`<button class="filter-chip${contentStatusFilter===s?' active':''}" onclick="setContentStatus('${s}')">${s}</button>`).join('')}
         <button class="add-btn" style="margin-left:auto">${ic('ti-plus',14)} Nouveau contenu</button>
       </div>
-      <div class="search-bar">${ic('ti-search')}<input type="text" placeholder="Rechercher un contenu..." oninput="setContentSearch(this.value)"></div>
-      <table class="data-table"><thead><tr><th>Contenu</th><th>Type</th><th>Secteur</th><th>Canal</th><th>Segment</th><th>Campagne</th><th>Date</th><th>Statut</th></tr></thead><tbody>
-        ${list.map(ct=>{ const camp = ct.campIdx!==null && campaigns[ct.campIdx] ? campaigns[ct.campIdx].title : null;
-          const sc = ct.statut==='Publié'?'green':ct.statut==='À créer'?'gray':ct.statut==='Programmé'?'purple':ct.statut==='À préparer'?'orange':'blue';
-          const scS = sc==='purple'?'color:var(--th-purple);background:var(--th-purple-bg)':sc==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':'';
-          return `<tr><td class="dt-title">${esc(ct.titre)}</td><td><span class="badge">${esc(ct.type)}</span></td>
-          <td>${sectorBadge(ct.sectorId)}</td><td style="cursor:pointer" onclick="goToChannel('${ct.canal}')">${esc(ct.canal)} →</td><td style="font-size:12px;color:var(--th-text-2)">${esc(segName(ct.segmentId))}</td>
-          <td style="font-size:12px;color:var(--th-text-2)">${camp?esc(camp):'—'}</td><td style="font-size:12px">${fmtDate(ct.date)}</td>
-          <td><span class="badge ${sc}" style="${scS}">${esc(ct.statut)}</span></td></tr>`; }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--th-text-2);padding:22px">Aucun contenu pour ce filtre.</td></tr>`}
-      </tbody></table>
-      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span><b>Une seule bibliothèque.</b> « À créer » est simplement un statut, pas une liste séparée.</span></div>`;
-  } else {
-    const base = new Date();
-    const shown = new Date(base.getFullYear(), base.getMonth()+calOffset, 1);
-    const label = shown.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
-    const dim = new Date(shown.getFullYear(), shown.getMonth()+1, 0).getDate();
-    let fd = shown.getDay(); fd = fd===0?6:fd-1;
-    const monthKey = `${shown.getFullYear()}-${String(shown.getMonth()+1).padStart(2,'0')}`;
-    let cells = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d=>`<div style="font-size:10px;color:var(--th-text-3);font-weight:800;text-align:center;padding-bottom:6px;text-transform:uppercase">${d}</div>`).join('');
-    for(let i=0;i<fd;i++) cells += '<div></div>';
-    const today = calOffset===0 ? base.getDate() : -1;
-    for(let d=1; d<=dim; d++){
-      const dayKey = `${monthKey}-${String(d).padStart(2,'0')}`;
-      const items = sectorContents().filter(c=>c.date===dayKey);
-      cells += `<div style="background:var(--th-card);border:1px solid ${d===today?'var(--th-orange)':'var(--th-border)'};border-radius:11px;min-height:84px;padding:7px">
-        <div style="font-size:11px;color:${d===today?'var(--th-orange)':'var(--th-text-3)'};font-weight:800;margin-bottom:5px">${d}</div>
-        ${items.map(c=>{ const sc = c.statut==='Publié'?['var(--th-green-bg)','var(--th-green)']:c.statut==='Programmé'?['var(--th-purple-bg)','var(--th-purple)']:c.statut==='À créer'?['var(--th-bg-alt)','var(--th-text-2)']:['var(--th-orange-bg)','var(--th-orange)'];
-          return `<div style="background:${sc[0]};color:${sc[1]};border-radius:7px;padding:3px 6px;font-size:9.5px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.statut)} · ${esc(c.canal)}">${esc(c.titre)}</div>`; }).join('')}
-      </div>`;
-    }
-    body = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div class="cal-nav"><button class="cal-nav-btn" onclick="shiftCal(-1)">${ic('ti-arrow-left',15)}</button>
-        <button class="btn-ghost" onclick="calOffset=0;renderMktgContents()">Aujourd'hui</button>
-        <button class="cal-nav-btn" onclick="shiftCal(1)" style="transform:rotate(180deg)">${ic('ti-arrow-left',15)}</button></div>
-        <div style="font-size:15px;font-weight:800;text-transform:capitalize">${label}</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">${CONTENT_STATUSES.map(s=>{ const sc = s==='Publié'?'green':s==='Programmé'?'purple':s==='À créer'?'gray':'orange';
-          const scS = sc==='purple'?'color:var(--th-purple);background:var(--th-purple-bg)':sc==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':'';
-          return `<span class="badge ${sc}" style="${scS}">${s}</span>`; }).join('')}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+        <div class="search-bar" style="margin-bottom:0;max-width:300px">${ic('ti-search')}<input type="text" placeholder="Rechercher un contenu..." oninput="setContentSearch(this.value)"></div>
+        <select class="status-select" onchange="setContentType(this.value)">
+          <option ${contentTypeFilter==='Tous'?'selected':''}>Tous</option>
+          ${CONTENT_TYPES.map(t=>`<option ${contentTypeFilter===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
+        <span style="font-size:12px;color:var(--th-text-3);margin-left:auto">${list.length} contenu${list.length>1?'s':''}</span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">${cells}</div>`;
+      <table class="data-table"><thead><tr><th>Contenu</th><th>Type</th><th>Secteur</th><th>Audience</th><th>Canal</th><th>Campagne</th><th>Date</th><th>Statut</th></tr></thead><tbody>
+        ${list.map(c=>{ const camp = contentCampaign(c);
+          return `<tr onclick="openContent('${c.id}')" style="cursor:pointer">
+            <td><div class="dt-title">${esc(c.titre)}</div>${c.parentId?`<div class="dt-sub">Déclinaison de « ${esc((contentById(c.parentId)||{}).titre||'')} »</div>`:''}</td>
+            <td><span class="badge">${esc(c.type)}</span></td>
+            <td>${sectorBadge(c.sectorId)}</td>
+            <td style="font-size:12px;color:var(--th-text-2)">${esc(segName(c.segmentId))}</td>
+            <td style="font-size:12px">${esc(c.canal)}</td>
+            <td style="font-size:12px;color:var(--th-text-2)">${camp?esc(camp.title):'—'}</td>
+            <td style="font-size:12px;white-space:nowrap">${fmtDate(c.date)}</td>
+            <td>${contentStatusBadge(c.statut)}</td></tr>`; }).join('')
+          || `<tr><td colspan="8" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun contenu pour ces filtres.</td></tr>`}
+      </tbody></table>
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Cette bibliothèque est la <b>source de vérité des contenus</b>. Le calendrier en est une autre vue, pas une seconde liste.</span></div>`;
   }
+  else {
+    /* --- CALENDRIER : même données, autre vue --- */
+    const base = new Date();
+    if(calView==='mois'){
+      const shown = new Date(base.getFullYear(), base.getMonth()+calOffset, 1);
+      const label = shown.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+      const dim = new Date(shown.getFullYear(), shown.getMonth()+1, 0).getDate();
+      let fd = shown.getDay(); fd = fd===0?6:fd-1;
+      const monthKey = `${shown.getFullYear()}-${String(shown.getMonth()+1).padStart(2,'0')}`;
+      let cells = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d=>`<div style="font-size:10px;color:var(--th-text-3);font-weight:800;text-align:center;padding-bottom:6px;text-transform:uppercase">${d}</div>`).join('');
+      for(let i=0;i<fd;i++) cells += '<div></div>';
+      const today = calOffset===0 ? base.getDate() : -1;
+      for(let d=1; d<=dim; d++){
+        const dayKey = `${monthKey}-${String(d).padStart(2,'0')}`;
+        const items = scoped.filter(c=>c.date===dayKey);
+        cells += `<div style="background:var(--th-card);border:1px solid ${d===today?'var(--th-orange)':'var(--th-border)'};border-radius:11px;min-height:88px;padding:7px">
+          <div style="font-size:11px;color:${d===today?'var(--th-orange)':'var(--th-text-3)'};font-weight:800;margin-bottom:5px">${d}</div>
+          ${items.map(c=>{ const st = CONTENT_STATUS_STYLE[c.statut]||CONTENT_STATUS_STYLE['Idée'];
+            return `<div class="cal-event" style="background:${st.bg};color:${st.c}" onclick="openContent('${c.id}')" title="${esc(c.statut)} · ${esc(c.canal)}">${esc(c.titre)}</div>`; }).join('')}
+        </div>`;
+      }
+      body = `${calHeader(label)}<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">${cells}</div>`;
+    } else {
+      const monday = new Date(base); const wd = monday.getDay()||7;
+      monday.setDate(monday.getDate()-wd+1+calOffset*7);
+      const label = `Semaine du ${monday.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}`;
+      let cols = '';
+      for(let i=0;i<7;i++){
+        const d = new Date(monday); d.setDate(monday.getDate()+i);
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const items = scoped.filter(c=>c.date===key);
+        const isToday = d.toDateString()===base.toDateString();
+        cols += `<div style="background:var(--th-card);border:1px solid ${isToday?'var(--th-orange)':'var(--th-border)'};border-radius:12px;padding:11px;min-height:220px">
+          <div style="font-size:11px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:3px">${d.toLocaleDateString('fr-FR',{weekday:'short'})}</div>
+          <div style="font-size:17px;font-weight:800;color:${isToday?'var(--th-orange)':'var(--th-text)'};margin-bottom:10px">${d.getDate()}</div>
+          ${items.map(c=>{ const st = CONTENT_STATUS_STYLE[c.statut]||CONTENT_STATUS_STYLE['Idée'];
+            return `<div class="cal-event" style="background:${st.bg};color:${st.c};white-space:normal;padding:7px 8px;margin-bottom:6px" onclick="openContent('${c.id}')">
+              <div style="font-weight:700;margin-bottom:3px">${esc(c.titre)}</div>
+              <div style="font-size:9px;opacity:.85">${esc(c.canal)}</div></div>`; }).join('')
+            || '<div style="font-size:11px;color:var(--th-text-3)">—</div>'}
+        </div>`;
+      }
+      body = `${calHeader(label)}<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:9px">${cols}</div>`;
+    }
+    body += `<div class="hint-bar" style="margin-top:18px">${ic('ti-bulb',16)}<span>Ce calendrier affiche <b>exactement les mêmes contenus</b> que la bibliothèque. Modifier un statut ici le modifie partout.</span></div>`;
+  }
+
   el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===contentTab?' active':''}" onclick="switchContentTab(${i})">${t}</div>`).join('')}</div>${body}`;
+}
+
+function calHeader(label){
+  return `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="shiftCal(-1)">${ic('ti-arrow-left',15)}</button>
+      <button class="btn-ghost" onclick="calOffset=0;renderMktgContents()">Aujourd'hui</button>
+      <button class="cal-nav-btn" onclick="shiftCal(1)" style="transform:rotate(180deg)">${ic('ti-arrow-left',15)}</button>
+    </div>
+    <div style="font-size:15px;font-weight:800;text-transform:capitalize">${label}</div>
+    <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+      <button class="filter-chip${calView==='mois'?' active':''}" onclick="setCalView('mois')">Mois</button>
+      <button class="filter-chip${calView==='semaine'?' active':''}" onclick="setCalView('semaine')">Semaine</button>
+    </div>
+  </div>`;
 }
 
 /* ---- 6. Analyse & résultats ---- */
