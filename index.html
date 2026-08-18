@@ -312,6 +312,37 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ch-metric .v{font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .ch-metric .l{font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-top:1px}
 .ch-spark{flex-shrink:0}
+.param-row{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--th-border)}
+.param-row:last-child{border-bottom:none}
+.param-toggle{width:36px;height:20px;border-radius:11px;background:var(--th-border);flex-shrink:0;padding:2px;transition:background .15s}
+.param-toggle.on{background:var(--th-green)}
+.param-knob{width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.param-toggle.on .param-knob{transform:translateX(16px)}
+.param-radio{display:flex;align-items:center;gap:11px;border:1.5px solid var(--th-border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .12s}
+.param-radio:hover{border-color:var(--th-orange)}
+.param-radio.sel{border-color:var(--th-orange);background:var(--th-orange-bg)}
+.param-radio-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--th-border);flex-shrink:0}
+.param-radio.sel .param-radio-dot{border-color:var(--th-orange);background:var(--th-orange);box-shadow:inset 0 0 0 3px #fff}
+.param-textarea{width:100%;min-height:64px;border:1px solid var(--th-border);border-radius:11px;padding:11px 13px;font-size:12.5px;font-family:inherit;line-height:1.6;resize:vertical;outline:none;color:var(--th-text);background:var(--th-card)}
+.param-textarea:focus{border-color:var(--th-orange)}
+.formula-box{background:var(--th-orange-bg);color:var(--th-orange);border-radius:11px;padding:13px 16px;font-size:13px;font-weight:700;text-align:center}
+.formula-item{background:var(--th-bg-alt);border-radius:11px;padding:13px}
+.formula-code{font-family:monospace;font-size:11.5px;color:var(--th-text-2)}
+.seuil-card{background:var(--th-bg-alt);border-radius:13px;padding:15px}
+.oia{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+.oia-step{flex:1;min-width:200px;background:var(--th-bg-alt);border-radius:13px;padding:15px}
+.oia-step.oia-final{background:var(--th-orange-bg)}
+.oia-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.oia-icon{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.oia-title{font-size:12.5px;font-weight:800}
+.oia-sub{font-size:10.5px;color:var(--th-text-3);font-weight:600}
+.oia-text{font-size:12.5px;line-height:1.7;color:var(--th-text-2);margin:0}
+.oia-step.oia-final .oia-text{color:var(--th-text)}
+.oia-arrow{display:flex;align-items:center;color:var(--th-text-3);transform:rotate(180deg);flex-shrink:0}
+.action-reco{display:flex;align-items:center;gap:16px;background:var(--th-card);border:1px solid var(--th-border);border-left:3px solid var(--th-orange);border-radius:16px;padding:18px 20px;margin-bottom:18px;box-shadow:var(--th-shadow-sm);flex-wrap:wrap}
+.action-reco-icon{width:40px;height:40px;border-radius:13px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.data-src-card{background:var(--th-bg-alt);border-radius:13px;padding:15px}
+.data-src-icon{width:32px;height:32px;border-radius:10px;background:var(--th-card);color:var(--th-orange);display:flex;align-items:center;justify-content:center}
 .learn-card{display:flex;gap:14px;background:var(--th-card);border:1px solid var(--th-border);border-radius:16px;padding:17px;margin-bottom:12px;box-shadow:var(--th-shadow-sm);cursor:pointer;transition:all .14s}
 .learn-card:hover{box-shadow:var(--th-shadow);transform:translateY(-1px)}
 .learn-icon{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -1031,29 +1062,7 @@ function panelTemplate(moduleId, s){
     case 'mktgAnalysis': return `<div class="page-head"><div><h1>Analyse &amp; résultats</h1><p class="subtitle">Qu'est-ce qui fonctionne réellement ? Tout est calculé depuis les campagnes.</p></div></div><div id="${p}-analysisContent"></div>`;
     case 'mktgExperiments': return `<div class="page-head"><div><h1>Expérimentations</h1><p class="subtitle">Qu'est-ce que je teste et qu'est-ce que j'apprends ?</p></div></div><div id="${p}-experimentsContent"></div>`;
     case 'mktgIntelligence': return `<div class="page-head"><div><h1>Intelligence marketing</h1><p class="subtitle">Qu'est-ce que je retiens ?</p></div></div><div id="${p}-intelligenceContent"></div>`;
-    case 'mktgSettings': return `<div class="page-head"><div><h1>Paramètres Marketing</h1><p class="subtitle">Canaux, statuts, conventions et règles de calcul</p></div></div>
-      <div class="grid-2">
-        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-building',17)}<span>Secteurs</span></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">${SECTORS.map(s=>`<span class="sector-chip ${s.actif?'active':'soon'}">${s.actif?'●':'○'} ${esc(s.nom)}</span>`).join('')}</div>
-          <p style="font-size:11.5px;color:var(--th-text-2);line-height:1.6">Un seul secteur actif en V1. Activer un nouveau secteur ne nécessite aucune refonte : campagnes, audiences, contenus et résultats lui seront rattachés automatiquement.</p>
-          <div class="card-header" style="margin-top:20px"><div class="card-title">${ic('ti-share',17)}<span>Canaux utilisés</span></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px">${MKTG_CHANNELS.map(c=>`<span class="badge">${esc(c)}</span>`).join('')}</div>
-          <div class="card-header" style="margin-top:20px"><div class="card-title">${ic('ti-flag',17)}<span>Statuts de campagne</span></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px">${CAMPAIGN_STATUSES.map(s=>`<span class="badge">${esc(s)}</span>`).join('')}</div>
-          <div class="card-header" style="margin-top:20px"><div class="card-title">${ic('ti-currency-euro',17)}<span>Devise</span></div></div>
-          <select style="width:100%"><option>Euro (€)</option><option>Dollar ($)</option></select>
-        </div>
-        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-link',17)}<span>Convention UTM</span></div></div>
-          <div style="background:var(--th-bg-alt);border-radius:10px;padding:12px;font-family:monospace;font-size:11px;word-break:break-all;margin-bottom:16px">utm_source={canal}&amp;utm_medium=marketing&amp;utm_campaign={campagne}</div>
-          <div class="card-header"><div class="card-title">${ic('ti-chart-donut-3',17)}<span>Règles de calcul</span></div></div>
-          <div style="font-size:12.5px;line-height:2;color:var(--th-text-2)">
-            <div style="display:flex;justify-content:space-between"><span>Attribution</span><b style="color:var(--th-text)">Dernier clic</b></div>
-            <div style="display:flex;justify-content:space-between"><span>Temps compté dans le coût</span><b style="color:var(--th-text)">Oui</b></div>
-            <div style="display:flex;justify-content:space-between"><span>Alerte si coût/lead supérieur à</span><b style="color:var(--th-text)">40 €</b></div>
-          </div>
-          <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Les <b>objectifs marketing</b> ne se configurent pas ici : ils viennent du module Objectifs &amp; OKR, en lecture seule.</span></div>
-        </div>
-      </div>`;
+    case 'mktgSettings': return `<div class="page-head"><div><h1>Paramètres Marketing</h1><p class="subtitle">Les règles communes utilisées par tous les sous-modules</p></div></div><div id="${p}-settingsContent"></div>`;
     case 'salesProspects': return `
       <h1>Prospects</h1><p class="subtitle">Comment transformer davantage de prospects en clients ?</p>
       <div class="capture"><div class="capture-row">
@@ -1725,42 +1734,60 @@ const LEARNINGS = [
     confiance:'Confirmé', type:'fonctionne',
     segmentId:'seg2', canal:'LinkedIn', expId:'exp1', campIds:['mktg_demo_3'],
     preuve:"+4,1 points de taux de clic (5,8% contre 1,7%)",
-    sources:{ experimentations:1, campagnes:2 }, verifie:'2026-08-14' },
+    sources:{ experimentations:1, campagnes:2 },
+    observation:"Le message axé conformité a obtenu 5,8 % de taux de clic contre 1,7 % pour le message gain de temps, sur 8 400 impressions.",
+    interpretation:"L'écart est net et l'expérimentation était contrôlée : le déclencheur d'achat de ce segment est bien la peur du contrôle sanitaire, pas la recherche de confort.",
+    action:"Systématiser l'angle réglementaire sur ce segment, dans les campagnes comme dans les contenus.", verifie:'2026-08-14' },
 
   { id:'lrn2', sectorId:'derat', categorie:'Canaux',
     texte:"Le search payant ne fonctionne pas sur ce marché : le volume de recherche est trop faible malgré un coût par lead correct.",
     confiance:'Probable', type:'ne fonctionne pas',
     segmentId:'seg1', canal:'Google Ads', expId:'exp2', campIds:['mktg_demo_7'],
     preuve:"18 leads en 3 semaines, 1 seule conversion",
-    sources:{ experimentations:1, campagnes:1 }, verifie:'2026-08-20' },
+    sources:{ experimentations:1, campagnes:1 },
+    observation:"290 € dépensés sur 3 semaines ont produit 18 leads et 1 seule conversion, avec un coût par lead de 16 €.",
+    interpretation:"Le coût par lead est correct, mais le volume est trop faible pour en tirer quoi que ce soit : la demande n'existe pas encore sur ces requêtes.",
+    action:"Suspendre le search payant et réévaluer dans 6 mois, quand la catégorie sera plus recherchée.", verifie:'2026-08-20' },
 
   { id:'lrn3', sectorId:'derat', categorie:'Canaux',
     texte:"LinkedIn semble être le canal le plus efficace pour atteindre les dirigeants de petites entreprises de dératisation.",
     confiance:'À confirmer', type:'fonctionne',
     segmentId:'seg1', canal:'LinkedIn', expId:null, campIds:['mktg_demo_1','mktg_demo_3'],
     preuve:"62 leads pour 380 € sur 2 campagnes",
-    sources:{ experimentations:0, campagnes:2 }, verifie:'2026-08-16' },
+    sources:{ experimentations:0, campagnes:2 },
+    observation:"2 campagnes LinkedIn ont produit 62 leads pour 380 € dépensés, soit 6 € par lead.",
+    interpretation:"Le signal est prometteur, mais il repose sur 2 campagnes sans test contrôlé — d'autres facteurs peuvent expliquer ces résultats.",
+    action:"Lancer une expérimentation dédiée pour confirmer avant d'y concentrer davantage de budget.", verifie:'2026-08-16' },
 
   { id:'lrn4', sectorId:'derat', categorie:'Contenus',
     texte:"Le contenu SEO sur les obligations réglementaires attire précisément la bonne cible.",
     confiance:'Probable', type:'fonctionne',
     segmentId:'seg2', canal:'SEO', expId:null, campIds:['mktg_demo_5'],
     preuve:"52 leads et 6 clients pour 400 € investis",
-    sources:{ experimentations:0, campagnes:1 }, verifie:'2026-08-10' },
+    sources:{ experimentations:0, campagnes:1 },
+    observation:"L'article sur les obligations réglementaires a généré 52 leads et 6 clients pour 400 € investis.",
+    interpretation:"Le taux de conversion de ce contenu est très supérieur à la moyenne : le sujet filtre naturellement les entreprises réellement concernées.",
+    action:"Produire une série d'articles sur les autres obligations du métier.", verifie:'2026-08-10' },
 
   { id:'lrn5', sectorId:'derat', categorie:'Acquisition',
     texte:"La présence organique de la fondatrice génère des leads sans budget, mais coûte du temps : 11 h pour 38 leads.",
     confiance:'À confirmer', type:'nuance',
     segmentId:'seg1', canal:'LinkedIn', expId:null, campIds:['mktg_demo_1'],
     preuve:"0 € dépensés, 11 h investies, 38 leads",
-    sources:{ experimentations:0, campagnes:1 }, verifie:'2026-08-16' },
+    sources:{ experimentations:0, campagnes:1 },
+    observation:"La présence organique a produit 38 leads sans budget, mais a demandé 11 heures de travail.",
+    interpretation:"Sans budget, ce canal paraît gratuit ; en réalité il coûte 0,29 h par lead, ce qui est le poste le plus lourd en temps.",
+    action:"Décider si ce temps est mieux investi ici ou sur un canal payant à volume équivalent.", verifie:'2026-08-16' },
 
   { id:'lrn6', sectorId:'derat', categorie:'Conversion',
     texte:"Combiner LinkedIn et email sur un même segment convertit mieux que chaque canal utilisé isolément.",
     confiance:'Hypothèse', type:'fonctionne',
     segmentId:'seg2', canal:'LinkedIn', expId:null, campIds:['mktg_demo_3'],
     preuve:"Signal observé sur une seule campagne — à reproduire",
-    sources:{ experimentations:0, campagnes:1 }, verifie:'2026-08-18' },
+    sources:{ experimentations:0, campagnes:1 },
+    observation:"La campagne combinant LinkedIn et email a converti 7 clients sur 38 leads, contre 4 % en moyenne sur les campagnes mono-canal.",
+    interpretation:"Une seule campagne ne permet pas de conclure : la différence peut venir du segment ou du message, pas de la combinaison de canaux.",
+    action:"Reproduire le dispositif sur un autre segment avant d'en faire une règle.", verifie:'2026-08-18' },
 ];
 
 /* Décisions actives : ce qu'on a décidé de faire à partir des apprentissages */
@@ -2008,8 +2035,8 @@ function renderMktgOverview(){
     const t = campTotals(c);
     if(c.status==='En ligne' && t.cost>200 && t.leads===0)
       alerts.push({ txt:`<b>${esc(c.title)}</b> n'a généré aucun lead malgré ${t.cost} € dépensés.`, id:c.id });
-    if(t.leads>0 && (t.cost/t.leads)>40)
-      alerts.push({ txt:`<b>${esc(c.title)}</b> dépasse l'objectif de coût par lead (${Math.round(t.cost/t.leads)} € contre 40 € visés).`, id:c.id });
+    if(t.leads>0 && (t.cost/t.leads)>MKTG_SETTINGS.seuils.coutLeadMax)
+      alerts.push({ txt:`<b>${esc(c.title)}</b> dépasse l'objectif de coût par lead (${Math.round(t.cost/t.leads)} ${MKTG_SETTINGS.devise} contre ${MKTG_SETTINGS.seuils.coutLeadMax} ${MKTG_SETTINGS.devise} visés).`, id:c.id });
     if(c.budget>0 && t.cost>c.budget)
       alerts.push({ txt:`<b>${esc(c.title)}</b> a dépassé son budget de ${t.cost-c.budget} €.`, id:c.id });
     if(c.timeEstimated>0 && c.timeReal>c.timeEstimated*1.3)
@@ -3140,6 +3167,52 @@ const CHANNEL_MODES = ['Organique','Payant','Partenaire','Propriétaire','Earned
 
 /* Le portefeuille complet : déclaré une fois, activé progressivement.
    'actif' au lancement = 6 canaux. Le reste attend son tour. */
+/* ---- Paramètres Marketing : règles communes à tout le module ----
+   Ces valeurs ne sont pas décoratives : elles alimentent réellement
+   Analyse & résultats, Vue d'ensemble et Plan de campagnes. */
+const MKTG_SETTINGS = {
+  devise: '€',
+  valeurHoraire: 30,          // € par heure de travail
+  compterLeTemps: true,       // le temps entre-t-il dans le coût réel ?
+  attribution: 'Dernier clic',
+  defLead: "Une entreprise ayant laissé ses coordonnées ou demandé une démonstration.",
+  defConversion: "Un lead devenu client payant, abonnement souscrit.",
+  seuils: {
+    budgetDepasse: 0,         // alerte si dépassement de X %
+    coutLeadMax: 40,          // € par lead
+    joursSansLead: 7,         // jours
+    echeanceJours: 7,         // alerte à J-X de la fin
+    preparationMin: 80,       // % de checklist attendu pour une campagne planifiée
+    budgetPresqueEpuise: 85,  // % de budget consommé
+  },
+  utm: { source:'{canal}', medium:'marketing', campaign:'{campagne}' },
+};
+const ATTRIBUTION_MODELS = ['Premier clic','Dernier clic','Linéaire'];
+const CAMPAIGN_TYPES = ['Acquisition','Notoriété','Conversion','Réactivation','Fidélisation','Contenu','Événement','Partenariat','Test / Expérimentation'];
+
+/* Coût réel = dépenses + temps valorisé, si le paramètre est actif */
+function coutReel(depense, heures){
+  if(!MKTG_SETTINGS.compterLeTemps) return depense;
+  return depense + Math.round((heures||0) * MKTG_SETTINGS.valeurHoraire);
+}
+function setParam(path, val){
+  const parts = path.split('.');
+  let o = MKTG_SETTINGS;
+  for(let i=0;i<parts.length-1;i++) o = o[parts[i]];
+  const last = parts[parts.length-1];
+  o[last] = (typeof o[last]==='number') ? (Number(val)||0) : (typeof o[last]==='boolean' ? !!val : val);
+  refreshMktgAll();
+}
+function toggleParam(path){
+  const parts = path.split('.');
+  let o = MKTG_SETTINGS;
+  for(let i=0;i<parts.length-1;i++) o = o[parts[i]];
+  o[parts[parts.length-1]] = !o[parts[parts.length-1]];
+  refreshMktgAll();
+}
+let settingsAdvanced = false;
+function toggleSettingsAdvanced(){ settingsAdvanced = !settingsAdvanced; renderMktgSettings(); }
+
 /* ---- Source des données : d'où vient l'information de ce canal ? ----
    Canaux est une couche de pilotage et d'agrégation, pas une base
    indépendante. Chaque canal déclare sa source et son mode de collecte
@@ -4212,7 +4285,7 @@ function verdictFor(leads, conversions, cost, time){
   const cpl = cost/leads;
   const convRate = conversions/leads;
   if(cpl <= 15 && convRate >= 0.08) return { k:'green', label:'À renforcer', why:`${Math.round(cpl)} € par lead et ${Math.round(convRate*100)}% de conversion : les deux indicateurs sont bons.` };
-  if(cpl > 40) return { k:'red', label:'À surveiller', why:`${Math.round(cpl)} € par lead, au-dessus du seuil de 40 €.` };
+  if(cpl > MKTG_SETTINGS.seuils.coutLeadMax) return { k:'red', label:'À surveiller', why:`${Math.round(cpl)} ${MKTG_SETTINGS.devise} par lead, au-dessus du seuil de ${MKTG_SETTINGS.seuils.coutLeadMax} ${MKTG_SETTINGS.devise}.` };
   if(convRate < 0.04) return { k:'red', label:'À surveiller', why:`Seulement ${Math.round(convRate*100)}% des leads deviennent clients.` };
   if(time && leads && (time/leads) > 0.5) return { k:'orange', label:'À optimiser', why:`${(time/leads).toFixed(2)} h de travail par lead : coûteux en temps.` };
   return { k:'orange', label:'À optimiser', why:`${Math.round(cpl)} € par lead : correct mais améliorable.` };
@@ -4297,8 +4370,9 @@ function renderMktgAnalysis(){
   scope.forEach(c=>{
     const t = scopedTotals(c);
     const b = scopedBudget(c);
-    if(b>0 && t.cost>b) attention.push({ k:'red', icon:'ti-wallet', txt:`<b>${esc(c.title)}</b> a dépassé son budget de ${t.cost-b} €.`, id:c.id });
-    if(t.leads>0 && (t.cost/t.leads)>40) attention.push({ k:'red', icon:'ti-coin', txt:`<b>${esc(c.title)}</b> coûte ${Math.round(t.cost/t.leads)} € par lead, au-dessus du seuil de 40 €.`, id:c.id });
+    if(b>0 && t.cost > b*(1+MKTG_SETTINGS.seuils.budgetDepasse/100)) attention.push({ k:'red', icon:'ti-wallet', txt:`<b>${esc(c.title)}</b> a dépassé son budget de ${t.cost-b} ${MKTG_SETTINGS.devise}.`, id:c.id });
+    else if(b>0 && (t.cost/b*100) >= MKTG_SETTINGS.seuils.budgetPresqueEpuise && t.cost<=b) attention.push({ k:'orange', icon:'ti-wallet', txt:`<b>${esc(c.title)}</b> a consommé ${Math.round(t.cost/b*100)}% de son budget.`, id:c.id });
+    if(t.leads>0 && (t.cost/t.leads)>MKTG_SETTINGS.seuils.coutLeadMax) attention.push({ k:'red', icon:'ti-coin', txt:`<b>${esc(c.title)}</b> coûte ${Math.round(t.cost/t.leads)} ${MKTG_SETTINGS.devise} par lead, au-dessus du seuil de ${MKTG_SETTINGS.seuils.coutLeadMax} ${MKTG_SETTINGS.devise}.`, id:c.id });
     if(c.status==='En ligne' && t.cost>200 && t.leads===0) attention.push({ k:'red', icon:'ti-alert-triangle', txt:`<b>${esc(c.title)}</b> n'a produit aucun lead malgré ${t.cost} € dépensés.`, id:c.id });
     if(t.leads>=20 && t.conversions>0 && (t.cost/t.conversions)<200) attention.push({ k:'green', icon:'ti-trophy', txt:`<b>${esc(c.title)}</b> acquiert un client pour ${Math.round(t.cost/t.conversions)} € — performance à répliquer.`, id:c.id });
     if(t.leads>=10 && (t.conversions/t.leads)<0.04) attention.push({ k:'orange', icon:'ti-trending-down', txt:`<b>${esc(c.title)}</b> convertit à ${Math.round(t.conversions/t.leads*100)}% seulement — le problème est probablement après le lead.`, id:c.id });
@@ -4341,7 +4415,9 @@ function renderMktgAnalysis(){
             <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Impressions</span><b>${glob.impressions.toLocaleString('fr-FR')}</b></div>
             <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Clics</span><b>${glob.clicks.toLocaleString('fr-FR')}</b></div>
             <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Taux de clic</span><b>${glob.impressions?((glob.clicks/glob.impressions)*100).toFixed(2)+'%':'—'}</b></div>
-            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Coût par client</span><b>${glob.conv?Math.round(glob.cost/glob.conv)+' €':'—'}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Coût par client</span><b>${glob.conv?Math.round(glob.cost/glob.conv)+' '+MKTG_SETTINGS.devise:'—'}</b></div>
+            ${MKTG_SETTINGS.compterLeTemps?`<div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--th-border);margin-top:6px"><span style="color:var(--th-text-2)">Coût réel <span style="font-size:10.5px;color:var(--th-text-3)">(temps inclus)</span></span><b style="color:var(--th-orange)">${coutReel(glob.cost, glob.time)} ${MKTG_SETTINGS.devise}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Coût réel par lead</span><b style="color:var(--th-orange)">${glob.leads?Math.round(coutReel(glob.cost,glob.time)/glob.leads)+' '+MKTG_SETTINGS.devise:'—'}</b></div>`:''}
           </div>
         </div>
       </div>
@@ -4431,7 +4507,9 @@ function renderMktgAnalysis(){
         <div class="stat-card blue"><div class="val">${glob.timeEst} h</div><div class="label">Temps estimé</div></div>
         <div class="stat-card purple"><div class="val">${glob.time} h</div><div class="label">Temps réellement investi</div></div>
       </div>
-      <div class="hint-bar" style="margin:0 0 18px">${ic('ti-bulb',16)}<span>Le <b>temps réellement investi</b> fait partie du coût réel. Un canal peu cher en euros peut être très coûteux en heures — c'est ce que compare ce tableau.</span></div>
+      <div class="hint-bar" style="margin:0 0 18px">${ic('ti-bulb',16)}<span>${MKTG_SETTINGS.compterLeTemps
+        ? `Le temps est valorisé à <b>${MKTG_SETTINGS.valeurHoraire} ${MKTG_SETTINGS.devise}/h</b> (réglable dans Paramètres). Coût réel global : <b>${coutReel(glob.cost,glob.time)} ${MKTG_SETTINGS.devise}</b> au lieu de ${glob.cost} ${MKTG_SETTINGS.devise}.`
+        : `Le temps investi n'est pas valorisé actuellement. Activez ce réglage dans <b>Paramètres</b> pour comparer les canaux à leur vrai coût.`}</span></div>
       <table class="data-table"><thead><tr><th>Campagne</th><th>Budget</th><th>Dépensé</th><th>Écart</th><th>Temps estimé</th><th>Temps réellement investi</th><th>Écart</th><th>Coût/lead</th><th>Temps/lead</th></tr></thead>
       <tbody>${rows || `<tr><td colspan="9" style="text-align:center;color:var(--th-text-2);padding:26px">Aucune campagne sur ce périmètre.</td></tr>`}</tbody></table>`;
   }
@@ -4811,6 +4889,41 @@ function renderMktgIntelligence(){
         </div>
       </div>
 
+      <p class="section-label">Du fait mesuré à la conclusion</p>
+      <div class="card" style="margin-bottom:18px">
+        <div class="oia">
+          <div class="oia-step">
+            <div class="oia-head"><div class="oia-icon" style="background:var(--th-blue-bg);color:var(--th-blue)">${ic('ti-chart-bar',15)}</div>
+              <div><div class="oia-title">Observation</div><div class="oia-sub">Ce qui a été mesuré</div></div></div>
+            <p class="oia-text">${esc(l.observation||l.preuve)}</p>
+          </div>
+          <div class="oia-arrow">${ic('ti-arrow-left',15)}</div>
+          <div class="oia-step">
+            <div class="oia-head"><div class="oia-icon" style="background:var(--th-purple-bg);color:var(--th-purple)">${ic('ti-bulb',15)}</div>
+              <div><div class="oia-title">Interprétation</div><div class="oia-sub">Ce qu'on en déduit</div></div></div>
+            <p class="oia-text">${esc(l.interpretation||'—')}</p>
+          </div>
+          <div class="oia-arrow">${ic('ti-arrow-left',15)}</div>
+          <div class="oia-step oia-final">
+            <div class="oia-head"><div class="oia-icon" style="background:var(--th-orange-bg);color:var(--th-orange)">${ic('ti-brain',15)}</div>
+              <div><div class="oia-title">Apprentissage</div><div class="oia-sub">${esc(l.confiance)}</div></div></div>
+            <p class="oia-text" style="font-weight:600">${esc(l.texte)}</p>
+          </div>
+        </div>
+        <div class="hint-bar" style="margin-top:16px">${ic('ti-alert-triangle',15)}<span>L'observation est un fait. L'interprétation est un raisonnement qui peut être faux. <b>Le niveau de confiance dit lequel des deux domine encore.</b></span></div>
+      </div>
+
+      ${l.action?`<div class="action-reco">
+        <div class="action-reco-icon">${ic('ti-flag',18)}</div>
+        <div style="flex:1">
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Action recommandée</div>
+          <div style="font-size:14px;font-weight:700;line-height:1.6">${esc(l.action)}</div>
+        </div>
+        ${decisions.length
+          ? `<span class="badge green" style="flex-shrink:0">Déjà transformée en décision</span>`
+          : `<button class="add-btn" style="flex-shrink:0" onclick="alert('Cette action deviendra une décision active, reliée à cet apprentissage.\n\nDisponible dans la version réelle.')">Transformer en décision</button>`}
+      </div>` : ''}
+
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:18px">
         <div class="card"><div class="card-header"><div class="card-title">${ic('ti-chart-bar',17)}<span>Sur quoi c'est fondé</span></div></div>
           <div style="font-size:13.5px;font-weight:700;color:var(--th-orange);line-height:1.6;margin-bottom:14px">${esc(l.preuve)}</div>
@@ -4934,7 +5047,7 @@ function renderMktgIntelligence(){
       <p class="section-label" style="margin-top:26px">La boucle d'apprentissage</p>
       <div class="card">
         <div class="loop">
-          ${[['ti-bulb','Idée'],['ti-users','Secteur / Segment'],['ti-flask','Expérimentation ou campagne'],['ti-photo','Contenu'],['ti-chart-line','Résultat'],['ti-brain','Apprentissage'],['ti-flag','Décision']].map((x,i,arr)=>`
+          ${[['ti-bulb','Boîte à idées'],['ti-target','Idée'],['ti-flask','Expérimentation / Campagne'],['ti-chart-line','Résultats'],['ti-brain','Apprentissage'],['ti-flag','Décision']].map((x,i,arr)=>`
             <div class="loop-step">
               <div class="loop-icon">${ic(x[0],16)}</div>
               <div class="loop-lab">${x[1]}</div>
@@ -4965,9 +5078,10 @@ function renderMktgIntelligence(){
       <p class="section-label" style="margin-top:26px">Le parcours d'une idée</p>
       <div class="card">
         <div class="loop" style="justify-content:center">
-          ${[['ti-bulb','Boîte à idées'],['ti-target','Idée marketing'],['ti-flask','Expérimentation'],['ti-target-arrow','Campagne'],['ti-chart-line','Résultat'],['ti-brain','Apprentissage']].map((x,i,arr)=>`
+          ${[['ti-bulb','Boîte à idées'],['ti-target','Idée'],['ti-flask','Expérimentation / Campagne'],['ti-chart-line','Résultats'],['ti-brain','Apprentissage'],['ti-flag','Décision']].map((x,i,arr)=>`
             <div class="loop-step"><div class="loop-icon">${ic(x[0],16)}</div><div class="loop-lab">${x[1]}</div></div>
             ${i<arr.length-1?`<div class="loop-arrow">${ic('ti-arrow-left',13)}</div>`:''}`).join('')}
+          <div class="loop-back">${ic('ti-refresh',13)} nouvelle idée</div>
         </div>
       </div>`;
   }
@@ -5009,6 +5123,25 @@ function renderMktgIntelligence(){
         </div>`).join('')}
       </div>
 
+      <p class="section-label">Données utilisées</p>
+      <div class="card">
+        <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.75;margin-bottom:16px">L'assistant s'appuiera exclusivement sur les données déjà présentes dans TigerHub. Il n'ira chercher aucune source externe et n'inventera aucun chiffre.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px">
+          ${[['ti-target-arrow','Campagnes','Budgets, statuts, résultats'],
+             ['ti-share','Canaux','Performances par canal'],
+             ['ti-users','Audiences','Segments, personas, messages'],
+             ['ti-photo','Contenus','Production et diffusion'],
+             ['ti-chart-line','Résultats','Leads, clients, coûts, temps'],
+             ['ti-flask','Expérimentations','Hypothèses et conclusions'],
+             ['ti-brain','Apprentissages','Mémoire marketing et décisions']].map(x=>`
+            <div class="data-src-card">
+              <div class="data-src-icon">${ic(x[0],16)}</div>
+              <div style="font-size:12.5px;font-weight:700;margin:8px 0 3px">${x[1]}</div>
+              <div style="font-size:11px;color:var(--th-text-2);line-height:1.5">${x[2]}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+
       <p class="section-label">Questions en langage naturel</p>
       <div class="card">
         <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.75;margin-bottom:16px">Vous pourrez interroger vos données directement, sans construire de rapport :</p>
@@ -5020,10 +5153,216 @@ function renderMktgIntelligence(){
   el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===intelTab?' active':''}" onclick="switchIntelTab(${i})">${t}</div>`).join('')}</div>${body}`;
 }
 
+/* ---- Paramètres Marketing — centre de configuration ----
+   4 blocs : Organisation · Mesure · Suivi & alertes · Tracking.
+   Chaque réglage alimente réellement les autres sous-modules. */
+
+function renderMktgSettings(){
+  const el = document.getElementById('marketing-settingsContent'); if(!el) return;
+  const S = MKTG_SETTINGS;
+  const canauxActifs = CHANNEL_PORTFOLIO.filter(c=>c.statut==='Actif');
+  const canauxTest = CHANNEL_PORTFOLIO.filter(c=>c.statut==='Test');
+
+  el.innerHTML = `
+    <div class="hint-bar" style="margin-bottom:20px">${ic('ti-bulb',16)}<span>Ces règles sont utilisées par <b>tous les sous-modules</b> de Marketing. Les modifier ici change les calculs partout — rien n'est redéfini ailleurs.</span></div>
+
+    <!-- ===== 1. ORGANISATION ===== -->
+    <p class="section-label">Organisation</p>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">${ic('ti-building',17)}<span>Secteurs</span></div>
+          <span class="badge green">${SECTORS.filter(s=>s.actif).length} actif</span></div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          ${SECTORS.map(s=>`<div class="param-row">
+            <div class="param-toggle ${s.actif?'on':''}"><div class="param-knob"></div></div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">${esc(s.nom)}</div>
+              <div style="font-size:11px;color:var(--th-text-3)">${esc(s.libelle)}</div></div>
+            ${s.actif?`<span class="badge green">Actif</span>`:`<span class="badge gray">À venir</span>`}
+          </div>`).join('')}
+        </div>
+        <div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>Activer un secteur lui donne accès à toute la structure Marketing, <b>sans aucune donnée préremplie</b>.</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">${ic('ti-share',17)}<span>Canaux utilisés</span></div>
+          <span class="card-link" onclick="gotoMktg('channels')">Gérer les canaux →</span></div>
+        <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Actifs · ${canauxActifs.length}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+          ${canauxActifs.map(c=>`<span class="badge" style="background:${c.tint};color:${c.c}">${esc(c.nom)}</span>`).join('')}
+        </div>
+        <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">En test · ${canauxTest.length}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${canauxTest.map(c=>`<span class="badge">${esc(c.nom)}</span>`).join('')}
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border);font-size:11.5px;color:var(--th-text-2)">
+          ${CHANNEL_PORTFOLIO.length} canaux déclarés au total. Le statut de chacun se règle dans <b>Canaux</b>.
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">${ic('ti-category',17)}<span>Types de campagnes</span></div></div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px">
+          ${CAMPAIGN_TYPES.map(t=>`<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">${esc(t)}</span>`).join('')}
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border);font-size:11.5px;color:var(--th-text-2)">
+          Proposés à la création d'une campagne, dans <b>Plan de campagnes</b>.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">${ic('ti-flag',17)}<span>Statuts de campagne</span></div></div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">
+          ${CAMPAIGN_STATUSES.map(s=>statusBadge(s)).join('')}
+        </div>
+        <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Statuts de diffusion</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px">
+          ${DIFFUSION_STATUSES.map(s=>diffusionBadge(s)).join('')}
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border);font-size:11.5px;color:var(--th-text-2)">
+          Le statut TigerHub et le statut de diffusion restent <b>distincts</b> : une campagne peut être planifiée ici sans exister sur la plateforme.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 2. MESURE ===== -->
+    <p class="section-label">Mesure</p>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">${ic('ti-currency-euro',17)}<span>Coût du temps</span></div>
+          <div class="param-toggle ${S.compterLeTemps?'on':''}" onclick="toggleParam('compterLeTemps')" style="cursor:pointer"><div class="param-knob"></div></div></div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+          <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Valeur d'une heure</div>
+            <div style="display:flex;align-items:center;gap:7px">
+              <input type="number" class="stat-input" style="width:70px;font-size:15px;font-weight:700" value="${S.valeurHoraire}" onchange="setParam('valeurHoraire',this.value)">
+              <span style="font-size:14px;font-weight:700">${S.devise} / h</span></div></div>
+          <div style="flex:1"><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Devise</div>
+            <select class="status-select" style="width:100%" onchange="setParam('devise',this.value)">
+              <option ${S.devise==='€'?'selected':''}>€</option><option ${S.devise==='$'?'selected':''}>$</option></select></div>
+        </div>
+        <div class="formula-box">
+          ${S.compterLeTemps
+            ? `Coût réel = dépenses + (heures × ${S.valeurHoraire} ${S.devise})`
+            : `Coût réel = dépenses uniquement`}
+        </div>
+        <div style="font-size:12px;color:var(--th-text-2);line-height:1.7;margin-top:12px">
+          ${S.compterLeTemps
+            ? `Une campagne à 0 € qui demande 11 h coûte en réalité <b style="color:var(--th-text)">${11*S.valeurHoraire} ${S.devise}</b>. C'est ce que reflète Analyse &amp; résultats.`
+            : `Le temps investi reste affiché mais n'entre pas dans le coût. Activez ce réglage pour comparer les canaux à leur vrai coût.`}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">${ic('ti-target',17)}<span>Attribution</span></div></div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+          ${ATTRIBUTION_MODELS.map(m=>`<div class="param-radio ${S.attribution===m?'sel':''}" onclick="setParam('attribution','${m}')">
+            <div class="param-radio-dot"></div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:${S.attribution===m?'700':'600'}">${m}</div>
+              <div style="font-size:11px;color:var(--th-text-3)">${
+                m==='Premier clic'?"Le canal qui a fait découvrir TigerFlow reçoit le crédit"
+                :m==='Dernier clic'?"Le canal qui a déclenché la conversion reçoit le crédit"
+                :"Le crédit est réparti entre tous les canaux du parcours"}</div></div>
+            ${m==='Dernier clic'?`<span class="badge gray">Défaut V1</span>`:''}
+          </div>`).join('')}
+        </div>
+        <div class="hint-bar">${ic('ti-bulb',15)}<span>Le dernier clic reste le plus simple à mesurer tant que le suivi multi-touches n'existe pas.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">${ic('ti-file-text',17)}<span>Définitions &amp; calculs</span></div>
+        <span class="card-link" onclick="toggleSettingsAdvanced()">${settingsAdvanced?'Masquer les formules':'Voir les formules'} →</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px">
+        <div>
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Qu'est-ce qu'un lead ?</div>
+          <textarea class="param-textarea" onchange="setParam('defLead',this.value)">${esc(S.defLead)}</textarea>
+        </div>
+        <div>
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Qu'est-ce qu'une conversion ?</div>
+          <textarea class="param-textarea" onchange="setParam('defConversion',this.value)">${esc(S.defConversion)}</textarea>
+        </div>
+      </div>
+      ${settingsAdvanced ? `<div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--th-border)">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">
+          ${[['Coût par lead','dépenses ÷ nombre de leads'],
+             ['Taux de conversion','conversions ÷ leads × 100'],
+             ["Coût d'acquisition client",'dépenses ÷ nombre de clients'],
+             ['Coût réel', S.compterLeTemps?`dépenses + (heures × ${S.valeurHoraire} ${S.devise})`:'dépenses uniquement'],
+             ['Temps par lead','heures investies ÷ nombre de leads'],
+             ['ROI','(CA généré − coût) ÷ coût × 100']].map(f=>`
+            <div class="formula-item"><div style="font-size:12px;font-weight:700;margin-bottom:4px">${f[0]}</div>
+              <div class="formula-code">${f[1]}</div></div>`).join('')}
+        </div>
+        <div class="hint-bar" style="margin-top:14px">${ic('ti-alert-triangle',15)}<span>Le <b>ROI</b> nécessite le chiffre d'affaires réel par client, qui viendra de <b>Développement commercial</b> et <b>Finances</b>. Il reste non calculé aujourd'hui.</span></div>
+      </div>` : ''}
+    </div>
+
+    <!-- ===== 3. SUIVI & ALERTES ===== -->
+    <p class="section-label">Suivi &amp; alertes</p>
+    <div class="card">
+      <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.7;margin-bottom:18px">Ces seuils déclenchent les alertes affichées dans <b>Vue d'ensemble</b> et dans <b>Campagnes à surveiller</b>.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px">
+        ${[
+          ['seuils.coutLeadMax', "Coût par lead maximum", `Alerte si une campagne dépasse ce coût`, S.devise],
+          ['seuils.budgetDepasse', "Dépassement de budget toléré", `Alerte au-delà de ce pourcentage`, '%'],
+          ['seuils.joursSansLead', "Campagne sans lead", `Alerte après ce nombre de jours en ligne`, 'jours'],
+          ['seuils.echeanceJours', "Alerte d'échéance", `Prévenir X jours avant la fin d'une campagne`, 'jours'],
+          ['seuils.preparationMin', "Préparation minimale", `Alerte si une campagne planifiée est moins prête`, '%'],
+          ['seuils.budgetPresqueEpuise', "Budget bientôt épuisé", `Alerte à partir de ce niveau de consommation`, '%'],
+        ].map(([path,titre,desc,unite])=>{
+          const val = path.split('.').reduce((o,k)=>o[k], MKTG_SETTINGS);
+          return `<div class="seuil-card">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px">${titre}</div>
+            <div style="font-size:11.5px;color:var(--th-text-2);line-height:1.5;margin-bottom:10px">${desc}</div>
+            <div style="display:flex;align-items:center;gap:7px">
+              <input type="number" class="stat-input" style="width:70px;font-size:14px;font-weight:700" value="${val}" onchange="setParam('${path}',this.value)">
+              <span style="font-size:12.5px;color:var(--th-text-2);font-weight:600">${unite}</span></div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Une alerte n'est utile que si elle est rare. Des seuils trop stricts produisent du bruit que vous finirez par ignorer.</span></div>
+    </div>
+
+    <!-- ===== 4. TRACKING ===== -->
+    <p class="section-label">Tracking</p>
+    <div class="card">
+      <div class="card-header"><div class="card-title">${ic('ti-link',17)}<span>Convention UTM</span></div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:16px">
+        ${[['utm.source','Source','{canal}'],['utm.medium','Medium','marketing'],['utm.campaign','Campagne','{campagne}']].map(([path,lab,ph])=>{
+          const val = path.split('.').reduce((o,k)=>o[k], MKTG_SETTINGS);
+          return `<div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">${lab}</div>
+            <input type="text" class="wiz-input" value="${esc(val)}" placeholder="${ph}" onchange="setParam('${path}',this.value)"></div>`;
+        }).join('')}
+      </div>
+      <div class="formula-box" style="font-family:monospace;font-size:11.5px">
+        ?utm_source=${esc(S.utm.source)}&utm_medium=${esc(S.utm.medium)}&utm_campaign=${esc(S.utm.campaign)}
+      </div>
+      <div style="font-size:12px;color:var(--th-text-2);line-height:1.7;margin-top:12px">
+        Les variables <b>{canal}</b> et <b>{campagne}</b> sont remplacées automatiquement à la génération, depuis la fiche de chaque campagne.
+      </div>
+    </div>
+
+    <!-- Connexions -->
+    <p class="section-label">Ce que ces règles alimentent</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px">
+      ${[
+        ['ti-target-arrow','Plan de campagnes','Types, statuts, canaux, UTM','campaigns'],
+        ['ti-share','Canaux','Canaux disponibles et actifs','channels'],
+        ['ti-chart-line','Analyse & résultats','Définitions, attribution, coût du temps','analysis'],
+        ['ti-photo','Contenus','Canaux et types disponibles','contents'],
+        ['ti-brain','Intelligence marketing','Règles de mesure et de confiance','intelligence'],
+        ['ti-chart-donut-3',"Vue d'ensemble",'Alertes et indicateurs','overview'],
+      ].map(x=>`<div class="conn-card" onclick="gotoMktg('${x[3]}')" style="cursor:pointer">
+        <div class="conn-icon">${ic(x[0],15)}</div>
+        <div><div class="conn-label">${x[1]}</div><div class="conn-val" style="font-size:11.5px;font-weight:500;color:var(--th-text-2)">${x[2]} →</div></div></div>`).join('')}
+    </div>`;
+}
+
 /* ---- 9 & 10 : rafraîchissement global ---- */
 function refreshMktgAll(){
   renderMktgOverview(); renderMktgAudiences(); renderMktgCampaigns(); renderMktgChannels();
-  renderMktgContents(); renderMktgAnalysis(); renderMktgExperiments(); renderMktgIntelligence();
+  renderMktgContents(); renderMktgAnalysis(); renderMktgExperiments(); renderMktgIntelligence(); renderMktgSettings();
   if(openCampaignId) renderCampaignDetail();
 }
 
