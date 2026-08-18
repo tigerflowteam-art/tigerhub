@@ -312,6 +312,16 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ch-metric .v{font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .ch-metric .l{font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-top:1px}
 .ch-spark{flex-shrink:0}
+.collect-step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--th-border)}
+.collect-step:last-of-type{border-bottom:none}
+.collect-dot{width:20px;height:20px;border-radius:7px;border:1.6px solid var(--th-border);background:var(--th-card);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.collect-step.done .collect-dot{background:var(--th-green);border-color:var(--th-green);color:#fff}
+.sector-select-bar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--th-border)}
+.sector-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--th-border);background:var(--th-card);color:var(--th-text-2);border-radius:9px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .12s}
+.sector-chip:hover{border-color:var(--th-orange)}
+.sector-chip.active{background:var(--th-orange-bg);color:var(--th-orange);border-color:var(--th-orange);font-weight:700}
+.obj-link{display:inline-flex;align-items:center;gap:5px;color:var(--th-orange);font-weight:600;cursor:pointer;font-size:12px}
+.obj-link:hover{text-decoration:underline}
 .create-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;box-shadow:var(--th-shadow-lg);padding:7px;min-width:270px;z-index:20}
 .create-item{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:10px;cursor:pointer;font-size:13px}
 .create-item:hover{background:var(--th-orange-bg)}
@@ -1257,8 +1267,62 @@ const SECTORS = [
   { id:'chauf', nom:'Chauffage', libelle:'Chauffage / climatisation', actif:false, lancement:null },
 ];
 const ACTIVE_SECTOR = SECTORS.find(s=>s.actif);
-function sectorName(id){ const s = SECTORS.find(x=>x.id===id); return s ? s.nom : '—'; }
+function sectorName(id){ if(id==='all') return 'Multi-secteurs'; const s = SECTORS.find(x=>x.id===id); return s ? s.nom : '—'; }
 function sectorBadge(id){ return `<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">${esc(sectorName(id))}</span>`; }
+
+/* ============ DIMENSION SECTEUR TRANSVERSALE ============
+   Un seul Marketing TigerFlow. Le secteur est une dimension de filtrage,
+   jamais une duplication de structure. Ce filtre traverse tous les
+   sous-modules : Vue d'ensemble, Audiences, Campagnes, Canaux,
+   Contenus, Analyse, Expérimentations, Intelligence. */
+let currentSector = ACTIVE_SECTOR.id;
+function setSector(id){ currentSector = id; refreshMktgAll(); }
+function matchSector(objSectorId){
+  if(currentSector === 'all') return true;
+  if(objSectorId === 'all') return true;   // objet multi-secteurs : visible partout
+  return objSectorId === currentSector;
+}
+/* Vues filtrées : toute la chaîne lit ces fonctions, jamais les tableaux bruts */
+function sectorCampaigns(){ return campaigns.filter(c=>matchSector(c.sectorId)); }
+function sectorAudiences(){ return AUDIENCES.filter(a=>matchSector(a.sectorId)); }
+function sectorContents(){ return CONTENTS.filter(c=>matchSector(c.sectorId)); }
+function sectorExperiments(){ return EXPERIMENTS.filter(e=>matchSector(e.sectorId)); }
+function sectorLearnings(){ return LEARNINGS.filter(l=>matchSector(l.sectorId)); }
+function sectorMessages(){ const segs = sectorAudiences().map(a=>a.id); return MESSAGES.filter(m=>segs.includes(m.segmentId)); }
+
+/* Sélecteur de secteur, affiché en tête de chaque sous-module */
+function sectorSelector(){
+  const actifs = SECTORS.filter(s=>s.actif);
+  const futurs = SECTORS.filter(s=>!s.actif);
+  return `<div class="sector-select-bar">
+    <span style="font-size:11px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.06em">Secteur</span>
+    ${actifs.map(s=>`<button class="sector-chip ${currentSector===s.id?'active':''}" onclick="setSector('${s.id}')">
+      <span class="sector-dot" style="width:7px;height:7px;box-shadow:none"></span>${esc(s.nom)}</button>`).join('')}
+    ${actifs.length>1?`<button class="sector-chip ${currentSector==='all'?'active':''}" onclick="setSector('all')">Tous les secteurs</button>`:''}
+    ${futurs.length?`<span style="font-size:11.5px;color:var(--th-text-3);margin-left:6px">${futurs.map(s=>esc(s.nom)).join(' · ')} — à venir</span>`:''}
+  </div>`;
+}
+
+/* ---- Navigation croisée entre objets (une seule source de vérité) ---- */
+function goToAudience(segId){
+  gotoMktg('audiences');
+  setTimeout(()=>{ if(typeof openSegment==='function') openSegment(segId); }, 60);
+}
+function goToChannel(chName){
+  const ch = CHANNEL_PORTFOLIO.find(x=>x.mappedChannel===chName || x.nom===chName);
+  gotoMktg('channels');
+  if(ch) setTimeout(()=>{ if(typeof openChannel==='function') openChannel(ch.id); }, 60);
+}
+function goToCampaign(campId){
+  gotoMktg('campaigns');
+  setTimeout(()=>{ if(typeof openCampaignDetail==='function') openCampaignDetail(campId); }, 60);
+}
+function goToContents(){ gotoMktg('contents'); }
+function goToAnalysis(){ gotoMktg('analysis'); }
+/* Lien cliquable standard vers un autre objet du système */
+function objLink(label, onclick, icon){
+  return `<span class="obj-link" onclick="${onclick}">${icon?ic(icon,12):''}${esc(label)} →</span>`;
+}
 
 /* ---------- Audiences : définies ici, sélectionnées ailleurs ---------- */
 const AUDIENCES = [
@@ -1439,7 +1503,7 @@ function statusBadge(s){
 }
 function aggregateByChannel(){
   const agg = {};
-  campaigns.forEach(c => {
+  sectorCampaigns().forEach(c => {
     Object.entries(c.results||{}).forEach(([ch,r]) => {
       if(!agg[ch]) agg[ch] = { impressions:0,clicks:0,leads:0,conversions:0,cost:0,campaigns:0,time:0 };
       const a = agg[ch];
@@ -1452,7 +1516,7 @@ function aggregateByChannel(){
 }
 function aggregateBySegment(){
   const agg = {};
-  campaigns.forEach(c => {
+  sectorCampaigns().forEach(c => {
     const t = campTotals(c);
     if(!agg[c.segmentId]) agg[c.segmentId] = { leads:0,conversions:0,cost:0,time:0,campaigns:0 };
     const a = agg[c.segmentId];
@@ -1472,6 +1536,7 @@ const CONTENTS = [
   { id:'ct7', titre:"Étude de cas — Dératiseur 6 salariés", type:'Article', statut:'À créer', canal:'SEO', sectorId:'derat', segmentId:'seg2', campIdx:null, date:'2026-09-25' },
   { id:'ct8', titre:"Carrousel — 3 erreurs de tournée", type:'Post', statut:'À créer', canal:'LinkedIn', sectorId:'derat', segmentId:'seg1', campIdx:1, date:'2026-09-18' },
   { id:'ct9', titre:"Kit stand salon", type:'Document', statut:'À créer', canal:'Événement', sectorId:'derat', segmentId:'seg2', campIdx:5, date:'2026-11-05' },
+  { id:'ct10', titre:"Pourquoi TigerFlow fait gagner du temps aux entreprises de terrain", type:'Article', statut:'Publié', canal:'SEO', sectorId:'all', segmentId:'seg1', campIdx:null, date:'2026-07-20' },
 ];
 
 /* ---------- Expérimentations : hypothèse + conclusion obligatoires ---------- */
@@ -1529,9 +1594,10 @@ function daysUntil(iso){
 function renderMktgOverview(){
   const el = document.getElementById('marketing-overviewContent'); if(!el) return;
 
-  const active = campaigns.filter(c=>c.status==='En ligne');
-  const upcoming = campaigns.filter(c=>c.status==='Planifiée'||c.status==='En préparation');
-  const totals = campaigns.reduce((a,c)=>{ const t=campTotals(c); return {leads:a.leads+t.leads,conv:a.conv+t.conversions,cost:a.cost+t.cost,budget:a.budget+(c.budget||0),time:a.time+(c.timeReal||0)}; },{leads:0,conv:0,cost:0,budget:0,time:0});
+  const scoped = sectorCampaigns();
+  const active = scoped.filter(c=>c.status==='En ligne');
+  const upcoming = scoped.filter(c=>c.status==='Planifiée'||c.status==='En préparation');
+  const totals = scoped.reduce((a,c)=>{ const t=campTotals(c); return {leads:a.leads+t.leads,conv:a.conv+t.conversions,cost:a.cost+t.cost,budget:a.budget+(c.budget||0),time:a.time+(c.timeReal||0)}; },{leads:0,conv:0,cost:0,budget:0,time:0});
   const cplG = totals.leads? Math.round(totals.cost/totals.leads):0;
   const convG = totals.leads? Math.round(totals.conv/totals.leads*100):0;
   const budgetPct = totals.budget? Math.round(totals.cost/totals.budget*100):0;
@@ -1626,8 +1692,8 @@ function renderMktgOverview(){
     </div>`;
 
   /* ========== ZONE 4 — SEMAINE ========== */
-  const contentsToPublish = CONTENTS.filter(c=>c.statut==='Programmé'||c.statut==='Prêt');
-  const contentsToCreate = CONTENTS.filter(c=>c.statut==='À créer'||c.statut==='À préparer');
+  const contentsToPublish = sectorContents().filter(c=>c.statut==='Programmé'||c.statut==='Prêt');
+  const contentsToCreate = sectorContents().filter(c=>c.statut==='À créer'||c.statut==='À préparer');
   const zoneSemaine = `
     <div class="zone-label zone-orange">${ic('ti-calendar-week',14)} Cette semaine</div>
     <div class="grid-2">
@@ -1654,7 +1720,7 @@ function renderMktgOverview(){
   /* ========== ZONE 5 — PERFORMANCE ========== */
   const chAgg = aggregateByChannel();
   const segAgg = aggregateBySegment();
-  const activeChannels = [...new Set(campaigns.flatMap(c=>campChannels(c)))];
+  const activeChannels = [...new Set(scoped.flatMap(c=>campChannels(c)))];
 
   const kpis = `
     <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
@@ -1676,7 +1742,8 @@ function renderMktgOverview(){
           <div style="width:26px;height:26px;border-radius:8px;background:${st.tint||'var(--th-bg-alt)'};display:flex;align-items:center;justify-content:center;color:${st.c||'var(--th-text-2)'}">${ic(st.icon||'ti-target',14)}</div>
           <span style="flex:1;font-size:12.5px;font-weight:600">${esc(ch)}</span>
           <span style="font-size:11.5px;color:var(--th-text-2)">${a.leads} leads</span>
-          <span class="badge green">${Math.round(a.cost/a.leads)} €/lead</span></div>`;
+          <span class="badge green">${Math.round(a.cost/a.leads)} €/lead</span>
+          <span class="obj-link" onclick="goToChannel('${ch}')">→</span></div>`;
       }).join('')}
     </div>` : `
     <div class="card">
@@ -1694,7 +1761,7 @@ function renderMktgOverview(){
       <div class="card-header"><div class="card-title">${ic('ti-users',17)}<span>Meilleurs segments</span></div><span style="font-size:11px;color:var(--th-text-3)">par conversion</span></div>
       ${Object.entries(segAgg).filter(([,a])=>a.leads>0).sort((a,b)=>(b[1].conversions/b[1].leads)-(a[1].conversions/a[1].leads)).slice(0,4).map(([sid,a])=>`
         <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--th-border)">
-          <span style="flex:1;font-size:12.5px;font-weight:600">${esc(segName(sid))}</span>
+          <span style="flex:1;font-size:12.5px;font-weight:600;cursor:pointer" onclick="goToAudience('${sid}')">${esc(segName(sid))}</span>
           <span style="font-size:11.5px;color:var(--th-text-2)">${a.leads} leads</span>
           <span class="badge blue">${Math.round(a.conversions/a.leads*100)}%</span></div>`).join('')}
     </div>` : `
@@ -1705,7 +1772,7 @@ function renderMktgOverview(){
         <p>Les segments qui convertissent le mieux apparaîtront une fois les premières campagnes lancées.</p></div>
       <div style="font-size:11px;color:var(--th-text-3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 9px">Segments définis</div>
       <div style="display:flex;flex-direction:column;gap:7px">
-        ${AUDIENCES.map(a=>`<div style="display:flex;justify-content:space-between;font-size:12.5px"><span>${esc(a.nom)}</span><span class="badge ${a.potentiel==='Élevé'?'green':'gray'}">${esc(a.potentiel)}</span></div>`).join('')}
+        ${sectorAudiences().map(a=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;cursor:pointer" onclick="goToAudience('${a.id}')"><span>${esc(a.nom)}</span><span class="badge ${a.potentiel==='Élevé'?'green':'gray'}">${esc(a.potentiel)}</span></div>`).join('')}
       </div>
     </div>`;
 
@@ -1716,7 +1783,7 @@ function renderMktgOverview(){
 
   /* ========== ZONE 6 — ALERTES ========== */
   const alerts = [];
-  campaigns.forEach(c=>{
+  scoped.forEach(c=>{
     const t = campTotals(c);
     if(c.status==='En ligne' && t.cost>200 && t.leads===0)
       alerts.push({ txt:`<b>${esc(c.title)}</b> n'a généré aucun lead malgré ${t.cost} € dépensés.`, id:c.id });
@@ -1774,9 +1841,9 @@ function renderMktgOverview(){
 
   /* ========== ASSEMBLAGE ==========
      Avant lancement : préparer d'abord. Après : mesurer d'abord. */
-  el.innerHTML = preLaunch
+  el.innerHTML = sectorSelector() + (preLaunch
     ? zoneContexte + zoneLancement + zonePriorites + zoneSemaine + zonePerformance + zoneAlertes + zoneObjectifs
-    : zoneContexte + zonePerformance + zoneAlertes + zonePriorites + zoneSemaine + zoneObjectifs;
+    : zoneContexte + zonePerformance + zoneAlertes + zonePriorites + zoneSemaine + zoneObjectifs);
 }
 
 /* Navigation interne au module Marketing */
@@ -1888,8 +1955,9 @@ function renderMktgAudiences(){
       ${msgs.length ? msgs.map(m=>`<div class="msg-card ${m.verdict==='fonctionne'?'works':m.verdict==='ne fonctionne pas'?'fails':''}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:8px;flex-wrap:wrap">
           <div style="font-size:13.5px;font-weight:700;line-height:1.5">« ${esc(m.texte)} »</div>${verdictBadge(m.verdict)}</div>
-        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px">
-          <span class="badge">${esc(m.angle)}</span><span class="badge">${esc(m.canal)}</span>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
+          <span class="badge">${esc(m.angle)}</span>
+          <span class="badge" style="cursor:pointer" onclick="event.stopPropagation();goToChannel('${m.canal}')">${esc(m.canal)} →</span>
           <span class="badge">${m.clicks} clics</span><span class="badge">${m.leads} leads</span></div>
         <div style="font-size:12.5px;color:var(--th-text-2);line-height:1.65"><b style="color:var(--th-text)">Pourquoi :</b> ${esc(m.pourquoi)}</div>
       </div>`).join('') : `<div class="empty">${ic('ti-message-2',24)}Aucun message testé sur ce segment.</div>`}
@@ -1977,9 +2045,9 @@ function renderMktgAudiences(){
           <div style="display:flex;justify-content:space-between"><span>Campagnes</span><b style="color:var(--th-text)">${campaigns.filter(c=>c.sectorId===s.id).length}</b></div>
         </div></div>`).join('')}</div>
       <p class="section-label">Segments du secteur actif</p>
-      <table class="data-table"><thead><tr><th>Segment</th><th>Métier</th><th>Taille</th><th>Zone</th><th>Maturité</th><th>Phase</th><th>Messages</th><th>Potentiel</th></tr></thead><tbody>
-        ${AUDIENCES.map(a=>`<tr onclick="openSegment('${a.id}')" style="cursor:pointer">
-          <td class="dt-title">${esc(a.nom)}</td><td><span class="badge">${esc(a.metier)}</span></td>
+      <table class="data-table"><thead><tr><th>Segment</th><th>Secteur</th><th>Taille</th><th>Zone</th><th>Maturité</th><th>Phase</th><th>Messages</th><th>Potentiel</th></tr></thead><tbody>
+        ${sectorAudiences().map(a=>`<tr onclick="openSegment('${a.id}')" style="cursor:pointer">
+          <td class="dt-title">${esc(a.nom)}</td><td>${sectorBadge(a.sectorId)}</td>
           <td>${esc(a.taille)}</td><td>${esc(a.zone)}</td><td>${esc(a.maturite)}</td>
           <td><span class="badge blue">${esc(a.phase)}</span></td><td>${segMessages(a.id).length}</td>
           <td><span class="badge ${a.potentiel==='Élevé'?'green':'gray'}">${esc(a.potentiel)}</span></td></tr>`).join('')}
@@ -2038,7 +2106,7 @@ function renderMktgAudiences(){
   else {
     body = `
       <table class="data-table"><thead><tr><th>Segment</th><th>Campagnes</th><th>Leads</th><th>Clients</th><th>Taux</th><th>Coût / lead</th><th>Temps</th><th>Messages testés</th><th>Potentiel</th></tr></thead><tbody>
-        ${AUDIENCES.map(a=>{ const s = segAgg[a.id]||{leads:0,conversions:0,cost:0,time:0,campaigns:0};
+        ${sectorAudiences().map(a=>{ const s = segAgg[a.id]||{leads:0,conversions:0,cost:0,time:0,campaigns:0};
           return `<tr onclick="openSegment('${a.id}')" style="cursor:pointer"><td class="dt-title">${esc(a.nom)}</td>
           <td>${s.campaigns}</td><td>${s.leads}</td><td>${s.conversions}</td>
           <td><span class="badge ${s.leads&&s.conversions/s.leads>0.1?'green':'gray'}">${s.leads?Math.round(s.conversions/s.leads*100):0}%</span></td>
@@ -2049,7 +2117,7 @@ function renderMktgAudiences(){
       <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Ces chiffres sont <b>calculés depuis les campagnes</b>, jamais saisis ici. Un segment ne « possède » pas de résultats : il en reçoit.</span></div>`;
   }
 
-  el.innerHTML = `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===audienceTab?' active':''}" onclick="switchAudienceTab(${i})">${t}</div>`).join('')}</div>${body}`;
+  el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===audienceTab?' active':''}" onclick="switchAudienceTab(${i})">${t}</div>`).join('')}</div>${body}`;
 }
 
 /* ---- 3. Plan de campagnes ----
@@ -2081,11 +2149,12 @@ function daysToStart(c){
 function renderMktgCampaigns(){
   const el = document.getElementById('marketing-campaignsContent'); if(!el) return;
 
-  const online = campaigns.filter(c=>c.status==='En ligne');
-  const toPrep = campaigns.filter(c=>c.status==='Brouillon'||c.status==='En préparation');
-  const upcoming = campaigns.filter(c=>c.status==='Planifiée');
-  const budgetPrevu = campaigns.filter(c=>c.status!=='Terminée'&&c.status!=='Annulée').reduce((s,c)=>s+(c.budget||0),0);
-  const totalLeads = campaigns.reduce((s,c)=>s+campTotals(c).leads,0);
+  const scoped = sectorCampaigns();
+  const online = scoped.filter(c=>c.status==='En ligne');
+  const toPrep = scoped.filter(c=>c.status==='Brouillon'||c.status==='En préparation');
+  const upcoming = scoped.filter(c=>c.status==='Planifiée');
+  const budgetPrevu = scoped.filter(c=>c.status!=='Terminée'&&c.status!=='Annulée').reduce((s,c)=>s+(c.budget||0),0);
+  const totalLeads = scoped.reduce((s,c)=>s+campTotals(c).leads,0);
 
   /* ===== 1. BANDEAU AUJOURD'HUI ===== */
   const bandeau = `
@@ -2117,7 +2186,7 @@ function renderMktgCampaigns(){
 
   /* ===== 3. À FAIRE MAINTENANT ===== */
   const todos = [];
-  campaigns.forEach(c=>{
+  scoped.forEach(c=>{
     const d = daysToStart(c);
     const miss = missingItems(c);
     if(c.status==='Brouillon' && !c.budget)
@@ -2127,7 +2196,7 @@ function renderMktgCampaigns(){
     else if(c.status==='Brouillon' && miss.length>=4)
       todos.push({ urgence:'moyenne', titre:c.title, raison:`${miss.length} éléments manquants avant de pouvoir lancer`, detail:`${esc(segName(c.segmentId))}`, action:'Compléter', id:c.id });
   });
-  CONTENTS.filter(ct=>ct.statut==='À créer'||ct.statut==='À préparer').slice(0,2).forEach(ct=>{
+  sectorContents().filter(ct=>ct.statut==='À créer'||ct.statut==='À préparer').slice(0,2).forEach(ct=>{
     todos.push({ urgence:'moyenne', titre:ct.titre, raison:`Contenu ${ct.statut.toLowerCase()} · publication prévue le ${fmtDate(ct.date)}`, detail:esc(ct.canal), action:'Voir le contenu', section:'contents' });
   });
 
@@ -2149,7 +2218,7 @@ function renderMktgCampaigns(){
     </div>`;
 
   /* ===== 4. PROCHAINS LANCEMENTS ===== */
-  const launches = campaigns
+  const launches = scoped
     .filter(c=>['Brouillon','En préparation','Planifiée'].includes(c.status) && c.startDate)
     .sort((a,b)=>new Date(a.startDate)-new Date(b.startDate))
     .slice(0,5);
@@ -2188,7 +2257,7 @@ function renderMktgCampaigns(){
     'En pause':c=>c.status==='En pause',
     'Terminées':c=>c.status==='Terminée'
   };
-  const usedChannels = [...new Set(campaigns.flatMap(c=>Object.keys(c.channelBudgets||{})))];
+  const usedChannels = [...new Set(scoped.flatMap(c=>Object.keys(c.channelBudgets||{})))];
   const filtres = `
     <div class="filter-bar" style="margin-top:26px">
       ${Object.keys(views).map(v=>`<button class="filter-chip${campView===v?' active':''}" onclick="setCampView('${v}')">${v}</button>`).join('')}
@@ -2206,7 +2275,7 @@ function renderMktgCampaigns(){
     </div>`;
 
   /* ===== 6. LISTE ===== */
-  let list = campaigns.filter(views[campView]||(()=>true));
+  let list = scoped.filter(views[campView]||(()=>true));
   if(campSearch) list = list.filter(c=>c.title.toLowerCase().includes(campSearch));
   if(campFilterChannel!=='Tous') list = list.filter(c=>Object.keys(c.channelBudgets||{}).includes(campFilterChannel));
   if(campFilterObjective!=='Tous') list = list.filter(c=>c.objective===campFilterObjective);
@@ -2216,8 +2285,8 @@ function renderMktgCampaigns(){
     const pct = checklistPct(c);
     return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer">
       <td><div class="dt-title">${esc(c.title)}</div><div class="dt-sub">${esc(c.objective||'')}</div></td>
-      <td style="font-size:12.5px;color:var(--th-text-2)">${esc(segName(c.segmentId))}</td>
-      <td>${chs.length ? chs.slice(0,2).map(ch=>{const st=CHANNEL_STYLE[ch]||{};return `<span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span>`;}).join(' ')+(chs.length>2?` <span class="badge">+${chs.length-2}</span>`:'') : '<span style="color:var(--th-text-3)">—</span>'}</td>
+      <td style="font-size:12.5px;color:var(--th-text-2);cursor:pointer" onclick="event.stopPropagation();goToAudience('${c.segmentId}')">${esc(segName(c.segmentId))} →</td>
+      <td>${chs.length ? chs.slice(0,2).map(ch=>{const st=CHANNEL_STYLE[ch]||{};return `<span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'};cursor:pointer" onclick="event.stopPropagation();goToChannel('${ch}')">${esc(ch)}</span>`;}).join(' ')+(chs.length>2?` <span class="badge">+${chs.length-2}</span>`:'') : '<span style="color:var(--th-text-3)">—</span>'}</td>
       <td style="font-size:12px;color:var(--th-text-2);white-space:nowrap">${c.startDate?fmtDate(c.startDate):'—'}${c.endDate?' → '+fmtDate(c.endDate):''}</td>
       <td style="white-space:nowrap">${c.budget||0} €</td>
       <td style="width:110px"><div style="display:flex;align-items:center;gap:7px">
@@ -2228,7 +2297,7 @@ function renderMktgCampaigns(){
     </tr>`;
   }).join('');
 
-  el.innerHTML = bandeau + kpis
+  el.innerHTML = sectorSelector() + bandeau + kpis
     + `<div class="grid-2">${blocTodo}${blocLaunches}</div>`
     + filtres
     + `<table class="data-table"><thead><tr><th>Campagne</th><th>Cible</th><th>Canaux</th><th>Dates</th><th>Budget</th><th>Préparation</th><th>Diffusion</th><th>Statut TigerHub</th></tr></thead>
@@ -2660,7 +2729,7 @@ function renderCampaignDetail(){
     body = `
       <div class="grid-2">
         <div class="card"><div class="card-header"><div class="card-title">${ic('ti-users',17)}<span>Audience ciblée</span></div>
-          <span class="card-link" onclick="closeCampaignDetail();setTimeout(()=>{gotoMktg('audiences');openSegment('${c.segmentId}')},60)">Voir l'audience →</span></div>
+          <span class="card-link" onclick="closeCampaignDetail();setTimeout(()=>goToAudience('${c.segmentId}'),60)">Voir l'audience →</span></div>
           ${seg ? `<div style="font-size:15px;font-weight:800;margin-bottom:12px">${esc(seg.nom)}</div>
             <div style="font-size:12.5px;line-height:2">
               <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Métier</span><b>${esc(seg.metier)}</b></div>
@@ -2824,14 +2893,18 @@ function renderCampaignDetail(){
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px">
       <div class="conn-card"><div class="conn-icon">${ic('ti-bulb',15)}</div>
         <div><div class="conn-label">Vient de</div><div class="conn-val">${c.sourceIdeaText?`« ${esc(c.sourceIdeaText)} »`:'Création directe'}</div></div></div>
-      <div class="conn-card" onclick="closeCampaignDetail();setTimeout(()=>{gotoMktg('audiences');openSegment('${c.segmentId}')},60)" style="cursor:pointer">
+      <div class="conn-card" onclick="closeCampaignDetail();setTimeout(()=>goToAudience('${c.segmentId}'),60)" style="cursor:pointer">
         <div class="conn-icon">${ic('ti-users',15)}</div>
-        <div><div class="conn-label">Cible</div><div class="conn-val">${esc(segName(c.segmentId))}</div></div></div>
-      <div class="conn-card" onclick="closeCampaignDetail();setTimeout(()=>gotoMktg('contents'),60)" style="cursor:pointer">
+        <div><div class="conn-label">Cible</div><div class="conn-val">${esc(segName(c.segmentId))} →</div></div></div>
+      ${chs.length?`<div class="conn-card" onclick="closeCampaignDetail();setTimeout(()=>goToChannel('${chs[0]}'),60)" style="cursor:pointer">
+        <div class="conn-icon">${ic('ti-share',15)}</div>
+        <div><div class="conn-label">Diffusée sur</div><div class="conn-val">${esc(chs.join(', '))} →</div></div></div>`:''}
+      <div class="conn-card" onclick="closeCampaignDetail();setTimeout(()=>goToContents(),60)" style="cursor:pointer">
         <div class="conn-icon">${ic('ti-photo',15)}</div>
-        <div><div class="conn-label">Utilise</div><div class="conn-val">${relContents.length} contenu${relContents.length>1?'s':''}</div></div></div>
-      <div class="conn-card"><div class="conn-icon">${ic('ti-user-plus',15)}</div>
-        <div><div class="conn-label">A généré</div><div class="conn-val">${t.conversions} client${t.conversions>1?'s':''} → Dév. commercial</div></div></div>
+        <div><div class="conn-label">Utilise</div><div class="conn-val">${relContents.length} contenu${relContents.length>1?'s':''} →</div></div></div>
+      <div class="conn-card" onclick="closeCampaignDetail();setTimeout(()=>goToAnalysis(),60)" style="cursor:pointer">
+        <div class="conn-icon">${ic('ti-chart-line',15)}</div>
+        <div><div class="conn-label">Résultats</div><div class="conn-val">${t.leads} leads · ${t.conversions} clients →</div></div></div>
     </div>`;
 }
 
@@ -2846,79 +2919,105 @@ const CHANNEL_MODES = ['Organique','Payant','Partenaire','Propriétaire','Earned
 
 /* Le portefeuille complet : déclaré une fois, activé progressivement.
    'actif' au lancement = 6 canaux. Le reste attend son tour. */
+/* ---- Source des données : d'où vient l'information de ce canal ? ----
+   Canaux est une couche de pilotage et d'agrégation, pas une base
+   indépendante. Chaque canal déclare sa source et son mode de collecte
+   pour que les intégrations API puissent arriver sans changer l'UX. */
+const DATA_SOURCES = {
+  'tigerhub':      { label:'TigerHub', icon:'ti-layout-dashboard', c:'#16A34A', tint:'#EAFAF0' },
+  'externe':       { label:'Plateforme externe', icon:'ti-share', c:'#3B82F6', tint:'#EAF1FE' },
+  'mixte':         { label:'TigerHub + plateforme', icon:'ti-link', c:'#8B5CF6', tint:'#F3EEFE' },
+  'manuel':        { label:'Saisie manuelle', icon:'ti-pencil', c:'#B45309', tint:'#FBF0E2' },
+};
+const COLLECT_MODES = {
+  'manuel':  { label:'Manuel actuellement', c:'var(--th-text-2)' },
+  'import':  { label:'Import', c:'var(--th-blue)' },
+  'sync':    { label:'Synchronisation future', c:'var(--th-purple)' },
+  'api':     { label:'API future', c:'var(--th-orange)' },
+};
+function sourceBadge(src){
+  const s = DATA_SOURCES[src] || DATA_SOURCES['manuel'];
+  return `<span class="badge" style="background:${s.tint};color:${s.c}">${ic(s.icon,12)} ${s.label}</span>`;
+}
+function collectBadge(mode){
+  const m = COLLECT_MODES[mode] || COLLECT_MODES['manuel'];
+  return `<span class="badge" style="color:${m.c}">${m.label}</span>`;
+}
+
 const CHANNEL_PORTFOLIO = [
   /* ORGANIC & CONTENU */
   { id:'seo', nom:'SEO', cat:'Organic & contenu', icon:'ti-search', c:'#6D28D9', tint:'#F0EBFC', statut:'Actif', priorite:'Critique', mode:'Organique', objectif:'Acquisition',
     role:"Attirer les dératiseurs qui cherchent activement une solution", mappedChannel:'SEO',
+    source:'mixte', collecte:'api', modulesSrc:"Contenus · Plan de campagnes", platformSrc:"Search Console, outils SEO",
     opportunite:"Les mots-clés réglementaires convertissent 3x mieux que les génériques — produire davantage sur ce thème." },
   { id:'contenu', nom:'Contenu', cat:'Organic & contenu', icon:'ti-file-text', c:'#0F766E', tint:'#E4F3F1', statut:'Actif', priorite:'Haute', mode:'Propriétaire', objectif:'Lead',
     role:"Guides et études de cas pour capturer des emails", mappedChannel:'Contenu',
-    opportunite:"Une étude de cas par segment permettrait de couvrir les 3 audiences." },
-  { id:'blog', nom:'Blog', cat:'Organic & contenu', icon:'ti-notebook', c:'#0F766E', tint:'#E4F3F1', statut:'À développer', priorite:'Moyenne', mode:'Propriétaire', objectif:'Notoriété', role:"Publication régulière sur les métiers du nuisible" },
+    opportunite:"Une étude de cas par segment permettrait de couvrir les 3 audiences.", source:'tigerhub', collecte:'manuel', modulesSrc:"Contenus · Plan de campagnes" },
+  { id:'blog', nom:'Blog', cat:'Organic & contenu', icon:'ti-notebook', c:'#0F766E', tint:'#E4F3F1', statut:'À développer', priorite:'Moyenne', mode:'Propriétaire', objectif:'Notoriété', role:"Publication régulière sur les métiers du nuisible", source:'tigerhub', collecte:'manuel', modulesSrc:"Contenus" },
   { id:'aeo', nom:'AEO / AI Search', cat:'Organic & contenu', icon:'ti-robot', c:'#8B5CF6', tint:'#F3EEFE', statut:'À développer', priorite:'Haute', mode:'Organique', objectif:'Notoriété',
     role:"Être recommandé quand on demande à une IA quel logiciel choisir",
-    opportunite:"Canal émergent : peu de concurrents s'y positionnent aujourd'hui." },
-  { id:'local', nom:'Google Business / local', cat:'Organic & contenu', icon:'ti-map', c:'#1A73E8', tint:'#E8F0FE', statut:'À venir', priorite:'Faible', mode:'Propriétaire', objectif:'Notoriété', role:"Visibilité locale" },
-  { id:'annuaires', nom:'Annuaires & comparateurs', cat:'Organic & contenu', icon:'ti-list', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Moyenne', mode:'Earned', objectif:'Acquisition', role:"Être référencé là où on compare les logiciels métier" },
+    opportunite:"Canal émergent : peu de concurrents s'y positionnent aujourd'hui.", source:'manuel', collecte:'manuel', modulesSrc:"Contenus", platformSrc:"Requêtes surveillées à relever à la main" },
+  { id:'local', nom:'Google Business / local', cat:'Organic & contenu', icon:'ti-map', c:'#1A73E8', tint:'#E8F0FE', statut:'À venir', priorite:'Faible', mode:'Propriétaire', objectif:'Notoriété', role:"Visibilité locale", source:'externe', collecte:'api', platformSrc:"Google Business Profile" },
+  { id:'annuaires', nom:'Annuaires & comparateurs', cat:'Organic & contenu', icon:'ti-list', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Moyenne', mode:'Earned', objectif:'Acquisition', role:"Être référencé là où on compare les logiciels métier", source:'manuel', collecte:'manuel', platformSrc:"Relevé manuel des référencements" },
 
   /* SOCIAL & CRÉATEURS */
   { id:'linkedin', nom:'LinkedIn', cat:'Social & créateurs', icon:'ti-briefcase', c:'#0A66C2', tint:'#E7F0FA', statut:'Actif', priorite:'Critique', mode:'Organique', objectif:'Acquisition',
     role:"Canal principal B2B : atteindre les dirigeants d'entreprises de dératisation", mappedChannel:'LinkedIn',
-    opportunite:"Tester les dirigeants d'entreprises 2-10 salariés avec un format vidéo court." },
+    opportunite:"Tester les dirigeants d'entreprises 2-10 salariés avec un format vidéo court.", source:'mixte', collecte:'api', modulesSrc:"Plan de campagnes", platformSrc:"LinkedIn Campaign Manager" },
   { id:'youtube', nom:'YouTube', cat:'Social & créateurs', icon:'ti-presentation', c:'#CC0000', tint:'#FBEAEA', statut:'Test', priorite:'Haute', mode:'Organique', objectif:'Notoriété',
-    role:"Démonstrations produit et contenus métier", mappedChannel:'YouTube' },
-  { id:'instagram', nom:'Instagram', cat:'Social & créateurs', icon:'ti-photo', c:'#C13584', tint:'#FBEAF3', statut:'Test', priorite:'Faible', mode:'Organique', objectif:'Notoriété', role:"Coulisses et contenus terrain", mappedChannel:'Instagram' },
-  { id:'tiktok', nom:'TikTok', cat:'Social & créateurs', icon:'ti-sparkles', c:'#1A1523', tint:'#EFEEF1', statut:'Test', priorite:'Faible', mode:'Organique', objectif:'Notoriété', role:"Formats courts, audience jeune de techniciens", mappedChannel:'TikTok' },
-  { id:'facebook', nom:'Facebook', cat:'Social & créateurs', icon:'ti-share', c:'#1877F2', tint:'#E9F1FE', statut:'À venir', priorite:'Faible', mode:'Organique', objectif:'Notoriété', role:"Groupes professionnels du nuisible", mappedChannel:'Facebook' },
+    role:"Démonstrations produit et contenus métier", mappedChannel:'YouTube', source:'mixte', collecte:'api', modulesSrc:"Contenus · Plan de campagnes", platformSrc:"YouTube Studio" },
+  { id:'instagram', nom:'Instagram', cat:'Social & créateurs', icon:'ti-photo', c:'#C13584', tint:'#FBEAF3', statut:'Test', priorite:'Faible', mode:'Organique', objectif:'Notoriété', role:"Coulisses et contenus terrain", mappedChannel:'Instagram', source:'mixte', collecte:'api', modulesSrc:"Contenus", platformSrc:"Meta Business Suite" },
+  { id:'tiktok', nom:'TikTok', cat:'Social & créateurs', icon:'ti-sparkles', c:'#1A1523', tint:'#EFEEF1', statut:'Test', priorite:'Faible', mode:'Organique', objectif:'Notoriété', role:"Formats courts, audience jeune de techniciens", mappedChannel:'TikTok', source:'mixte', collecte:'api', modulesSrc:"Contenus", platformSrc:"TikTok Business" },
+  { id:'facebook', nom:'Facebook', cat:'Social & créateurs', icon:'ti-share', c:'#1877F2', tint:'#E9F1FE', statut:'À venir', priorite:'Faible', mode:'Organique', objectif:'Notoriété', role:"Groupes professionnels du nuisible", mappedChannel:'Facebook', source:'mixte', collecte:'api', modulesSrc:"Contenus", platformSrc:"Meta Business Suite" },
   { id:'ugc', nom:'UGC & témoignages', cat:'Social & créateurs', icon:'ti-message-2', c:'#B45309', tint:'#FBF0E2', statut:'Test', priorite:'Haute', mode:'Earned', objectif:'Conversion',
     role:"Témoignages clients authentiques en vidéo",
-    opportunite:"Le premier client satisfait sera la meilleure preuve sociale du lancement." },
-  { id:'influence', nom:'Influence & créateurs', cat:'Social & créateurs', icon:'ti-users', c:'#EC4899', tint:'#FCEAF4', statut:'Test', priorite:'Moyenne', mode:'Payant', objectif:'Notoriété', role:"Créateurs spécialisés B2B et métiers manuels" },
+    opportunite:"Le premier client satisfait sera la meilleure preuve sociale du lancement.", source:'tigerhub', collecte:'manuel', modulesSrc:"Contenus · Contacts" },
+  { id:'influence', nom:'Influence & créateurs', cat:'Social & créateurs', icon:'ti-users', c:'#EC4899', tint:'#FCEAF4', statut:'Test', priorite:'Moyenne', mode:'Payant', objectif:'Notoriété', role:"Créateurs spécialisés B2B et métiers manuels", source:'tigerhub', collecte:'manuel', modulesSrc:"Partenaires · Plan de campagnes" },
   { id:'clipping', nom:'Clipping', cat:'Social & créateurs', icon:'ti-video', c:'#7C3AED', tint:'#F1EBFD', statut:'Test', priorite:'Moyenne', mode:'Payant', objectif:'Notoriété',
     role:"Réseau de clippers distribuant des formats courts sur plusieurs plateformes",
-    opportunite:"Intéressant pour le lancement : beaucoup de formats courts, rémunération à la vue.", isClipping:true },
+    opportunite:"Intéressant pour le lancement : beaucoup de formats courts, rémunération à la vue.", isClipping:true, source:'manuel', collecte:'import', modulesSrc:"Plan de campagnes", platformSrc:"Aucune plateforme connectée — saisie ou import CSV" },
 
   /* ACQUISITION PAYANTE */
   { id:'googleads', nom:'Google Ads', cat:'Acquisition payante', icon:'ti-ad-2', c:'#1A73E8', tint:'#E8F0FE', statut:'Actif', priorite:'Haute', mode:'Payant', objectif:'Acquisition',
     role:"Capter la demande existante sur les requêtes métier", mappedChannel:'Google Ads',
-    opportunite:"Volume de recherche faible sur ce marché de niche — surveiller le coût par lead." },
+    opportunite:"Volume de recherche faible sur ce marché de niche — surveiller le coût par lead.", source:'mixte', collecte:'api', modulesSrc:"Plan de campagnes", platformSrc:"Google Ads" },
   { id:'linkedinads', nom:'LinkedIn Ads', cat:'Acquisition payante', icon:'ti-briefcase', c:'#0A66C2', tint:'#E7F0FA', statut:'À développer', priorite:'Haute', mode:'Payant', objectif:'Lead',
-    role:"Ciblage précis par fonction et taille d'entreprise" },
-  { id:'metaads', nom:'Meta Ads', cat:'Acquisition payante', icon:'ti-ad-2', c:'#0866FF', tint:'#E8F0FE', statut:'À venir', priorite:'Moyenne', mode:'Payant', objectif:'Acquisition', role:"Retargeting des visiteurs du site", mappedChannel:'Meta Ads' },
-  { id:'microsoftads', nom:'Microsoft Ads', cat:'Acquisition payante', icon:'ti-ad-2', c:'#00A4EF', tint:'#E4F4FD', statut:'À venir', priorite:'Faible', mode:'Payant', objectif:'Acquisition', role:"Audience professionnelle sur Bing" },
-  { id:'display', nom:'Display & programmatique', cat:'Acquisition payante', icon:'ti-layout-grid', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Payant', objectif:'Notoriété', role:"Bannières sur sites métier" },
+    role:"Ciblage précis par fonction et taille d'entreprise", source:'mixte', collecte:'api', modulesSrc:"Plan de campagnes", platformSrc:"LinkedIn Campaign Manager" },
+  { id:'metaads', nom:'Meta Ads', cat:'Acquisition payante', icon:'ti-ad-2', c:'#0866FF', tint:'#E8F0FE', statut:'À venir', priorite:'Moyenne', mode:'Payant', objectif:'Acquisition', role:"Retargeting des visiteurs du site", mappedChannel:'Meta Ads', source:'mixte', collecte:'api', modulesSrc:"Plan de campagnes", platformSrc:"Meta Ads Manager" },
+  { id:'microsoftads', nom:'Microsoft Ads', cat:'Acquisition payante', icon:'ti-ad-2', c:'#00A4EF', tint:'#E4F4FD', statut:'À venir', priorite:'Faible', mode:'Payant', objectif:'Acquisition', role:"Audience professionnelle sur Bing", source:'mixte', collecte:'api', modulesSrc:"Plan de campagnes", platformSrc:"Microsoft Advertising" },
+  { id:'display', nom:'Display & programmatique', cat:'Acquisition payante', icon:'ti-layout-grid', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Payant', objectif:'Notoriété', role:"Bannières sur sites métier", source:'externe', collecte:'api', platformSrc:"Régies programmatiques" },
 
   /* EMAIL & MESSAGING */
   { id:'email', nom:'Email', cat:'Email & messaging', icon:'ti-mail', c:'#B45309', tint:'#FBF0E2', statut:'Actif', priorite:'Critique', mode:'Propriétaire', objectif:'Conversion',
     role:"Séquences de prospection et onboarding des essais", mappedChannel:'Email',
-    opportunite:"Le combiné LinkedIn + email convertit mieux que chaque canal isolé." },
-  { id:'newsletter', nom:'Newsletter', cat:'Email & messaging', icon:'ti-news', c:'#B45309', tint:'#FBF0E2', statut:'À développer', priorite:'Moyenne', mode:'Propriétaire', objectif:'Fidélisation', role:"Contenu régulier vers la base d'emails" },
-  { id:'sms', nom:'SMS / WhatsApp', cat:'Email & messaging', icon:'ti-message-2', c:'#16A34A', tint:'#EAFAF0', statut:'À venir', priorite:'Faible', mode:'Propriétaire', objectif:'Conversion', role:"Relances courtes — frontière à surveiller avec le commercial" },
+    opportunite:"Le combiné LinkedIn + email convertit mieux que chaque canal isolé.", source:'mixte', collecte:'sync', modulesSrc:"Plan de campagnes · Contacts", platformSrc:"Outil d'emailing" },
+  { id:'newsletter', nom:'Newsletter', cat:'Email & messaging', icon:'ti-news', c:'#B45309', tint:'#FBF0E2', statut:'À développer', priorite:'Moyenne', mode:'Propriétaire', objectif:'Fidélisation', role:"Contenu régulier vers la base d'emails", source:'mixte', collecte:'sync', modulesSrc:"Contenus · Contacts", platformSrc:"Outil d'emailing" },
+  { id:'sms', nom:'SMS / WhatsApp', cat:'Email & messaging', icon:'ti-message-2', c:'#16A34A', tint:'#EAFAF0', statut:'À venir', priorite:'Faible', mode:'Propriétaire', objectif:'Conversion', role:"Relances courtes — frontière à surveiller avec le commercial", source:'externe', collecte:'api', platformSrc:"Fournisseur SMS / WhatsApp Business" },
 
   /* RELATIONS & PARTENARIATS */
   { id:'partenariats', nom:'Partenariats & réseau pro', cat:'Relations & partenariats', icon:'ti-handshake', c:'#0F766E', tint:'#E4F3F1', statut:'Actif', priorite:'Haute', mode:'Partenaire', objectif:'Acquisition',
     role:"Fédérations et associations professionnelles du nuisible", mappedChannel:'Partenariat',
-    opportunite:"Une fédération professionnelle apporte crédibilité et accès direct au marché." },
-  { id:'affiliation', nom:'Affiliation', cat:'Relations & partenariats', icon:'ti-link', c:'#8B5CF6', tint:'#F3EEFE', statut:'Test', priorite:'Moyenne', mode:'Partenaire', objectif:'Acquisition', role:"Commissions sur apport de clients" },
+    opportunite:"Une fédération professionnelle apporte crédibilité et accès direct au marché.", source:'tigerhub', collecte:'manuel', modulesSrc:"Partenaires · Contacts · Plan de campagnes" },
+  { id:'affiliation', nom:'Affiliation', cat:'Relations & partenariats', icon:'ti-link', c:'#8B5CF6', tint:'#F3EEFE', statut:'Test', priorite:'Moyenne', mode:'Partenaire', objectif:'Acquisition', role:"Commissions sur apport de clients", source:'tigerhub', collecte:'manuel', modulesSrc:"Partenaires · Plan de campagnes" },
   { id:'referral', nom:'Referral & bouche-à-oreille', cat:'Relations & partenariats', icon:'ti-users', c:'#16A34A', tint:'#EAFAF0', statut:'À développer', priorite:'Haute', mode:'Earned', objectif:'Acquisition',
     role:"Un client recommande TigerFlow à un confrère",
-    opportunite:"Sur un marché de niche, le bouche-à-oreille est probablement le canal le plus puissant à terme." },
-  { id:'avis', nom:'Avis & réputation', cat:'Relations & partenariats', icon:'ti-star', c:'#F59E0B', tint:'#FEF3E2', statut:'À développer', priorite:'Haute', mode:'Earned', objectif:'Conversion', role:"Google, Trustpilot, Capterra" },
-  { id:'presse', nom:'Presse & podcasts', cat:'Relations & partenariats', icon:'ti-news', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Earned', objectif:'Notoriété', role:"Presse spécialisée et médias entrepreneuriaux" },
-  { id:'communautes', nom:'Communautés', cat:'Relations & partenariats', icon:'ti-messages', c:'#EC4899', tint:'#FCEAF4', statut:'Test', priorite:'Moyenne', mode:'Organique', objectif:'Notoriété', role:"Groupes LinkedIn et forums métier — apporter de la valeur avant de vendre" },
+    opportunite:"Sur un marché de niche, le bouche-à-oreille est probablement le canal le plus puissant à terme.", source:'tigerhub', collecte:'manuel', modulesSrc:"Contacts · Success client · Plan de campagnes" },
+  { id:'avis', nom:'Avis & réputation', cat:'Relations & partenariats', icon:'ti-star', c:'#F59E0B', tint:'#FEF3E2', statut:'À développer', priorite:'Haute', mode:'Earned', objectif:'Conversion', role:"Google, Trustpilot, Capterra", source:'externe', collecte:'import', platformSrc:"Google, Trustpilot, Capterra" },
+  { id:'presse', nom:'Presse & podcasts', cat:'Relations & partenariats', icon:'ti-news', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Earned', objectif:'Notoriété', role:"Presse spécialisée et médias entrepreneuriaux", source:'tigerhub', collecte:'manuel', modulesSrc:"Contacts · Partenaires · Plan de campagnes" },
+  { id:'communautes', nom:'Communautés', cat:'Relations & partenariats', icon:'ti-messages', c:'#EC4899', tint:'#FCEAF4', statut:'Test', priorite:'Moyenne', mode:'Organique', objectif:'Notoriété', role:"Groupes LinkedIn et forums métier — apporter de la valeur avant de vendre", source:'tigerhub', collecte:'manuel', modulesSrc:"Contenus · Plan de campagnes" },
 
   /* OFFLINE & ÉVÉNEMENTS */
   { id:'evenements', nom:'Salons & événements', cat:'Offline & événements', icon:'ti-calendar', c:'#0F766E', tint:'#E4F3F1', statut:'À développer', priorite:'Haute', mode:'Payant', objectif:'Lead',
     role:"Salons professionnels du nuisible", mappedChannel:'Événement',
-    opportunite:"Le salon de novembre est le premier vrai test terrain." },
-  { id:'webinars', nom:'Webinaires', cat:'Offline & événements', icon:'ti-presentation', c:'#3B82F6', tint:'#EAF1FE', statut:'Test', priorite:'Moyenne', mode:'Propriétaire', objectif:'Lead', role:"Sessions de démonstration en direct" },
-  { id:'courrier', nom:'Courrier & offline', cat:'Offline & événements', icon:'ti-mail', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Payant', objectif:'Notoriété', role:"Courrier, flyers, presse papier, radio" },
+    opportunite:"Le salon de novembre est le premier vrai test terrain.", source:'tigerhub', collecte:'manuel', modulesSrc:"Plan de campagnes · Contacts" },
+  { id:'webinars', nom:'Webinaires', cat:'Offline & événements', icon:'ti-presentation', c:'#3B82F6', tint:'#EAF1FE', statut:'Test', priorite:'Moyenne', mode:'Propriétaire', objectif:'Lead', role:"Sessions de démonstration en direct", source:'tigerhub', collecte:'manuel', modulesSrc:"Plan de campagnes · Contenus · Contacts" },
+  { id:'courrier', nom:'Courrier & offline', cat:'Offline & événements', icon:'ti-mail', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Payant', objectif:'Notoriété', role:"Courrier, flyers, presse papier, radio", source:'manuel', collecte:'manuel', platformSrc:"Aucune source automatique — saisie intégrale" },
 
   /* PRODUIT & VIRALITÉ */
   { id:'viral', nom:'Viral / Product-led', cat:'Produit & viralité', icon:'ti-share', c:'#F97316', tint:'#FFF1E7', statut:'À venir', priorite:'Moyenne', mode:'Propriétaire', objectif:'Acquisition',
     role:"Rapports partagés, devis signés, invitations entre confrères",
-    opportunite:"Chaque devis envoyé par TigerFlow est vu par un client final — mécanique virale naturelle." },
-  { id:'marketplaces', nom:'Marketplaces SaaS', cat:'Produit & viralité', icon:'ti-building', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Earned', objectif:'Acquisition', role:"Annuaires et comparateurs de logiciels" },
+    opportunite:"Chaque devis envoyé par TigerFlow est vu par un client final — mécanique virale naturelle.", source:'tigerhub', collecte:'sync', modulesSrc:"Success client · Contacts" },
+  { id:'marketplaces', nom:'Marketplaces SaaS', cat:'Produit & viralité', icon:'ti-building', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Earned', objectif:'Acquisition', role:"Annuaires et comparateurs de logiciels", source:'externe', collecte:'import', platformSrc:"Annuaires et comparateurs SaaS" },
 ];
 
 const CHANNEL_CATEGORIES = ['Organic & contenu','Social & créateurs','Acquisition payante','Email & messaging','Relations & partenariats','Offline & événements','Produit & viralité'];
@@ -2959,7 +3058,7 @@ function channelPerf(ch){
 }
 function channelCampaigns(ch){
   if(!ch.mappedChannel) return [];
-  return campaigns.filter(c=>Object.keys(c.channelBudgets||{}).includes(ch.mappedChannel));
+  return sectorCampaigns().filter(c=>Object.keys(c.channelBudgets||{}).includes(ch.mappedChannel));
 }
 
 function renderMktgChannels(){
@@ -2972,7 +3071,7 @@ function renderMktgChannels(){
     const perf = channelPerf(ch);
     const camps = channelCampaigns(ch);
     const budget = camps.reduce((s,c)=>s+((c.channelBudgets||{})[ch.mappedChannel]||0),0);
-    const tabs = ch.isClipping ? ['Performance','Campagnes','Clipping','Décision'] : ['Performance','Campagnes','Contenus','Décision'];
+    const tabs = ch.isClipping ? ['Performance','Campagnes','Clipping','Source','Décision'] : ['Performance','Campagnes','Contenus','Source','Décision'];
     let body = '';
 
     if(channelTab===0){
@@ -3003,7 +3102,7 @@ function renderMktgChannels(){
     else if(channelTab===1){
       body = camps.length ? `<table class="data-table"><thead><tr><th>Campagne</th><th>Audience</th><th>Statut</th><th>Budget</th><th>Leads</th><th>Clients</th></tr></thead><tbody>
         ${camps.map(c=>{ const t=campTotals(c); return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer">
-          <td class="dt-title">${esc(c.title)}</td><td style="font-size:12px;color:var(--th-text-2)">${esc(segName(c.segmentId))}</td>
+          <td class="dt-title">${esc(c.title)}</td><td style="font-size:12px;color:var(--th-text-2);cursor:pointer" onclick="event.stopPropagation();goToAudience('${c.segmentId}')">${esc(segName(c.segmentId))} →</td>
           <td>${statusBadge(c.status)}</td><td>${(c.channelBudgets||{})[ch.mappedChannel]||0} €</td>
           <td>${(c.results&&c.results[ch.mappedChannel]&&c.results[ch.mappedChannel].leads)||0}</td>
           <td>${(c.results&&c.results[ch.mappedChannel]&&c.results[ch.mappedChannel].conversions)||0}</td></tr>`; }).join('')}
@@ -3028,12 +3127,50 @@ function renderMktgChannels(){
         <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Données de démonstration. Aucune connexion à une plateforme de clipping n'est développée en V1.</span></div>`;
     }
     else if(channelTab===2){
-      const cts = CONTENTS.filter(c=>c.canal===ch.mappedChannel || c.canal===ch.nom);
+      const cts = sectorContents().filter(c=>c.canal===ch.mappedChannel || c.canal===ch.nom);
       body = cts.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">
         ${cts.map(c=>{ const sc = c.statut==='Publié'?'green':c.statut==='À créer'?'gray':'orange';
           return `<div class="card" style="padding:14px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px;line-height:1.4">${esc(c.titre)}</div>
           <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="badge">${esc(c.type)}</span><span class="badge ${sc}" style="${sc==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(c.statut)}</span></div></div>`; }).join('')}
       </div>` : `<div class="empty">${ic('ti-photo',24)}Aucun contenu associé à ce canal.</div>`;
+    }
+    else if(channelTab===3){
+      const s = DATA_SOURCES[ch.source] || DATA_SOURCES['manuel'];
+      const m = COLLECT_MODES[ch.collecte] || COLLECT_MODES['manuel'];
+      body = `
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">${ic('ti-link',17)}<span>D'où viennent ces données</span></div></div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+              <div style="width:38px;height:38px;border-radius:11px;background:${s.tint};display:flex;align-items:center;justify-content:center;color:${s.c}">${ic(s.icon,19)}</div>
+              <div><div style="font-size:14.5px;font-weight:800">${s.label}</div>
+                <div style="font-size:11.5px;color:var(--th-text-2)">${m.label}</div></div>
+            </div>
+            ${ch.modulesSrc ? `<div style="margin-bottom:14px">
+              <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Modules TigerHub d'origine</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">${ch.modulesSrc.split(' · ').map(x=>`<span class="badge green">${esc(x)}</span>`).join('')}</div>
+            </div>` : ''}
+            ${ch.platformSrc ? `<div>
+              <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Plateforme externe</div>
+              <div style="font-size:12.5px;color:var(--th-text-2);line-height:1.7">${esc(ch.platformSrc)}</div>
+            </div>` : ''}
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">${ic('ti-repeat',17)}<span>Évolution de la collecte</span></div></div>
+            <div class="collect-step done">
+              <div class="collect-dot">${ic('ti-circle-check',11)}</div>
+              <div><div style="font-size:13px;font-weight:700">Aujourd'hui</div>
+                <div style="font-size:12px;color:var(--th-text-2);line-height:1.6">${ch.source==='tigerhub'?'Les données remontent automatiquement des modules TigerHub.':ch.source==='manuel'?'Les résultats se saisissent à la main dans la campagne.':'Les résultats se saisissent à la main depuis la plateforme.'}</div></div>
+            </div>
+            <div class="collect-step">
+              <div class="collect-dot"></div>
+              <div><div style="font-size:13px;font-weight:700;color:var(--th-text-2)">Ensuite</div>
+                <div style="font-size:12px;color:var(--th-text-3);line-height:1.6">${ch.collecte==='api'?"Connexion API à la plateforme : synchronisation automatique des dépenses et conversions.":ch.collecte==='import'?"Import de fichier pour éviter la ressaisie.":ch.collecte==='sync'?"Synchronisation avec l'outil externe.":"Restera en saisie manuelle — pas de source automatisable."}</div></div>
+            </div>
+            <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',15)}<span>L'interface ne changera pas quand l'API arrivera : seule la <b>façon de remplir</b> ces données évoluera.</span></div>
+          </div>
+        </div>
+        <div class="hint-bar" style="margin-top:16px">${ic('ti-alert-triangle',16)}<span><b>Aucune donnée n'est dupliquée ici.</b> Ce canal affiche les campagnes du Plan de campagnes, les contenus de Contenus et, le cas échéant, les partenaires de Partenaires — il ne crée jamais de copie.</span></div>`;
     }
     else {
       const cpl = perf&&perf.leads ? Math.round(perf.cost/perf.leads) : null;
@@ -3087,7 +3224,7 @@ function renderMktgChannels(){
   const totalLeads = Object.values(agg).reduce((s,a)=>s+a.leads,0);
   const totalConv = Object.values(agg).reduce((s,a)=>s+a.conversions,0);
   const totalCost = Object.values(agg).reduce((s,a)=>s+a.cost,0);
-  const activeCampaigns = campaigns.filter(c=>c.status==='En ligne').length;
+  const activeCampaigns = sectorCampaigns().filter(c=>c.status==='En ligne').length;
   const best = Object.entries(agg).filter(([,a])=>a.leads>0).sort((a,b)=>(a[1].cost/a[1].leads)-(b[1].cost/b[1].leads))[0];
 
   const filters = ['Tous','Actifs','À tester','À développer','À venir'];
@@ -3111,13 +3248,15 @@ function renderMktgChannels(){
           <div class="ch-metric"><div class="v">${perf.leads}</div><div class="l">leads</div></div>
           <div class="ch-metric"><div class="v">${perf.conversions}</div><div class="l">clients</div></div>
           <div class="ch-metric"><div class="v">${cpl!==null?cpl+' €':'—'}</div><div class="l">coût/lead</div></div>
-        </div>`
+        </div>
+        <div style="margin-top:11px">${sourceBadge(ch.source)}</div>`
         : `<div style="border-top:1px solid var(--th-border);padding-top:13px;font-size:12px;color:var(--th-text-3)">
-            ${ch.statut==='Actif'?'Aucune campagne encore menée':ch.statut==='Test'?'À tester — pas encore de données':'Pas encore activé'}</div>`}
+            ${ch.statut==='Actif'?'Aucune campagne encore menée':ch.statut==='Test'?'À tester — pas encore de données':'Pas encore activé'}</div>
+           <div style="margin-top:11px">${sourceBadge(ch.source)}</div>`}
     </div>`;
   };
 
-  el.innerHTML = `
+  el.innerHTML = sectorSelector() + `
     <div class="ctx-bar" style="margin-bottom:16px">
       <div class="ctx-main"><div class="sector-dot"></div>
         <div><div style="font-size:14px;font-weight:800">${esc(ACTIVE_SECTOR.nom)}</div>
@@ -3148,7 +3287,25 @@ function renderMktgChannels(){
         <div class="ch-grid">${list.map(card).join('')}</div>`;
     }).join('')}
 
-    <div class="hint-bar" style="margin-top:20px">${ic('ti-bulb',16)}<span>Les performances sont <b>calculées depuis le Plan de campagnes</b>, jamais saisies ici. Un canal n'a de résultats que si une campagne l'utilise.</span></div>`;
+    <p class="section-label" style="margin-top:26px">D'où viennent les données</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px">
+      ${Object.entries(DATA_SOURCES).map(([k,s])=>{
+        const list = CHANNEL_PORTFOLIO.filter(c=>c.source===k);
+        return `<div class="card" style="padding:16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:30px;height:30px;border-radius:9px;background:${s.tint};display:flex;align-items:center;justify-content:center;color:${s.c}">${ic(s.icon,15)}</div>
+            <div><div style="font-size:13px;font-weight:700">${s.label}</div>
+              <div style="font-size:11px;color:var(--th-text-2)">${list.length} canal${list.length>1?'ux':''}</div></div>
+          </div>
+          <div style="font-size:11.5px;color:var(--th-text-2);line-height:1.7">${
+            k==='tigerhub' ? "Données remontées automatiquement depuis les modules TigerHub."
+            : k==='externe' ? "Données à récupérer sur la plateforme, API à venir."
+            : k==='mixte' ? "Campagne pilotée dans TigerHub, résultats à reprendre de la plateforme."
+            : "Aucune source automatisable : saisie intégrale."
+          }</div></div>`;
+      }).join('')}
+    </div>
+    <div class="hint-bar" style="margin-top:20px">${ic('ti-bulb',16)}<span>Les performances sont <b>calculées depuis le Plan de campagnes</b>, jamais saisies ici. Un canal n'a de résultats que si une campagne l'utilise — et aucune fiche partenaire, campagne ou contenu n'est dupliquée dans ce module.</span></div>`;
 }
 
 /* ---- 5. Contenus ---- */
@@ -3166,7 +3323,7 @@ function renderMktgContents(){
   let body = '';
 
   if(contentTab===0){
-    let list = contentStatusFilter==='Tous' ? CONTENTS : CONTENTS.filter(c=>c.statut===contentStatusFilter);
+    let list = contentStatusFilter==='Tous' ? sectorContents() : sectorContents().filter(c=>c.statut===contentStatusFilter);
     if(contentSearch) list = list.filter(c=>c.titre.toLowerCase().includes(contentSearch));
     body = `
       <div class="filter-bar">
@@ -3179,7 +3336,7 @@ function renderMktgContents(){
           const sc = ct.statut==='Publié'?'green':ct.statut==='À créer'?'gray':ct.statut==='Programmé'?'purple':ct.statut==='À préparer'?'orange':'blue';
           const scS = sc==='purple'?'color:var(--th-purple);background:var(--th-purple-bg)':sc==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':'';
           return `<tr><td class="dt-title">${esc(ct.titre)}</td><td><span class="badge">${esc(ct.type)}</span></td>
-          <td>${sectorBadge(ct.sectorId)}</td><td>${esc(ct.canal)}</td><td style="font-size:12px;color:var(--th-text-2)">${esc(segName(ct.segmentId))}</td>
+          <td>${sectorBadge(ct.sectorId)}</td><td style="cursor:pointer" onclick="goToChannel('${ct.canal}')">${esc(ct.canal)} →</td><td style="font-size:12px;color:var(--th-text-2)">${esc(segName(ct.segmentId))}</td>
           <td style="font-size:12px;color:var(--th-text-2)">${camp?esc(camp):'—'}</td><td style="font-size:12px">${fmtDate(ct.date)}</td>
           <td><span class="badge ${sc}" style="${scS}">${esc(ct.statut)}</span></td></tr>`; }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--th-text-2);padding:22px">Aucun contenu pour ce filtre.</td></tr>`}
       </tbody></table>
@@ -3196,7 +3353,7 @@ function renderMktgContents(){
     const today = calOffset===0 ? base.getDate() : -1;
     for(let d=1; d<=dim; d++){
       const dayKey = `${monthKey}-${String(d).padStart(2,'0')}`;
-      const items = CONTENTS.filter(c=>c.date===dayKey);
+      const items = sectorContents().filter(c=>c.date===dayKey);
       cells += `<div style="background:var(--th-card);border:1px solid ${d===today?'var(--th-orange)':'var(--th-border)'};border-radius:11px;min-height:84px;padding:7px">
         <div style="font-size:11px;color:${d===today?'var(--th-orange)':'var(--th-text-3)'};font-weight:800;margin-bottom:5px">${d}</div>
         ${items.map(c=>{ const sc = c.statut==='Publié'?['var(--th-green-bg)','var(--th-green)']:c.statut==='Programmé'?['var(--th-purple-bg)','var(--th-purple)']:c.statut==='À créer'?['var(--th-bg-alt)','var(--th-text-2)']:['var(--th-orange-bg)','var(--th-orange)'];
@@ -3214,7 +3371,7 @@ function renderMktgContents(){
       </div>
       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">${cells}</div>`;
   }
-  el.innerHTML = `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===contentTab?' active':''}" onclick="switchContentTab(${i})">${t}</div>`).join('')}</div>${body}`;
+  el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===contentTab?' active':''}" onclick="switchContentTab(${i})">${t}</div>`).join('')}</div>${body}`;
 }
 
 /* ---- 6. Analyse & résultats ---- */
@@ -3225,7 +3382,8 @@ function renderMktgAnalysis(){
   const tabs = ['Performance','Budget & temps'];
   const chAgg = aggregateByChannel();
   const segAgg = aggregateBySegment();
-  const glob = campaigns.reduce((a,c)=>{ const t=campTotals(c); return {leads:a.leads+t.leads,conv:a.conv+t.conversions,cost:a.cost+t.cost,budget:a.budget+(c.budget||0),time:a.time+(c.timeReal||0),timeEst:a.timeEst+(c.timeEstimated||0)}; },{leads:0,conv:0,cost:0,budget:0,time:0,timeEst:0});
+  const scoped = sectorCampaigns();
+  const glob = scoped.reduce((a,c)=>{ const t=campTotals(c); return {leads:a.leads+t.leads,conv:a.conv+t.conversions,cost:a.cost+t.cost,budget:a.budget+(c.budget||0),time:a.time+(c.timeReal||0),timeEst:a.timeEst+(c.timeEstimated||0)}; },{leads:0,conv:0,cost:0,budget:0,time:0,timeEst:0});
   let body='';
 
   if(analysisTab===0){
@@ -3237,7 +3395,18 @@ function renderMktgAnalysis(){
         <div class="stat-card purple"><div class="val">${glob.leads?Math.round(glob.conv/glob.leads*100):0}%</div><div class="label">Taux de conversion</div></div>
         <div class="stat-card ${glob.cost&&glob.conv?'green':'gray'}"><div class="val">${glob.conv?Math.round(glob.cost/glob.conv):0} €</div><div class="label">Coût d'acquisition</div></div>
       </div>
-      <p class="section-label">Par secteur</p>
+      ${SECTORS.filter(s=>s.actif).length>1 ? `<p class="section-label">Comparaison par canal entre secteurs</p>
+      <table class="data-table"><thead><tr><th>Canal</th>${SECTORS.filter(s=>s.actif).map(s=>`<th>${esc(s.nom)}</th>`).join('')}</tr></thead><tbody>
+        ${[...new Set(campaigns.flatMap(c=>Object.keys(c.channelBudgets||{})))].map(ch=>{
+          const cells = SECTORS.filter(s=>s.actif).map(s=>{
+            const cs = campaigns.filter(c=>c.sectorId===s.id && (c.results||{})[ch]);
+            const a = cs.reduce((x,c)=>({leads:x.leads+c.results[ch].leads,cost:x.cost+c.results[ch].cost}),{leads:0,cost:0});
+            return `<td>${a.leads?Math.round(a.cost/a.leads)+' € / lead':'—'}</td>`;
+          }).join('');
+          return `<tr><td class="dt-title">${esc(ch)}</td>${cells}</tr>`;
+        }).join('')}
+      </tbody></table>` : ''}
+      <p class="section-label" style="margin-top:24px">Par secteur</p>
       <table class="data-table"><thead><tr><th>Secteur</th><th>Statut</th><th>Campagnes</th><th>Leads</th><th>Conversions</th><th>Coût</th><th>Temps</th></tr></thead><tbody>
         ${SECTORS.map(sec=>{
           const cs = campaigns.filter(c=>c.sectorId===sec.id);
@@ -3250,20 +3419,20 @@ function renderMktgAnalysis(){
       <p class="section-label" style="margin-top:24px">Par canal</p>
       <table class="data-table"><thead><tr><th>Canal</th><th>Leads</th><th>Conversions</th><th>Taux</th><th>Coût</th><th>Coût/lead</th><th>Temps</th></tr></thead><tbody>
         ${Object.entries(chAgg).sort((a,b)=>b[1].leads-a[1].leads).map(([ch,a])=>{ const st=CHANNEL_STYLE[ch]||{};
-          return `<tr><td><span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span></td>
+          return `<tr onclick="goToChannel('${ch}')" style="cursor:pointer"><td><span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span></td>
           <td>${a.leads}</td><td>${a.conversions}</td><td><span class="badge ${a.leads&&a.conversions/a.leads>0.08?'green':'gray'}">${a.leads?Math.round(a.conversions/a.leads*100):0}%</span></td>
           <td>${a.cost} €</td><td>${a.leads?Math.round(a.cost/a.leads)+' €':'—'}</td><td>${Math.round(a.time)} h</td></tr>`; }).join('')}
       </tbody></table>
       <p class="section-label" style="margin-top:24px">Par segment</p>
       <table class="data-table"><thead><tr><th>Segment</th><th>Campagnes</th><th>Leads</th><th>Conversions</th><th>Taux</th><th>Coût/lead</th><th>Temps</th></tr></thead><tbody>
-        ${AUDIENCES.map(s=>{ const a=segAgg[s.id]||{leads:0,conversions:0,cost:0,time:0,campaigns:0};
-          return `<tr><td class="dt-title">${esc(s.nom)}</td><td>${a.campaigns}</td><td>${a.leads}</td><td>${a.conversions}</td>
+        ${sectorAudiences().map(s=>{ const a=segAgg[s.id]||{leads:0,conversions:0,cost:0,time:0,campaigns:0};
+          return `<tr onclick="goToAudience('${s.id}')" style="cursor:pointer"><td class="dt-title">${esc(s.nom)} →</td><td>${a.campaigns}</td><td>${a.leads}</td><td>${a.conversions}</td>
           <td><span class="badge ${a.leads&&a.conversions/a.leads>0.08?'green':'gray'}">${a.leads?Math.round(a.conversions/a.leads*100):0}%</span></td>
           <td>${a.leads?Math.round(a.cost/a.leads)+' €':'—'}</td><td>${a.time} h</td></tr>`; }).join('')}
       </tbody></table>
       <p class="section-label" style="margin-top:24px">Par campagne</p>
       <table class="data-table"><thead><tr><th>Campagne</th><th>Leads</th><th>Conversions</th><th>Coût</th><th>Coût/lead</th><th>ROI estimé</th></tr></thead><tbody>
-        ${campaigns.map(c=>{ const t=campTotals(c); const roi = t.cost? Math.round((t.conversions*900 - t.cost)/t.cost*100) : 0;
+        ${scoped.map(c=>{ const t=campTotals(c); const roi = t.cost? Math.round((t.conversions*900 - t.cost)/t.cost*100) : 0;
           return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer"><td class="dt-title">${esc(c.title)}</td><td>${t.leads}</td><td>${t.conversions}</td><td>${t.cost} €</td>
           <td>${cpl(t)?cpl(t)+' €':'—'}</td><td>${t.cost?`<span class="badge ${roi>=0?'green':'red'}">${roi>=0?'+':''}${roi}%</span>`:'—'}</td></tr>`; }).join('')}
       </tbody></table>`;
@@ -3290,29 +3459,30 @@ function renderMktgAnalysis(){
       </tbody></table>
       <p class="section-label" style="margin-top:24px">Budget par campagne</p>
       <table class="data-table"><thead><tr><th>Campagne</th><th>Prévu</th><th>Dépensé</th><th>Écart</th><th>Temps estimé</th><th>Temps réel</th><th>Écart temps</th></tr></thead><tbody>
-        ${campaigns.map(c=>{ const t=campTotals(c); const ec=t.cost-(c.budget||0); const et=(c.timeReal||0)-(c.timeEstimated||0);
+        ${scoped.map(c=>{ const t=campTotals(c); const ec=t.cost-(c.budget||0); const et=(c.timeReal||0)-(c.timeEstimated||0);
           return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer"><td class="dt-title">${esc(c.title)}</td><td>${c.budget||0} €</td><td>${t.cost} €</td>
           <td><span class="badge ${ec<=0?'green':'red'}">${ec>0?'+':''}${ec} €</span></td>
           <td>${c.timeEstimated||0} h</td><td>${c.timeReal||0} h</td>
           <td><span class="badge ${et<=0?'green':'red'}">${et>0?'+':''}${et} h</span></td></tr>`; }).join('')}
       </tbody></table>`;
   }
-  el.innerHTML = `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===analysisTab?' active':''}" onclick="switchAnalysisTab(${i})">${t}</div>`).join('')}</div>${body}`;
+  el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===analysisTab?' active':''}" onclick="switchAnalysisTab(${i})">${t}</div>`).join('')}</div>${body}`;
 }
 
 /* ---- 7. Expérimentations ---- */
 function renderMktgExperiments(){
   const el = document.getElementById('marketing-experimentsContent'); if(!el) return;
-  el.innerHTML = `
+  el.innerHTML = sectorSelector() + `
     <div class="hint-bar" style="margin-bottom:18px">${ic('ti-flask',16)}<span>Une expérimentation a obligatoirement <b>une hypothèse écrite</b> et <b>une décision finale</b>. Sans ça, c'est juste une campagne.</span></div>
-    ${EXPERIMENTS.map(e=>{
+    ${sectorExperiments().map(e=>{
       const st = CHANNEL_STYLE[e.canal]||{};
       const cc = e.conclusion==='Continuer'?'green':e.conclusion==='Arrêter'?'red':e.conclusion==='Modifier'?'orange':'gray';
       return `<div class="card" style="margin-bottom:14px;border-left:3px solid ${e.conclusion?'var(--th-green)':'var(--th-orange)'}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px;flex-wrap:wrap">
           <div><div style="font-size:14.5px;font-weight:700;margin-bottom:5px">${esc(e.titre)}</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap">${sectorBadge(e.sectorId)}<span class="badge">${esc(segName(e.segmentId))}</span>
-            <span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(e.canal)}</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">${sectorBadge(e.sectorId)}
+            <span class="badge" style="cursor:pointer" onclick="goToAudience('${e.segmentId}')">${esc(segName(e.segmentId))} →</span>
+            <span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'};cursor:pointer" onclick="goToChannel('${e.canal}')">${esc(e.canal)} →</span>
             <span class="badge">${esc(e.duree)}</span>${e.budget?`<span class="badge">${e.budget} €</span>`:''}</div></div>
           ${e.conclusion?`<span class="badge ${cc}" style="${cc==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(e.conclusion)}</span>`:`<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">Conclusion attendue</span>`}
         </div>
@@ -3335,8 +3505,8 @@ function renderMktgIntelligence(){
   const tabs = ['Apprentissages','Idées marketing'];
   let body='';
   if(intelTab===0){
-    const works = LEARNINGS.filter(l=>l.type==='fonctionne');
-    const fails = LEARNINGS.filter(l=>l.type!=='fonctionne');
+    const works = sectorLearnings().filter(l=>l.type==='fonctionne');
+    const fails = sectorLearnings().filter(l=>l.type!=='fonctionne');
     body = `<div class="grid-2">
       <div class="card"><div class="card-header"><div class="card-title">${ic('ti-circle-check',17)}<span>Ce qui fonctionne</span></div></div>
         ${works.map((l,i)=>`<div style="display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--th-border)"><div style="width:24px;height:24px;border-radius:8px;background:var(--th-green-bg);color:var(--th-green);display:flex;align-items:center;justify-content:center;flex-shrink:0">${ic('ti-trending-up',13)}</div><div style="font-size:12.5px;line-height:1.65">${esc(l.texte)}</div></div>`).join('')}</div>
@@ -3359,7 +3529,7 @@ function renderMktgIntelligence(){
         <button class="import-btn" onclick="importIdeaToCampaign('${i.id}')">${ic('ti-target-arrow',14)} En campagne</button></div>`).join('')}`
       : `<div class="empty">${ic('ti-bulb',24)}Aucune idée en attente. Ce qui apparaît ici vient directement de votre Boîte à idées.</div>`;
   }
-  el.innerHTML = `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===intelTab?' active':''}" onclick="switchIntelTab(${i})">${t}</div>`).join('')}</div>${body}`;
+  el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===intelTab?' active':''}" onclick="switchIntelTab(${i})">${t}</div>`).join('')}</div>${body}`;
 }
 function importIdeaToCampaign(ideaId){
   const idea = ideas.find(i=>i.id===ideaId); if(!idea) return;
