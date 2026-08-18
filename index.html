@@ -312,6 +312,31 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ch-metric .v{font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .ch-metric .l{font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-top:1px}
 .ch-spark{flex-shrink:0}
+.learn-card{display:flex;gap:14px;background:var(--th-card);border:1px solid var(--th-border);border-radius:16px;padding:17px;margin-bottom:12px;box-shadow:var(--th-shadow-sm);cursor:pointer;transition:all .14s}
+.learn-card:hover{box-shadow:var(--th-shadow);transform:translateY(-1px)}
+.learn-icon{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.conf-dots{display:inline-flex;gap:3px}
+.conf-dot{width:6px;height:6px;border-radius:50%}
+.conf-row{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--th-border)}
+.conf-row:last-child{border-bottom:none}
+.conf-mark{width:18px;height:18px;border-radius:6px;border:1.6px solid var(--th-border);background:var(--th-card);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;color:#fff}
+.decision-card{display:flex;align-items:flex-start;gap:13px;background:var(--th-card);border:1px solid var(--th-border);border-left:3px solid var(--th-green);border-radius:14px;padding:16px 18px;margin-bottom:11px;box-shadow:var(--th-shadow-sm)}
+.decision-icon{width:32px;height:32px;border-radius:10px;background:var(--th-green-bg);color:var(--th-green);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.loop{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center}
+.loop-step{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:78px}
+.loop-icon{width:38px;height:38px;border-radius:12px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center}
+.loop-lab{font-size:11px;font-weight:600;text-align:center;line-height:1.3;color:var(--th-text-2)}
+.loop-arrow{color:var(--th-text-3);transform:rotate(180deg);margin-bottom:18px}
+.loop-back{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--th-orange);font-weight:700;margin-left:8px;margin-bottom:18px}
+.idea-mk-card{display:flex;align-items:center;gap:14px;background:var(--th-card);border:1px solid var(--th-border);border-radius:15px;padding:16px 18px;margin-bottom:11px;box-shadow:var(--th-shadow-sm);flex-wrap:wrap}
+.idea-mk-icon{width:34px;height:34px;border-radius:11px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-hero{display:flex;gap:18px;align-items:flex-start;background:linear-gradient(135deg,var(--th-orange-bg) 0%,var(--th-purple-bg) 100%);border-radius:18px;padding:26px;border:1px solid var(--th-border)}
+.ai-hero-icon{width:52px;height:52px;border-radius:15px;background:var(--th-card);color:var(--th-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--th-shadow-sm)}
+.ai-item{display:flex;align-items:center;gap:9px;padding:9px 0;font-size:12.5px;color:var(--th-text-2);border-bottom:1px solid var(--th-border)}
+.ai-item:last-child{border-bottom:none}
+.ai-item .icon{color:var(--th-text-3);flex-shrink:0}
+.ai-question{display:flex;align-items:flex-start;gap:10px;background:var(--th-bg-alt);border-radius:11px;padding:12px 14px;margin-bottom:8px;font-size:12.5px;line-height:1.6;color:var(--th-text-2)}
+.ai-question .icon{color:var(--th-orange);flex-shrink:0;margin-top:2px}
 .exp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px;margin-bottom:8px}
 .exp-card{background:var(--th-card);border:1px solid var(--th-border);border-left:3px solid var(--th-blue);border-radius:16px;padding:18px;box-shadow:var(--th-shadow-sm);cursor:pointer;transition:all .14s}
 .exp-card:hover{box-shadow:var(--th-shadow-lg);transform:translateY(-2px)}
@@ -607,6 +632,7 @@ const ICONS = {
 'flag':'<line x1="5" y1="3" x2="5" y2="21"/><path d="M5 4h13l-3 4 3 4H5"/>',
 'flame':'<path d="M12 2c2 4-3 5-3 9a3 3 0 006 0c0-2-1-3-1-3s3 1 3 5a6 6 0 01-12 0c0-6 5-7 7-11z"/>',
 'flask':'<path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3"/>',
+'brain':'<path d="M9 4a3 3 0 00-3 3 3 3 0 00-2 5 3 3 0 001 5 3 3 0 004 2 3 3 0 004-2 3 3 0 001-5 3 3 0 00-2-5 3 3 0 00-3-3z"/><line x1="12" y1="7" x2="12" y2="19"/>',
 'brand-social':'<circle cx="6" cy="12" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="18" cy="18" r="2.2"/><line x1="8" y1="11" x2="16" y2="7"/><line x1="8" y1="13" x2="16" y2="17"/>',
 'folder':'<path d="M3 6h6l2 2h10v11H3z"/>',
 'handshake':'<path d="M8 12l3 3 6-6"/><circle cx="12" cy="12" r="9"/>',
@@ -727,7 +753,6 @@ const MODULES = [
     { id:'analysis', label:'Analyse & résultats', icon:'ti-chart-line', kind:'mktgAnalysis' },
     { id:'experiments', label:'Expérimentations', icon:'ti-flask', kind:'mktgExperiments' },
     { id:'intelligence', label:'Intelligence marketing', icon:'ti-bulb', kind:'mktgIntelligence' },
-    { id:'ai', label:'IA', icon:'ti-sparkles', kind:'mktgAI' },
     { id:'settings', label:'Paramètres', icon:'ti-settings', kind:'mktgSettings' },
   ]},
 
@@ -1006,20 +1031,6 @@ function panelTemplate(moduleId, s){
     case 'mktgAnalysis': return `<div class="page-head"><div><h1>Analyse &amp; résultats</h1><p class="subtitle">Qu'est-ce qui fonctionne réellement ? Tout est calculé depuis les campagnes.</p></div></div><div id="${p}-analysisContent"></div>`;
     case 'mktgExperiments': return `<div class="page-head"><div><h1>Expérimentations</h1><p class="subtitle">Qu'est-ce que je teste et qu'est-ce que j'apprends ?</p></div></div><div id="${p}-experimentsContent"></div>`;
     case 'mktgIntelligence': return `<div class="page-head"><div><h1>Intelligence marketing</h1><p class="subtitle">Qu'est-ce que je retiens ?</p></div></div><div id="${p}-intelligenceContent"></div>`;
-    case 'mktgAI': {
-      const feats = [
-        ['ti-chart-line','Analyse automatique des performances',"Explication des variations d'une période à l'autre."],
-        ['ti-target-arrow','Suggestions de campagnes',"Propositions basées sur les segments et canaux qui convertissent."],
-        ['ti-photo','Suggestions de contenus',"Angles de contenu à partir des messages qui fonctionnent."],
-        ['ti-search',"Détection d'opportunités","Canaux, segments ou créneaux sous-exploités."],
-        ['ti-wallet','Recommandations budgétaires',"Réallocation suggérée du budget selon les résultats réels."],
-      ];
-      return `<div class="page-head"><div><h1>IA marketing</h1><p class="subtitle">Ce que l'intelligence artificielle pourra faire ici, une fois construite</p></div></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
-        ${feats.map(x=>`<div class="placeholder" style="text-align:left;padding:22px"><div class="placeholder-icon-wrap" style="margin:0 0 12px">${ic(x[0],20)}</div>
-          <div style="font-size:14px;font-weight:700;margin-bottom:7px">${x[1]}</div><div class="placeholder-badge">À venir</div>
-          <p style="text-align:left;margin:8px 0 0;max-width:none">${x[2]}</p></div>`).join('')}</div>`;
-    }
     case 'mktgSettings': return `<div class="page-head"><div><h1>Paramètres Marketing</h1><p class="subtitle">Canaux, statuts, conventions et règles de calcul</p></div></div>
       <div class="grid-2">
         <div class="card"><div class="card-header"><div class="card-title">${ic('ti-building',17)}<span>Secteurs</span></div></div>
@@ -1697,12 +1708,72 @@ const EXPERIMENTS = [
 ];
 
 /* ---------- Apprentissages ---------- */
+/* Niveau de confiance : un apprentissage n'est pas une vérité immédiate.
+   Il monte en confiance à mesure que les données convergent. */
+const CONFIDENCE_LEVELS = ['Hypothèse','À confirmer','Probable','Confirmé'];
+const CONFIDENCE_STYLE = {
+  'Hypothèse':  {c:'var(--th-text-3)', bg:'var(--th-bg-alt)', n:1},
+  'À confirmer':{c:'var(--th-orange)', bg:'var(--th-orange-bg)', n:2},
+  'Probable':   {c:'var(--th-blue)',   bg:'var(--th-blue-bg)', n:3},
+  'Confirmé':   {c:'var(--th-green)',  bg:'var(--th-green-bg)', n:4},
+};
+const LEARNING_CATEGORIES = ['Messages','Segments','Canaux','Contenus','Offres','Prix','Acquisition','Conversion'];
+
 const LEARNINGS = [
-  { texte:"Sur la dératisation, le message réglementaire surperforme largement le message « gain de temps » auprès des entreprises sous contrat sanitaire.", type:'fonctionne', sectorId:'derat' },
-  { texte:"Le SEO sur les sujets réglementaires attire exactement la bonne cible — 6 conversions pour 400 € investis.", type:'fonctionne', sectorId:'derat' },
-  { texte:"Google Ads ne fonctionne pas sur ce marché de niche : volume de recherche trop faible malgré un coût/lead correct.", type:'ne fonctionne pas', sectorId:'derat' },
-  { texte:"La présence LinkedIn de la fondatrice génère des leads à budget zéro, mais coûte 11 h de travail — le temps est le vrai coût ici.", type:'fonctionne', sectorId:'derat' },
-  { texte:"Le combiné LinkedIn + email sur un même segment convertit mieux que chaque canal isolé.", type:'fonctionne', sectorId:'derat' },
+  { id:'lrn1', sectorId:'derat', categorie:'Messages',
+    texte:"Sur les entreprises sous contrat sanitaire, la conformité réglementaire convertit mieux que le gain de temps.",
+    confiance:'Confirmé', type:'fonctionne',
+    segmentId:'seg2', canal:'LinkedIn', expId:'exp1', campIds:['mktg_demo_3'],
+    preuve:"+4,1 points de taux de clic (5,8% contre 1,7%)",
+    sources:{ experimentations:1, campagnes:2 }, verifie:'2026-08-14' },
+
+  { id:'lrn2', sectorId:'derat', categorie:'Canaux',
+    texte:"Le search payant ne fonctionne pas sur ce marché : le volume de recherche est trop faible malgré un coût par lead correct.",
+    confiance:'Probable', type:'ne fonctionne pas',
+    segmentId:'seg1', canal:'Google Ads', expId:'exp2', campIds:['mktg_demo_7'],
+    preuve:"18 leads en 3 semaines, 1 seule conversion",
+    sources:{ experimentations:1, campagnes:1 }, verifie:'2026-08-20' },
+
+  { id:'lrn3', sectorId:'derat', categorie:'Canaux',
+    texte:"LinkedIn semble être le canal le plus efficace pour atteindre les dirigeants de petites entreprises de dératisation.",
+    confiance:'À confirmer', type:'fonctionne',
+    segmentId:'seg1', canal:'LinkedIn', expId:null, campIds:['mktg_demo_1','mktg_demo_3'],
+    preuve:"62 leads pour 380 € sur 2 campagnes",
+    sources:{ experimentations:0, campagnes:2 }, verifie:'2026-08-16' },
+
+  { id:'lrn4', sectorId:'derat', categorie:'Contenus',
+    texte:"Le contenu SEO sur les obligations réglementaires attire précisément la bonne cible.",
+    confiance:'Probable', type:'fonctionne',
+    segmentId:'seg2', canal:'SEO', expId:null, campIds:['mktg_demo_5'],
+    preuve:"52 leads et 6 clients pour 400 € investis",
+    sources:{ experimentations:0, campagnes:1 }, verifie:'2026-08-10' },
+
+  { id:'lrn5', sectorId:'derat', categorie:'Acquisition',
+    texte:"La présence organique de la fondatrice génère des leads sans budget, mais coûte du temps : 11 h pour 38 leads.",
+    confiance:'À confirmer', type:'nuance',
+    segmentId:'seg1', canal:'LinkedIn', expId:null, campIds:['mktg_demo_1'],
+    preuve:"0 € dépensés, 11 h investies, 38 leads",
+    sources:{ experimentations:0, campagnes:1 }, verifie:'2026-08-16' },
+
+  { id:'lrn6', sectorId:'derat', categorie:'Conversion',
+    texte:"Combiner LinkedIn et email sur un même segment convertit mieux que chaque canal utilisé isolément.",
+    confiance:'Hypothèse', type:'fonctionne',
+    segmentId:'seg2', canal:'LinkedIn', expId:null, campIds:['mktg_demo_3'],
+    preuve:"Signal observé sur une seule campagne — à reproduire",
+    sources:{ experimentations:0, campagnes:1 }, verifie:'2026-08-18' },
+];
+
+/* Décisions actives : ce qu'on a décidé de faire à partir des apprentissages */
+const MKTG_DECISIONS = [
+  { id:'dec1', sectorId:'derat',
+    texte:"Privilégier LinkedIn pour les entreprises de dératisation de 2 à 10 salariés.",
+    statut:'Active', learningIds:['lrn3','lrn5'], depuis:'2026-08-16' },
+  { id:'dec2', sectorId:'derat',
+    texte:"Systématiser l'angle réglementaire dans tous les contenus destinés aux entreprises sous contrat sanitaire.",
+    statut:'Active', learningIds:['lrn1','lrn4'], depuis:'2026-08-14' },
+  { id:'dec3', sectorId:'derat',
+    texte:"Suspendre les investissements Google Ads jusqu'à ce que la catégorie soit plus recherchée.",
+    statut:'Active', learningIds:['lrn2'], depuis:'2026-08-20' },
 ];
 
 /* ==================== RENDUS ==================== */
@@ -4635,49 +4706,318 @@ function renderMktgExperiments(){
     <div class="hint-bar" style="margin-top:20px">${ic('ti-bulb',16)}<span>Une expérimentation a obligatoirement <b>une hypothèse écrite</b> et <b>une décision finale</b>. Sans décision, elle ne produit aucun apprentissage — ce n'est alors qu'une campagne.</span></div>`;
 }
 
-/* ---- 8. Intelligence marketing ---- */
+/* ---- 8. Intelligence marketing — mémoire et futur cerveau ----
+   Couche d'interprétation au-dessus des autres sous-modules.
+   N'invente rien, ne ressaisit rien : agrège et qualifie.
+   Un apprentissage porte toujours un secteur — ce qui est vrai en
+   dératisation ne l'est pas forcément en plomberie. */
+
 let intelTab = 0;
-function switchIntelTab(i){ intelTab = i; renderMktgIntelligence(); }
+let learnFilter = 'Tous';
+let openLearnId = null;
+function switchIntelTab(i){ intelTab = i; openLearnId = null; renderMktgIntelligence(); }
+function setLearnFilter(v){ learnFilter = v; renderMktgIntelligence(); }
+function openLearn(id){ openLearnId = id; renderMktgIntelligence(); }
+function closeLearn(){ openLearnId = null; renderMktgIntelligence(); }
+
+function confidenceBadge(c){
+  const s = CONFIDENCE_STYLE[c] || CONFIDENCE_STYLE['Hypothèse'];
+  return `<span class="badge" style="color:${s.c};background:${s.bg}">${esc(c)}</span>`;
+}
+function confidenceDots(c){
+  const n = (CONFIDENCE_STYLE[c]||{}).n || 1;
+  const col = (CONFIDENCE_STYLE[c]||{}).c || 'var(--th-text-3)';
+  return `<span class="conf-dots">${[1,2,3,4].map(i=>`<span class="conf-dot" style="background:${i<=n?col:'var(--th-border)'}"></span>`).join('')}</span>`;
+}
+function sectorDecisions(){ return MKTG_DECISIONS.filter(d=>matchSector(d.sectorId)); }
+function learningSources(l){
+  const parts = [];
+  if(l.sources.campagnes) parts.push(`${l.sources.campagnes} campagne${l.sources.campagnes>1?'s':''}`);
+  if(l.sources.experimentations) parts.push(`${l.sources.experimentations} expérimentation${l.sources.experimentations>1?'s':''}`);
+  return parts.join(' + ') || 'Aucune source';
+}
+
+/* Une idée peut devenir expérimentation ou campagne, sans ressaisie */
+function expFromIdea(ideaId){
+  const idea = ideas.find(i=>i.id===ideaId); if(!idea) return;
+  if(!confirm(`Créer une expérimentation à partir de « ${idea.text} » ?\n\nLe secteur et l'audience seront préremplis.`)) return;
+  EXPERIMENTS.unshift({
+    id:'exp_'+Date.now(), titre:idea.text, sectorId:currentSector==='all'?ACTIVE_SECTOR.id:currentSector,
+    segmentId:AUDIENCES[0].id, canal:'LinkedIn', campId:null, contenuId:null, status:'À préparer',
+    hypothese:'', aDemontrer:'', kpi:'À définir', depart:null, objectif:null, resultat:null, unite:'',
+    kpiSecondaires:[], debut:'', finPrevue:'', finReelle:null,
+    budgetPrevu:0, depense:0, tempsPrevu:0, tempsReel:0,
+    hypotheseValidee:null, decision:null, enseignement:null, aTesterEnsuite:null,
+    sourceIdeaId:idea.id
+  });
+  idea.explored = true;
+  saveKey('idea-box:ideas', ideas);
+  if(typeof renderIdeaBox==='function') renderIdeaBox();
+  refreshMktgAll();
+  gotoMktg('experiments');
+}
+function campFromIdea(ideaId){
+  const idea = ideas.find(i=>i.id===ideaId); if(!idea) return;
+  if(!confirm(`Créer une campagne à partir de « ${idea.text} » ?`)) return;
+  campaigns.unshift({
+    id:'mktg_'+Date.now(), title:idea.text, sectorId:currentSector==='all'?ACTIVE_SECTOR.id:currentSector,
+    objective:'', segmentId:AUDIENCES[0].id, status:'Brouillon',
+    startDate:'', endDate:'', budget:0, timeEstimated:0, timeReal:0, responsable:'Sophie',
+    offre:'', message:'', cta:'', targets:{leads:0,clients:0,cpl:0},
+    checklist:[0,1,0,0,0,0,0,0,0,0], channelBudgets:{}, diffusion:{},
+    utm:{source:'',medium:'',campaign:'',content:'',term:''},
+    results:{}, notes:'', sourceIdeaText:idea.text, createdAt:new Date().toISOString()
+  });
+  idea.explored = true;
+  saveKey('marketing-os:actions', campaigns);
+  saveKey('idea-box:ideas', ideas);
+  if(typeof renderIdeaBox==='function') renderIdeaBox();
+  refreshMktgAll();
+  goToCampaign(campaigns[0].id);
+}
+function rejectIdea(ideaId){
+  const idea = ideas.find(i=>i.id===ideaId); if(!idea) return;
+  if(!confirm(`Écarter « ${idea.text} » ?\n\nElle sera marquée comme explorée dans la Boîte à idées.`)) return;
+  idea.explored = true;
+  saveKey('idea-box:ideas', ideas);
+  if(typeof renderIdeaBox==='function') renderIdeaBox();
+  refreshMktgAll();
+}
+
 function renderMktgIntelligence(){
   const el = document.getElementById('marketing-intelligenceContent'); if(!el) return;
-  const tabs = ['Apprentissages','Idées marketing'];
-  let body='';
-  if(intelTab===0){
-    const works = sectorLearnings().filter(l=>l.type==='fonctionne');
-    const fails = sectorLearnings().filter(l=>l.type!=='fonctionne');
-    body = `<div class="grid-2">
-      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-circle-check',17)}<span>Ce qui fonctionne</span></div></div>
-        ${works.map((l,i)=>`<div style="display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--th-border)"><div style="width:24px;height:24px;border-radius:8px;background:var(--th-green-bg);color:var(--th-green);display:flex;align-items:center;justify-content:center;flex-shrink:0">${ic('ti-trending-up',13)}</div><div style="font-size:12.5px;line-height:1.65">${esc(l.texte)}</div></div>`).join('')}</div>
-      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-circle-x',17)}<span>Ce qui ne fonctionne pas</span></div></div>
-        ${fails.map(l=>`<div style="display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--th-border)"><div style="width:24px;height:24px;border-radius:8px;background:var(--th-red-bg);color:var(--th-red);display:flex;align-items:center;justify-content:center;flex-shrink:0">${ic('ti-trending-down',13)}</div><div style="font-size:12.5px;line-height:1.65">${esc(l.texte)}</div></div>`).join('')}</div>
-    </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title">${ic('ti-refresh',17)}<span>La boucle d'apprentissage</span></div></div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:600">
-        ${['Idée','Secteur','Segment','Campagne','Contenu','Résultat','Apprentissage'].map((s,i,arr)=>`<span style="background:var(--th-orange-bg);color:var(--th-orange);border-radius:9px;padding:7px 13px">${s}</span>${i<arr.length-1?`<span style="color:var(--th-text-3)">${ic('ti-arrow-left',13)}</span>`:''}`).join('').replace(/rotate/g,'')}
-        <span style="color:var(--th-text-3);font-size:11px;margin-left:6px">↺ nouvelle idée</span>
+  const scoped = sectorLearnings();
+  const tabs = ['Apprentissages','Idées marketing','Assistant IA'];
+  let body = '';
+
+  /* ===== FICHE APPRENTISSAGE ===== */
+  if(openLearnId && intelTab===0){
+    const l = LEARNINGS.find(x=>x.id===openLearnId);
+    if(!l){ openLearnId=null; return renderMktgIntelligence(); }
+    const exp = l.expId ? EXPERIMENTS.find(x=>x.id===l.expId) : null;
+    const camps = (l.campIds||[]).map(id=>campaigns.find(c=>c.id===id)).filter(Boolean);
+    const decisions = sectorDecisions().filter(d=>d.learningIds.includes(l.id));
+    const chSt = CHANNEL_STYLE[l.canal]||{};
+
+    el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===intelTab?' active':''}" onclick="switchIntelTab(${i})">${t}</div>`).join('')}</div>
+      <div class="btn-back" onclick="closeLearn()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux apprentissages</div>
+      <div class="page-head">
+        <div style="max-width:760px">
+          <h1 style="font-size:20px;line-height:1.4;margin-bottom:10px">${esc(l.texte)}</h1>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            ${sectorBadge(l.sectorId)}<span class="badge">${esc(l.categorie)}</span>
+            ${confidenceBadge(l.confiance)}${confidenceDots(l.confiance)}
+          </div>
+        </div>
       </div>
-      <p style="font-size:12.5px;color:var(--th-text-2);margin-top:14px;line-height:1.7">Quand un prospect est qualifié, il bascule automatiquement de Marketing vers <b>Développement commercial</b>.</p>
-    </div>`;
-  } else {
-    const unexplored = ideas.filter(i=>!i.explored);
-    body = unexplored.length ? `
-      <div class="hint-bar" style="margin-bottom:16px">${ic('ti-link',16)}<span>Ces idées viennent directement de votre <b>Boîte à idées</b>. Rien n'est jamais recréé ici.</span></div>
-      ${unexplored.map(i=>`<div class="row-card" style="margin-bottom:8px"><div class="row-main" style="flex:1">${esc(i.text)}</div>
-        <button class="import-btn" onclick="importIdeaToCampaign('${i.id}')">${ic('ti-target-arrow',14)} En campagne</button></div>`).join('')}`
-      : `<div class="empty">${ic('ti-bulb',24)}Aucune idée en attente. Ce qui apparaît ici vient directement de votre Boîte à idées.</div>`;
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:18px">
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-chart-bar',17)}<span>Sur quoi c'est fondé</span></div></div>
+          <div style="font-size:13.5px;font-weight:700;color:var(--th-orange);line-height:1.6;margin-bottom:14px">${esc(l.preuve)}</div>
+          <div style="font-size:12.5px;line-height:2;padding-top:14px;border-top:1px solid var(--th-border)">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Sources</span><b>${learningSources(l)}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Dernière vérification</span><b>${fmtDate(l.verifie)}</b></div>
+          </div>
+        </div>
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-target',17)}<span>Portée</span></div></div>
+          <div style="font-size:12.5px;line-height:2.2">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Secteur</span>${sectorBadge(l.sectorId)}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Segment</span>
+              <span class="badge" style="cursor:pointer" onclick="goToAudience('${l.segmentId}')">${esc(segName(l.segmentId))} →</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Canal</span>
+              <span class="badge" style="background:${chSt.tint||'var(--th-bg-alt)'};color:${chSt.c||'var(--th-text-2)'};cursor:pointer" onclick="goToChannel('${l.canal}')">${esc(l.canal)} →</span></div>
+          </div>
+          <div class="hint-bar" style="margin-top:14px">${ic('ti-alert-triangle',15)}<span>Cet apprentissage vaut pour <b>${esc(sectorName(l.sectorId))}</b>. Il devra être revérifié sur chaque nouveau secteur.</span></div>
+        </div>
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-flag',17)}<span>Niveau de confiance</span></div></div>
+          ${CONFIDENCE_LEVELS.map(lvl=>{
+            const s = CONFIDENCE_STYLE[lvl];
+            const cur = lvl===l.confiance;
+            const passed = s.n <= (CONFIDENCE_STYLE[l.confiance]||{}).n;
+            return `<div class="conf-row ${cur?'cur':passed?'passed':''}">
+              <div class="conf-mark" style="${passed?`background:${s.c};border-color:${s.c}`:''}">${passed?ic('ti-circle-check',10):''}</div>
+              <div style="flex:1"><div style="font-size:12.5px;font-weight:${cur?'800':'600'};color:${cur?s.c:'var(--th-text-2)'}">${lvl}</div>
+              <div style="font-size:11px;color:var(--th-text-3)">${
+                lvl==='Hypothèse'?'Une seule observation'
+                :lvl==='À confirmer'?'Signal prometteur, données insuffisantes'
+                :lvl==='Probable'?'Plusieurs données convergentes'
+                :'Confirmé par expérimentation'}</div></div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <p class="section-label">D'où vient cet apprentissage</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px">
+        ${exp?`<div class="conn-card" onclick="gotoMktg('experiments');setTimeout(()=>openExp('${exp.id}'),60)" style="cursor:pointer">
+          <div class="conn-icon">${ic('ti-flask',15)}</div>
+          <div><div class="conn-label">Expérimentation</div><div class="conn-val">${esc(exp.titre)} →</div></div></div>`:''}
+        ${camps.map(c=>`<div class="conn-card" onclick="goToCampaign('${c.id}')" style="cursor:pointer">
+          <div class="conn-icon">${ic('ti-target-arrow',15)}</div>
+          <div><div class="conn-label">Campagne</div><div class="conn-val">${esc(c.title)} →</div></div></div>`).join('')}
+        <div class="conn-card" onclick="goToAnalysis()" style="cursor:pointer">
+          <div class="conn-icon">${ic('ti-chart-line',15)}</div>
+          <div><div class="conn-label">Données</div><div class="conn-val">Voir l'analyse →</div></div></div>
+      </div>
+
+      ${decisions.length?`<p class="section-label" style="margin-top:24px">Décisions qui en découlent</p>
+      ${decisions.map(d=>`<div class="decision-card">
+        <div class="decision-icon">${ic('ti-flag',16)}</div>
+        <div style="flex:1"><div style="font-size:13.5px;font-weight:700;margin-bottom:5px">${esc(d.texte)}</div>
+          <div style="font-size:11.5px;color:var(--th-text-2)">Active depuis le ${fmtDate(d.depuis)}</div></div>
+        <span class="badge green">${esc(d.statut)}</span></div>`).join('')}`:''}
+
+      <div class="hint-bar" style="margin-top:20px">${ic('ti-bulb',16)}<span>Cet apprentissage <b>interprète</b> des données existantes. Les chiffres bruts restent dans les campagnes et l'analyse — rien n'est ressaisi ici.</span></div>`;
+    return;
   }
+
+  if(intelTab===0){
+    /* ===== APPRENTISSAGES ===== */
+    const byConf = c => scoped.filter(l=>l.confiance===c).length;
+    const fromExp = scoped.filter(l=>l.expId).length;
+    const decisions = sectorDecisions();
+    let list = learnFilter==='Tous' ? scoped : scoped.filter(l=>l.categorie===learnFilter);
+    const catsUsed = [...new Set(scoped.map(l=>l.categorie))];
+
+    body = `
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+        <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${byConf('Confirmé')}</div><div class="label">Confirmés</div></div>
+        <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-trending-up')}</div><div class="val">${byConf('Probable')}</div><div class="label">Probables</div></div>
+        <div class="stat-card"><div class="stat-card-icon">${ic('ti-alert-triangle')}</div><div class="val">${byConf('À confirmer')+byConf('Hypothèse')}</div><div class="label">À confirmer</div></div>
+        <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-flask')}</div><div class="val">${fromExp}</div><div class="label">Issus d'expérimentations</div></div>
+        <div class="stat-card"><div class="stat-card-icon">${ic('ti-flag')}</div><div class="val">${decisions.filter(d=>d.statut==='Active').length}</div><div class="label">Décisions actives</div></div>
+      </div>
+
+      <div class="filter-bar">
+        ${['Tous',...LEARNING_CATEGORIES.filter(c=>catsUsed.includes(c))].map(c=>`<button class="filter-chip${learnFilter===c?' active':''}" onclick="setLearnFilter('${c}')">${c}</button>`).join('')}
+        <button class="add-btn" style="margin-left:auto">${ic('ti-plus',14)} Nouvel apprentissage</button>
+      </div>
+
+      ${list.length ? list.sort((a,b)=>(CONFIDENCE_STYLE[b.confiance].n)-(CONFIDENCE_STYLE[a.confiance].n)).map(l=>{
+        const chSt = CHANNEL_STYLE[l.canal]||{};
+        const icon = l.type==='fonctionne'?'ti-trending-up':l.type==='ne fonctionne pas'?'ti-trending-down':'ti-alert-triangle';
+        const iconC = l.type==='fonctionne'?'var(--th-green)':l.type==='ne fonctionne pas'?'var(--th-red)':'var(--th-orange)';
+        const iconBg = l.type==='fonctionne'?'var(--th-green-bg)':l.type==='ne fonctionne pas'?'var(--th-red-bg)':'var(--th-orange-bg)';
+        return `<div class="learn-card" onclick="openLearn('${l.id}')">
+          <div class="learn-icon" style="background:${iconBg};color:${iconC}">${ic(icon,16)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13.5px;line-height:1.6;font-weight:600;margin-bottom:9px">${esc(l.texte)}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+              ${sectorBadge(l.sectorId)}
+              <span class="badge">${esc(l.categorie)}</span>
+              <span class="badge">${esc(segName(l.segmentId))}</span>
+              <span class="badge" style="background:${chSt.tint||'var(--th-bg-alt)'};color:${chSt.c||'var(--th-text-2)'}">${esc(l.canal)}</span>
+            </div>
+            <div style="font-size:12px;color:var(--th-text-2)">${esc(l.preuve)} · ${learningSources(l)}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0">
+            ${confidenceBadge(l.confiance)}${confidenceDots(l.confiance)}
+            <span style="font-size:10.5px;color:var(--th-text-3)">Vérifié ${fmtDate(l.verifie)}</span>
+          </div>
+        </div>`;
+      }).join('') : `<div class="empty">${ic('ti-bulb',24)}Aucun apprentissage dans cette catégorie.</div>`}
+
+      <p class="section-label" style="margin-top:26px">Décisions actives</p>
+      ${decisions.length ? decisions.map(d=>{
+        const src = d.learningIds.map(id=>LEARNINGS.find(l=>l.id===id)).filter(Boolean);
+        const nbC = src.reduce((s,l)=>s+l.sources.campagnes,0);
+        const nbE = src.reduce((s,l)=>s+l.sources.experimentations,0);
+        return `<div class="decision-card">
+          <div class="decision-icon">${ic('ti-flag',16)}</div>
+          <div style="flex:1"><div style="font-size:13.5px;font-weight:700;margin-bottom:5px">${esc(d.texte)}</div>
+            <div style="font-size:11.5px;color:var(--th-text-2)">Fondée sur ${nbC} campagne${nbC>1?'s':''}${nbE?` + ${nbE} expérimentation${nbE>1?'s':''}`:''} · depuis le ${fmtDate(d.depuis)}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px">
+              ${src.map(l=>`<span class="obj-link" onclick="event.stopPropagation();openLearn('${l.id}')">${esc(l.categorie)} →</span>`).join('')}</div></div>
+          <span class="badge green">${esc(d.statut)}</span></div>`;
+      }).join('') : `<div class="empty">${ic('ti-flag',24)}Aucune décision formalisée pour l'instant.</div>`}
+
+      <p class="section-label" style="margin-top:26px">La boucle d'apprentissage</p>
+      <div class="card">
+        <div class="loop">
+          ${[['ti-bulb','Idée'],['ti-users','Secteur / Segment'],['ti-flask','Expérimentation ou campagne'],['ti-photo','Contenu'],['ti-chart-line','Résultat'],['ti-brain','Apprentissage'],['ti-flag','Décision']].map((x,i,arr)=>`
+            <div class="loop-step">
+              <div class="loop-icon">${ic(x[0],16)}</div>
+              <div class="loop-lab">${x[1]}</div>
+            </div>${i<arr.length-1?`<div class="loop-arrow">${ic('ti-arrow-left',13)}</div>`:''}`).join('')}
+          <div class="loop-back">${ic('ti-refresh',13)} nouvelle idée</div>
+        </div>
+        <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.75;margin-top:16px;text-align:center">Chaque action marketing produit une donnée, chaque donnée devient un apprentissage, chaque apprentissage informe la décision suivante.</p>
+      </div>`;
+  }
+  else if(intelTab===1){
+    /* ===== IDÉES MARKETING ===== */
+    const unexplored = ideas.filter(i=>!i.explored);
+    body = `
+      <div class="hint-bar" style="margin-bottom:18px">${ic('ti-link',16)}<span>Ces idées viennent de votre <b>Boîte à idées</b>. Rien n'est recréé ici — seulement transformé en action.</span></div>
+      ${unexplored.length ? unexplored.map(i=>`
+        <div class="idea-mk-card">
+          <div class="idea-mk-icon">${ic('ti-bulb',16)}</div>
+          <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600;line-height:1.6">${esc(i.text)}</div>
+            <div style="font-size:11.5px;color:var(--th-text-3);margin-top:4px">Capturée le ${fmtDate(i.createdAt)}</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0">
+            <button class="import-btn" onclick="expFromIdea('${i.id}')">${ic('ti-flask',13)} Expérimenter</button>
+            <button class="import-btn" onclick="campFromIdea('${i.id}')">${ic('ti-target-arrow',13)} Campagne</button>
+            <button class="btn-ghost" onclick="rejectIdea('${i.id}')">Écarter</button>
+          </div>
+        </div>`).join('')
+        : `<div class="empty">${ic('ti-bulb',24)}Aucune idée en attente. Capturez une idée dans la Boîte à idées, elle apparaîtra ici.</div>`}
+
+      <p class="section-label" style="margin-top:26px">Le parcours d'une idée</p>
+      <div class="card">
+        <div class="loop" style="justify-content:center">
+          ${[['ti-bulb','Boîte à idées'],['ti-target','Idée marketing'],['ti-flask','Expérimentation'],['ti-target-arrow','Campagne'],['ti-chart-line','Résultat'],['ti-brain','Apprentissage']].map((x,i,arr)=>`
+            <div class="loop-step"><div class="loop-icon">${ic(x[0],16)}</div><div class="loop-lab">${x[1]}</div></div>
+            ${i<arr.length-1?`<div class="loop-arrow">${ic('ti-arrow-left',13)}</div>`:''}`).join('')}
+        </div>
+      </div>`;
+  }
+  else {
+    /* ===== ASSISTANT IA — rien de simulé ===== */
+    const groups = [
+      { titre:'Analyse', icon:'ti-chart-line', items:[
+        "Analyser automatiquement les performances de la période",
+        "Identifier les campagnes qui sous-performent",
+        "Identifier les canaux prometteurs",
+        "Détecter les anomalies dans les résultats" ]},
+      { titre:'Recommandations', icon:'ti-sparkles', items:[
+        "Suggérer des campagnes à lancer",
+        "Suggérer des contenus à produire",
+        "Suggérer des segments à explorer",
+        "Suggérer des expérimentations à mener",
+        "Suggérer une réallocation du budget" ]},
+    ];
+    const questions = [
+      "Quel canal fonctionne le mieux pour les entreprises de dératisation de 2 à 10 salariés ?",
+      "Pourquoi mes campagnes ont-elles moins bien fonctionné ce mois-ci ?",
+      "Que devrais-je tester ensuite ?",
+      "Quel segment semble le plus rentable ?",
+      "Où est-ce que je dépense trop de temps ?",
+    ];
+    body = `
+      <div class="ai-hero">
+        <div class="ai-hero-icon">${ic('ti-sparkles',26)}</div>
+        <div>
+          <div style="font-size:18px;font-weight:800;margin-bottom:5px">Assistant IA — bientôt disponible</div>
+          <p style="font-size:13px;color:var(--th-text-2);line-height:1.75;max-width:620px">L'assistant s'appuiera sur <b>vos données réelles</b> : campagnes, canaux, audiences, contenus, expérimentations et apprentissages. Il n'est pas encore actif — rien n'est simulé dans ce prototype.</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:20px">
+        ${groups.map(g=>`<div class="card">
+          <div class="card-header"><div class="card-title">${ic(g.icon,17)}<span>${g.titre}</span></div><span class="placeholder-badge">À venir</span></div>
+          ${g.items.map(x=>`<div class="ai-item">${ic('ti-circle-check',13)}<span>${esc(x)}</span></div>`).join('')}
+        </div>`).join('')}
+      </div>
+
+      <p class="section-label">Questions en langage naturel</p>
+      <div class="card">
+        <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.75;margin-bottom:16px">Vous pourrez interroger vos données directement, sans construire de rapport :</p>
+        ${questions.map(q=>`<div class="ai-question">${ic('ti-message-2',14)}<span>« ${esc(q)}</span>»</div>`).join('')}
+        <div class="hint-bar" style="margin-top:16px">${ic('ti-alert-triangle',16)}<span>Ces exemples illustrent les usages prévus. <b>Aucune réponse n'est générée aujourd'hui</b> — l'assistant sera construit une fois que TigerHub contiendra assez de données réelles pour être utile.</span></div>
+      </div>`;
+  }
+
   el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===intelTab?' active':''}" onclick="switchIntelTab(${i})">${t}</div>`).join('')}</div>${body}`;
-}
-function importIdeaToCampaign(ideaId){
-  const idea = ideas.find(i=>i.id===ideaId); if(!idea) return;
-  campaigns.unshift({ id:'mktg_'+Date.now(), title:idea.text, objective:'', segmentId:AUDIENCES[0].id, status:'Brouillon',
-    startDate:'', endDate:'', budget:0, timeEstimated:0, timeReal:0, offre:'', message:'', results:{}, notes:'',
-    sourceIdeaId:idea.id, createdAt:new Date().toISOString() });
-  idea.explored = true;
-  saveKey('marketing-os:actions', campaigns); saveKey('idea-box:ideas', ideas);
-  renderIdeaBox(); refreshMktgAll();
-  document.querySelector('#view-marketing .sub-item[data-section="campaigns"]').click();
 }
 
 /* ---- 9 & 10 : rafraîchissement global ---- */
