@@ -619,6 +619,7 @@ const ICONS = {
 'user-check':'<circle cx="9" cy="8" r="4"/><path d="M3 20c0-4 2.5-6 6-6s6 2 6 6"/><polyline points="15,13 17,15 21,10"/>',
 'user-plus':'<circle cx="9" cy="8" r="4"/><path d="M3 20c0-4 2.5-6 6-6s6 2 6 6"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="15" y1="11" x2="21" y2="11"/>',
 'users':'<circle cx="8" cy="8" r="3.2"/><path d="M2 20c0-3.5 2.5-5.5 6-5.5s6 2 6 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M14.5 14.5c3-0.5 5.5 1.5 6 5.5"/>',
+'video':'<rect x="2" y="5" width="14" height="14" rx="2"/><polygon points="16,9 22,6 22,18 16,15"/>',
 'versions':'<rect x="5" y="8" width="12" height="10" rx="1"/><path d="M8 8V6a1 1 0 011-1h10a1 1 0 011 1v10a1 1 0 01-1 1h-2"/>',
 'wallet':'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14" r="1.3" fill="currentColor" stroke="none"/>',
 };
@@ -915,12 +916,6 @@ function buildApp(){
       detailPanel.id = 'panel-marketing-campaign-detail';
       detailPanel.innerHTML = `<div id="marketing-campaignDetailContent"></div>`;
       mainEl.appendChild(detailPanel);
-
-      const chPanel = document.createElement('div');
-      chPanel.className = 'panel';
-      chPanel.id = 'panel-marketing-channel-detail';
-      chPanel.innerHTML = `<div id="marketing-channelDetailContent"></div>`;
-      mainEl.appendChild(chPanel);
     }
 
     view.appendChild(submenu);
@@ -2840,85 +2835,320 @@ function renderCampaignDetail(){
     </div>`;
 }
 
-/* ---- 4. Canaux (agrégations calculées) ---- */
-let openChannelFamily = null;
+/* ---- 4. Canaux — portefeuille d'acquisition ----
+   Question : « Où puis-je trouver mes clients, et quels canaux méritent mon temps et mon argent ? »
+   Règle : ce module ne saisit AUCUN résultat. Il agrège ceux des campagnes.
+   Au lancement, 6 canaux actifs seulement — le reste est déclaré mais pas activé. */
+
+const CHANNEL_STATUSES = ['Actif','Test','À développer','À venir','Abandonné'];
+const CHANNEL_PRIORITIES = ['Critique','Haute','Moyenne','Faible'];
+const CHANNEL_MODES = ['Organique','Payant','Partenaire','Propriétaire','Earned'];
+
+/* Le portefeuille complet : déclaré une fois, activé progressivement.
+   'actif' au lancement = 6 canaux. Le reste attend son tour. */
+const CHANNEL_PORTFOLIO = [
+  /* ORGANIC & CONTENU */
+  { id:'seo', nom:'SEO', cat:'Organic & contenu', icon:'ti-search', c:'#6D28D9', tint:'#F0EBFC', statut:'Actif', priorite:'Critique', mode:'Organique', objectif:'Acquisition',
+    role:"Attirer les dératiseurs qui cherchent activement une solution", mappedChannel:'SEO',
+    opportunite:"Les mots-clés réglementaires convertissent 3x mieux que les génériques — produire davantage sur ce thème." },
+  { id:'contenu', nom:'Contenu', cat:'Organic & contenu', icon:'ti-file-text', c:'#0F766E', tint:'#E4F3F1', statut:'Actif', priorite:'Haute', mode:'Propriétaire', objectif:'Lead',
+    role:"Guides et études de cas pour capturer des emails", mappedChannel:'Contenu',
+    opportunite:"Une étude de cas par segment permettrait de couvrir les 3 audiences." },
+  { id:'blog', nom:'Blog', cat:'Organic & contenu', icon:'ti-notebook', c:'#0F766E', tint:'#E4F3F1', statut:'À développer', priorite:'Moyenne', mode:'Propriétaire', objectif:'Notoriété', role:"Publication régulière sur les métiers du nuisible" },
+  { id:'aeo', nom:'AEO / AI Search', cat:'Organic & contenu', icon:'ti-robot', c:'#8B5CF6', tint:'#F3EEFE', statut:'À développer', priorite:'Haute', mode:'Organique', objectif:'Notoriété',
+    role:"Être recommandé quand on demande à une IA quel logiciel choisir",
+    opportunite:"Canal émergent : peu de concurrents s'y positionnent aujourd'hui." },
+  { id:'local', nom:'Google Business / local', cat:'Organic & contenu', icon:'ti-map', c:'#1A73E8', tint:'#E8F0FE', statut:'À venir', priorite:'Faible', mode:'Propriétaire', objectif:'Notoriété', role:"Visibilité locale" },
+  { id:'annuaires', nom:'Annuaires & comparateurs', cat:'Organic & contenu', icon:'ti-list', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Moyenne', mode:'Earned', objectif:'Acquisition', role:"Être référencé là où on compare les logiciels métier" },
+
+  /* SOCIAL & CRÉATEURS */
+  { id:'linkedin', nom:'LinkedIn', cat:'Social & créateurs', icon:'ti-briefcase', c:'#0A66C2', tint:'#E7F0FA', statut:'Actif', priorite:'Critique', mode:'Organique', objectif:'Acquisition',
+    role:"Canal principal B2B : atteindre les dirigeants d'entreprises de dératisation", mappedChannel:'LinkedIn',
+    opportunite:"Tester les dirigeants d'entreprises 2-10 salariés avec un format vidéo court." },
+  { id:'youtube', nom:'YouTube', cat:'Social & créateurs', icon:'ti-presentation', c:'#CC0000', tint:'#FBEAEA', statut:'Test', priorite:'Haute', mode:'Organique', objectif:'Notoriété',
+    role:"Démonstrations produit et contenus métier", mappedChannel:'YouTube' },
+  { id:'instagram', nom:'Instagram', cat:'Social & créateurs', icon:'ti-photo', c:'#C13584', tint:'#FBEAF3', statut:'Test', priorite:'Faible', mode:'Organique', objectif:'Notoriété', role:"Coulisses et contenus terrain", mappedChannel:'Instagram' },
+  { id:'tiktok', nom:'TikTok', cat:'Social & créateurs', icon:'ti-sparkles', c:'#1A1523', tint:'#EFEEF1', statut:'Test', priorite:'Faible', mode:'Organique', objectif:'Notoriété', role:"Formats courts, audience jeune de techniciens", mappedChannel:'TikTok' },
+  { id:'facebook', nom:'Facebook', cat:'Social & créateurs', icon:'ti-share', c:'#1877F2', tint:'#E9F1FE', statut:'À venir', priorite:'Faible', mode:'Organique', objectif:'Notoriété', role:"Groupes professionnels du nuisible", mappedChannel:'Facebook' },
+  { id:'ugc', nom:'UGC & témoignages', cat:'Social & créateurs', icon:'ti-message-2', c:'#B45309', tint:'#FBF0E2', statut:'Test', priorite:'Haute', mode:'Earned', objectif:'Conversion',
+    role:"Témoignages clients authentiques en vidéo",
+    opportunite:"Le premier client satisfait sera la meilleure preuve sociale du lancement." },
+  { id:'influence', nom:'Influence & créateurs', cat:'Social & créateurs', icon:'ti-users', c:'#EC4899', tint:'#FCEAF4', statut:'Test', priorite:'Moyenne', mode:'Payant', objectif:'Notoriété', role:"Créateurs spécialisés B2B et métiers manuels" },
+  { id:'clipping', nom:'Clipping', cat:'Social & créateurs', icon:'ti-video', c:'#7C3AED', tint:'#F1EBFD', statut:'Test', priorite:'Moyenne', mode:'Payant', objectif:'Notoriété',
+    role:"Réseau de clippers distribuant des formats courts sur plusieurs plateformes",
+    opportunite:"Intéressant pour le lancement : beaucoup de formats courts, rémunération à la vue.", isClipping:true },
+
+  /* ACQUISITION PAYANTE */
+  { id:'googleads', nom:'Google Ads', cat:'Acquisition payante', icon:'ti-ad-2', c:'#1A73E8', tint:'#E8F0FE', statut:'Actif', priorite:'Haute', mode:'Payant', objectif:'Acquisition',
+    role:"Capter la demande existante sur les requêtes métier", mappedChannel:'Google Ads',
+    opportunite:"Volume de recherche faible sur ce marché de niche — surveiller le coût par lead." },
+  { id:'linkedinads', nom:'LinkedIn Ads', cat:'Acquisition payante', icon:'ti-briefcase', c:'#0A66C2', tint:'#E7F0FA', statut:'À développer', priorite:'Haute', mode:'Payant', objectif:'Lead',
+    role:"Ciblage précis par fonction et taille d'entreprise" },
+  { id:'metaads', nom:'Meta Ads', cat:'Acquisition payante', icon:'ti-ad-2', c:'#0866FF', tint:'#E8F0FE', statut:'À venir', priorite:'Moyenne', mode:'Payant', objectif:'Acquisition', role:"Retargeting des visiteurs du site", mappedChannel:'Meta Ads' },
+  { id:'microsoftads', nom:'Microsoft Ads', cat:'Acquisition payante', icon:'ti-ad-2', c:'#00A4EF', tint:'#E4F4FD', statut:'À venir', priorite:'Faible', mode:'Payant', objectif:'Acquisition', role:"Audience professionnelle sur Bing" },
+  { id:'display', nom:'Display & programmatique', cat:'Acquisition payante', icon:'ti-layout-grid', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Payant', objectif:'Notoriété', role:"Bannières sur sites métier" },
+
+  /* EMAIL & MESSAGING */
+  { id:'email', nom:'Email', cat:'Email & messaging', icon:'ti-mail', c:'#B45309', tint:'#FBF0E2', statut:'Actif', priorite:'Critique', mode:'Propriétaire', objectif:'Conversion',
+    role:"Séquences de prospection et onboarding des essais", mappedChannel:'Email',
+    opportunite:"Le combiné LinkedIn + email convertit mieux que chaque canal isolé." },
+  { id:'newsletter', nom:'Newsletter', cat:'Email & messaging', icon:'ti-news', c:'#B45309', tint:'#FBF0E2', statut:'À développer', priorite:'Moyenne', mode:'Propriétaire', objectif:'Fidélisation', role:"Contenu régulier vers la base d'emails" },
+  { id:'sms', nom:'SMS / WhatsApp', cat:'Email & messaging', icon:'ti-message-2', c:'#16A34A', tint:'#EAFAF0', statut:'À venir', priorite:'Faible', mode:'Propriétaire', objectif:'Conversion', role:"Relances courtes — frontière à surveiller avec le commercial" },
+
+  /* RELATIONS & PARTENARIATS */
+  { id:'partenariats', nom:'Partenariats & réseau pro', cat:'Relations & partenariats', icon:'ti-handshake', c:'#0F766E', tint:'#E4F3F1', statut:'Actif', priorite:'Haute', mode:'Partenaire', objectif:'Acquisition',
+    role:"Fédérations et associations professionnelles du nuisible", mappedChannel:'Partenariat',
+    opportunite:"Une fédération professionnelle apporte crédibilité et accès direct au marché." },
+  { id:'affiliation', nom:'Affiliation', cat:'Relations & partenariats', icon:'ti-link', c:'#8B5CF6', tint:'#F3EEFE', statut:'Test', priorite:'Moyenne', mode:'Partenaire', objectif:'Acquisition', role:"Commissions sur apport de clients" },
+  { id:'referral', nom:'Referral & bouche-à-oreille', cat:'Relations & partenariats', icon:'ti-users', c:'#16A34A', tint:'#EAFAF0', statut:'À développer', priorite:'Haute', mode:'Earned', objectif:'Acquisition',
+    role:"Un client recommande TigerFlow à un confrère",
+    opportunite:"Sur un marché de niche, le bouche-à-oreille est probablement le canal le plus puissant à terme." },
+  { id:'avis', nom:'Avis & réputation', cat:'Relations & partenariats', icon:'ti-star', c:'#F59E0B', tint:'#FEF3E2', statut:'À développer', priorite:'Haute', mode:'Earned', objectif:'Conversion', role:"Google, Trustpilot, Capterra" },
+  { id:'presse', nom:'Presse & podcasts', cat:'Relations & partenariats', icon:'ti-news', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Earned', objectif:'Notoriété', role:"Presse spécialisée et médias entrepreneuriaux" },
+  { id:'communautes', nom:'Communautés', cat:'Relations & partenariats', icon:'ti-messages', c:'#EC4899', tint:'#FCEAF4', statut:'Test', priorite:'Moyenne', mode:'Organique', objectif:'Notoriété', role:"Groupes LinkedIn et forums métier — apporter de la valeur avant de vendre" },
+
+  /* OFFLINE & ÉVÉNEMENTS */
+  { id:'evenements', nom:'Salons & événements', cat:'Offline & événements', icon:'ti-calendar', c:'#0F766E', tint:'#E4F3F1', statut:'À développer', priorite:'Haute', mode:'Payant', objectif:'Lead',
+    role:"Salons professionnels du nuisible", mappedChannel:'Événement',
+    opportunite:"Le salon de novembre est le premier vrai test terrain." },
+  { id:'webinars', nom:'Webinaires', cat:'Offline & événements', icon:'ti-presentation', c:'#3B82F6', tint:'#EAF1FE', statut:'Test', priorite:'Moyenne', mode:'Propriétaire', objectif:'Lead', role:"Sessions de démonstration en direct" },
+  { id:'courrier', nom:'Courrier & offline', cat:'Offline & événements', icon:'ti-mail', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Payant', objectif:'Notoriété', role:"Courrier, flyers, presse papier, radio" },
+
+  /* PRODUIT & VIRALITÉ */
+  { id:'viral', nom:'Viral / Product-led', cat:'Produit & viralité', icon:'ti-share', c:'#F97316', tint:'#FFF1E7', statut:'À venir', priorite:'Moyenne', mode:'Propriétaire', objectif:'Acquisition',
+    role:"Rapports partagés, devis signés, invitations entre confrères",
+    opportunite:"Chaque devis envoyé par TigerFlow est vu par un client final — mécanique virale naturelle." },
+  { id:'marketplaces', nom:'Marketplaces SaaS', cat:'Produit & viralité', icon:'ti-building', c:'#6E6A7A', tint:'#EFEEF4', statut:'À venir', priorite:'Faible', mode:'Earned', objectif:'Acquisition', role:"Annuaires et comparateurs de logiciels" },
+];
+
+const CHANNEL_CATEGORIES = ['Organic & contenu','Social & créateurs','Acquisition payante','Email & messaging','Relations & partenariats','Offline & événements','Produit & viralité'];
+
+/* Campagnes de clipping — sous-canal de Créateurs, données de démonstration */
+const CLIPPING_CAMPAIGNS = [
+  { createur:'@terrain_pro', plateforme:'TikTok', clips:12, vues:48000, clics:340, leads:6, cout:180, statut:'Terminée' },
+  { createur:'@artisan_tech', plateforme:'YouTube Shorts', clips:8, vues:22000, clics:190, leads:4, cout:120, statut:'En cours' },
+  { createur:'@btp_daily', plateforme:'Instagram Reels', clips:15, vues:31000, clics:120, leads:1, cout:150, statut:'Terminée' },
+];
+
+let channelFilter = 'Tous';
+let openChannelId = null;
+let channelTab = 0;
+function setChannelFilter(v){ channelFilter = v; renderMktgChannels(); }
+function openChannel(id){ openChannelId = id; channelTab = 0; renderMktgChannels(); }
+function closeChannel(){ openChannelId = null; renderMktgChannels(); }
+function switchChannelTab(i){ channelTab = i; renderMktgChannels(); }
+
+function channelStatusBadge(s){
+  const map = { 'Actif':'green','Test':'orange','À développer':'blue','À venir':'gray','Abandonné':'red' };
+  const k = map[s]||'gray';
+  const style = k==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':'';
+  return `<span class="badge ${k}" style="${style}">${esc(s)}</span>`;
+}
+function priorityBadge(p){
+  const map = { 'Critique':'red','Haute':'orange','Moyenne':'blue','Faible':'gray' };
+  const k = map[p]||'gray';
+  const style = k==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':'';
+  return `<span class="badge ${k}" style="${style}">${esc(p)}</span>`;
+}
+/* Agrège les résultats des campagnes pour un canal du portefeuille */
+function channelPerf(ch){
+  if(!ch.mappedChannel) return null;
+  const agg = aggregateByChannel()[ch.mappedChannel];
+  if(!agg) return null;
+  return agg;
+}
+function channelCampaigns(ch){
+  if(!ch.mappedChannel) return [];
+  return campaigns.filter(c=>Object.keys(c.channelBudgets||{}).includes(ch.mappedChannel));
+}
+
 function renderMktgChannels(){
   const el = document.getElementById('marketing-channelsContent'); if(!el) return;
-  const agg = aggregateByChannel();
-  const famAgg = {};
-  Object.entries(agg).forEach(([ch,a])=>{
-    const fam = (CHANNEL_STYLE[ch]||{}).family || 'Autres';
-    if(!famAgg[fam]) famAgg[fam] = { leads:0,cost:0,conversions:0,time:0,channels:[] };
-    famAgg[fam].leads+=a.leads; famAgg[fam].cost+=a.cost; famAgg[fam].conversions+=a.conversions; famAgg[fam].time+=a.time;
-    famAgg[fam].channels.push(ch);
-  });
-  const all = CHANNEL_FAMILIES.concat(['Autres']).filter(f=>famAgg[f]);
 
-  el.innerHTML = `
-    <div class="ch-grid">
-      ${all.map(fam=>{ const a = famAgg[fam]; const skeleton = (fam==='SEO'||fam==='Emailing');
-        return `<div class="ch-card" onclick="openChannelFam('${fam.replace(/'/g,"\\'")}')">
-        <div class="ch-head">
-          <div class="ch-logo" style="background:var(--th-bg-alt);color:var(--th-orange)">${ic(fam==='SEO'?'ti-search':fam==='Emailing'?'ti-mail':fam==='SEA / Publicité'?'ti-ad-2':fam==='Événements'?'ti-calendar':fam==='Partenariats'?'ti-handshake':'ti-share',19)}</div>
-          <div><div class="ch-name">${esc(fam)}</div><div class="ch-sub">${a.channels.length} canal${a.channels.length>1?'ux':''}</div></div>
-          ${skeleton?'<div class="ch-status"><span class="badge gray">Squelette</span></div>':''}
+  /* ===== FICHE CANAL ===== */
+  if(openChannelId){
+    const ch = CHANNEL_PORTFOLIO.find(x=>x.id===openChannelId);
+    if(!ch){ openChannelId=null; return renderMktgChannels(); }
+    const perf = channelPerf(ch);
+    const camps = channelCampaigns(ch);
+    const budget = camps.reduce((s,c)=>s+((c.channelBudgets||{})[ch.mappedChannel]||0),0);
+    const tabs = ch.isClipping ? ['Performance','Campagnes','Clipping','Décision'] : ['Performance','Campagnes','Contenus','Décision'];
+    let body = '';
+
+    if(channelTab===0){
+      body = perf ? `
+        <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+          <div class="stat-card"><div class="val">${perf.campaigns}</div><div class="label">Campagnes</div></div>
+          <div class="stat-card blue"><div class="val">${perf.leads}</div><div class="label">Leads</div></div>
+          <div class="stat-card green"><div class="val">${perf.conversions}</div><div class="label">Clients</div></div>
+          <div class="stat-card red"><div class="val">${perf.cost} €</div><div class="label">Dépensé</div></div>
+          <div class="stat-card"><div class="val">${perf.leads?Math.round(perf.cost/perf.leads)+' €':'—'}</div><div class="label">Coût / lead</div></div>
+          <div class="stat-card purple"><div class="val">${perf.conversions?Math.round(perf.cost/perf.conversions)+' €':'—'}</div><div class="label">Coût / client</div></div>
         </div>
-        <div class="ch-body" style="border-top:1px solid var(--th-border);padding-top:13px">
-          <div class="ch-metric"><div class="v">${a.cost} €</div><div class="l">dépensés</div></div>
-          <div class="ch-metric"><div class="v">${a.leads}</div><div class="l">leads</div></div>
-          <div class="ch-metric"><div class="v">${Math.round(a.time)} h</div><div class="l">temps</div></div>
-        </div></div>`; }).join('')}
-    </div>
-    <div class="hint-bar">${ic('ti-bulb',16)}<span>Ces chiffres sont <b>calculés depuis les campagnes</b>, jamais saisis une deuxième fois. Cliquez sur une famille pour voir le détail par canal.</span></div>`;
-}
-function openChannelFam(fam){
-  openChannelFamily = fam;
-  document.querySelectorAll('#view-marketing .panel').forEach(el=>el.classList.remove('active'));
-  document.getElementById('panel-marketing-channel-detail').classList.add('active');
-  renderChannelDetail();
-}
-function closeChannelDetail(){
-  openChannelFamily = null;
-  document.getElementById('panel-marketing-channel-detail').classList.remove('active');
-  document.querySelector('#view-marketing .sub-item[data-section="channels"]').click();
-}
-function renderChannelDetail(){
-  const el = document.getElementById('marketing-channelDetailContent');
-  if(!el || !openChannelFamily) return;
-  const fam = openChannelFamily;
+        <div class="grid-2" style="margin-top:16px">
+          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-chart-bar',17)}<span>Efficacité</span></div></div>
+            <div style="font-size:12.5px;line-height:2.2">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Taux de conversion</span><b>${perf.leads?Math.round(perf.conversions/perf.leads*100)+'%':'—'}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Temps investi</span><b>${Math.round(perf.time)} h</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Temps par lead</span><b>${perf.leads?(perf.time/perf.leads).toFixed(2)+' h':'—'}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Budget engagé</span><b>${budget} €</b></div>
+            </div></div>
+          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-wallet',17)}<span>Coût réel</span></div></div>
+            <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.75">Ce canal a coûté <b style="color:var(--th-text)">${perf.cost} €</b> et <b style="color:var(--th-text)">${Math.round(perf.time)} heures</b> de travail. ${perf.time>20&&perf.cost<500?'Le coût humain dépasse largement le coût financier — à prendre en compte dans la décision.':''}</p>
+          </div>
+        </div>` : `
+        <div class="waiting-block">${ic('ti-chart-line',22)}
+          <p>Aucune campagne n'a encore été menée sur ce canal.<br><span style="font-size:11.5px">Les performances apparaîtront automatiquement dès qu'une campagne du Plan de campagnes l'utilisera.</span></p></div>`;
+    }
+    else if(channelTab===1){
+      body = camps.length ? `<table class="data-table"><thead><tr><th>Campagne</th><th>Audience</th><th>Statut</th><th>Budget</th><th>Leads</th><th>Clients</th></tr></thead><tbody>
+        ${camps.map(c=>{ const t=campTotals(c); return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer">
+          <td class="dt-title">${esc(c.title)}</td><td style="font-size:12px;color:var(--th-text-2)">${esc(segName(c.segmentId))}</td>
+          <td>${statusBadge(c.status)}</td><td>${(c.channelBudgets||{})[ch.mappedChannel]||0} €</td>
+          <td>${(c.results&&c.results[ch.mappedChannel]&&c.results[ch.mappedChannel].leads)||0}</td>
+          <td>${(c.results&&c.results[ch.mappedChannel]&&c.results[ch.mappedChannel].conversions)||0}</td></tr>`; }).join('')}
+      </tbody></table>` : `<div class="empty">${ic('ti-target-arrow',24)}Aucune campagne sur ce canal. Créez-en une depuis le Plan de campagnes.</div>`;
+    }
+    else if(channelTab===2 && ch.isClipping){
+      const tot = CLIPPING_CAMPAIGNS.reduce((a,x)=>({clips:a.clips+x.clips,vues:a.vues+x.vues,clics:a.clics+x.clics,leads:a.leads+x.leads,cout:a.cout+x.cout}),{clips:0,vues:0,clics:0,leads:0,cout:0});
+      body = `
+        <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+          <div class="stat-card"><div class="val">${tot.clips}</div><div class="label">Clips publiés</div></div>
+          <div class="stat-card blue"><div class="val">${(tot.vues/1000).toFixed(0)}k</div><div class="label">Vues</div></div>
+          <div class="stat-card"><div class="val">${tot.clics}</div><div class="label">Clics</div></div>
+          <div class="stat-card green"><div class="val">${tot.leads}</div><div class="label">Leads</div></div>
+          <div class="stat-card purple"><div class="val">${(tot.cout/(tot.vues/1000)).toFixed(2)} €</div><div class="label">Coût / 1000 vues</div></div>
+        </div>
+        <p class="section-label">Créateurs</p>
+        <table class="data-table"><thead><tr><th>Créateur</th><th>Plateforme</th><th>Clips</th><th>Vues</th><th>Clics</th><th>Leads</th><th>Coût</th><th>Coût/lead</th><th>Statut</th></tr></thead><tbody>
+          ${CLIPPING_CAMPAIGNS.map(x=>`<tr><td class="dt-title">${esc(x.createur)}</td><td><span class="badge">${esc(x.plateforme)}</span></td>
+            <td>${x.clips}</td><td>${x.vues.toLocaleString('fr-FR')}</td><td>${x.clics}</td><td>${x.leads}</td><td>${x.cout} €</td>
+            <td>${x.leads?Math.round(x.cout/x.leads)+' €':'—'}</td><td>${statusBadge(x.statut==='En cours'?'En ligne':'Terminée')}</td></tr>`).join('')}
+        </tbody></table>
+        <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Données de démonstration. Aucune connexion à une plateforme de clipping n'est développée en V1.</span></div>`;
+    }
+    else if(channelTab===2){
+      const cts = CONTENTS.filter(c=>c.canal===ch.mappedChannel || c.canal===ch.nom);
+      body = cts.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">
+        ${cts.map(c=>{ const sc = c.statut==='Publié'?'green':c.statut==='À créer'?'gray':'orange';
+          return `<div class="card" style="padding:14px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px;line-height:1.4">${esc(c.titre)}</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="badge">${esc(c.type)}</span><span class="badge ${sc}" style="${sc==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(c.statut)}</span></div></div>`; }).join('')}
+      </div>` : `<div class="empty">${ic('ti-photo',24)}Aucun contenu associé à ce canal.</div>`;
+    }
+    else {
+      const cpl = perf&&perf.leads ? Math.round(perf.cost/perf.leads) : null;
+      let reco = null;
+      if(cpl!==null && cpl<=15) reco = ['green','Continuer',"Le coût par lead est bon. Envisagez d'augmenter l'investissement sur ce canal."];
+      else if(cpl!==null && cpl>40) reco = ['red','Arrêter ou revoir',"Le coût par lead dépasse largement l'objectif de 40 €."];
+      else if(ch.statut==='Test') reco = ['orange','Continuer le test',"Pas encore assez de données pour trancher."];
+      else if(!perf) reco = ['gray','À évaluer',"Aucune campagne menée : impossible de décider aujourd'hui."];
+      else reco = ['blue','Surveiller',"Performances correctes mais à confirmer sur la durée."];
+
+      body = `
+        <div class="grid-2">
+          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-target',17)}<span>Positionnement</span></div></div>
+            <div style="font-size:12.5px;line-height:2.2">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Statut</span>${channelStatusBadge(ch.statut)}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Priorité</span>${priorityBadge(ch.priorite)}</div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Mode</span><b>${esc(ch.mode)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Objectif</span><b>${esc(ch.objectif)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Catégorie</span><b>${esc(ch.cat)}</b></div>
+            </div></div>
+          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-bulb',17)}<span>Décision recommandée</span></div></div>
+            <div style="margin-bottom:12px"><span class="badge ${reco[0]}" style="${reco[0]==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':''};font-size:13px;padding:6px 13px">${reco[1]}</span></div>
+            <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.75">${reco[2]}</p>
+            ${ch.opportunite?`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border)">
+              <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Opportunité identifiée</div>
+              <div style="font-size:12.5px;line-height:1.7;color:var(--th-orange);font-weight:600">${esc(ch.opportunite)}</div></div>`:''}
+          </div>
+        </div>`;
+    }
+
+    el.innerHTML = `
+      <div class="btn-back" onclick="closeChannel()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux canaux</div>
+      <div class="page-head">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:46px;height:46px;border-radius:13px;background:${ch.tint};display:flex;align-items:center;justify-content:center;color:${ch.c}">${ic(ch.icon,23)}</div>
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h1 style="margin-bottom:2px">${esc(ch.nom)}</h1>${channelStatusBadge(ch.statut)}${priorityBadge(ch.priorite)}</div>
+            <p class="subtitle">${esc(ch.role||'')}</p>
+          </div>
+        </div>
+      </div>
+      <div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===channelTab?' active':''}" onclick="switchChannelTab(${i})">${t}</div>`).join('')}</div>
+      ${body}`;
+    return;
+  }
+
+  /* ===== PORTEFEUILLE ===== */
+  const actifs = CHANNEL_PORTFOLIO.filter(c=>c.statut==='Actif');
+  const tests = CHANNEL_PORTFOLIO.filter(c=>c.statut==='Test');
   const agg = aggregateByChannel();
-  const chans = Object.keys(agg).filter(ch=>((CHANNEL_STYLE[ch]||{}).family||'Autres')===fam);
-  const tot = chans.reduce((a,ch)=>({leads:a.leads+agg[ch].leads,cost:a.cost+agg[ch].cost,conv:a.conv+agg[ch].conversions,time:a.time+agg[ch].time}),{leads:0,cost:0,conv:0,time:0});
-  const relCamps = campaigns.filter(c=>campChannels(c).some(ch=>chans.includes(ch)));
-  const skeleton = (fam==='SEO'||fam==='Emailing');
-  const skeletonSections = fam==='SEO' ? ['Mots-clés','Positions','Pages','Contenus','Trafic','Conversions','Opportunités']
-                        : fam==='Emailing' ? ['Campagnes','Audiences','Automatisations','Performances'] : [];
+  const totalLeads = Object.values(agg).reduce((s,a)=>s+a.leads,0);
+  const totalConv = Object.values(agg).reduce((s,a)=>s+a.conversions,0);
+  const totalCost = Object.values(agg).reduce((s,a)=>s+a.cost,0);
+  const activeCampaigns = campaigns.filter(c=>c.status==='En ligne').length;
+  const best = Object.entries(agg).filter(([,a])=>a.leads>0).sort((a,b)=>(a[1].cost/a[1].leads)-(b[1].cost/b[1].leads))[0];
+
+  const filters = ['Tous','Actifs','À tester','À développer','À venir'];
+  const matchFilter = c => channelFilter==='Tous' ? true
+    : channelFilter==='Actifs' ? c.statut==='Actif'
+    : channelFilter==='À tester' ? c.statut==='Test'
+    : channelFilter==='À développer' ? c.statut==='À développer'
+    : c.statut==='À venir';
+
+  const card = ch => {
+    const perf = channelPerf(ch);
+    const cpl = perf&&perf.leads ? Math.round(perf.cost/perf.leads) : null;
+    return `<div class="ch-card" onclick="openChannel('${ch.id}')">
+      <div class="ch-head">
+        <div class="ch-logo" style="background:${ch.tint};color:${ch.c}">${ic(ch.icon,19)}</div>
+        <div style="min-width:0;flex:1"><div class="ch-name">${esc(ch.nom)}</div>
+          <div class="ch-sub">${esc(ch.mode)} · ${esc(ch.objectif)}</div></div>
+        <div class="ch-status">${channelStatusBadge(ch.statut)}</div>
+      </div>
+      ${perf ? `<div class="ch-body" style="border-top:1px solid var(--th-border);padding-top:13px">
+          <div class="ch-metric"><div class="v">${perf.leads}</div><div class="l">leads</div></div>
+          <div class="ch-metric"><div class="v">${perf.conversions}</div><div class="l">clients</div></div>
+          <div class="ch-metric"><div class="v">${cpl!==null?cpl+' €':'—'}</div><div class="l">coût/lead</div></div>
+        </div>`
+        : `<div style="border-top:1px solid var(--th-border);padding-top:13px;font-size:12px;color:var(--th-text-3)">
+            ${ch.statut==='Actif'?'Aucune campagne encore menée':ch.statut==='Test'?'À tester — pas encore de données':'Pas encore activé'}</div>`}
+    </div>`;
+  };
 
   el.innerHTML = `
-    <div class="btn-back" onclick="closeChannelDetail()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux canaux</div>
-    <div class="page-head"><div><h1>${esc(fam)}</h1><p class="subtitle">Performance calculée depuis vos campagnes</p></div></div>
-    <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
-      <div class="stat-card"><div class="val">${chans.length}</div><div class="label">Canaux actifs</div></div>
-      <div class="stat-card blue"><div class="val">${tot.leads}</div><div class="label">Leads</div></div>
-      <div class="stat-card green"><div class="val">${tot.conv}</div><div class="label">Conversions</div></div>
-      <div class="stat-card red"><div class="val">${tot.cost} €</div><div class="label">Dépensé</div></div>
-      <div class="stat-card purple"><div class="val">${Math.round(tot.time)} h</div><div class="label">Temps investi</div></div>
+    <div class="ctx-bar" style="margin-bottom:16px">
+      <div class="ctx-main"><div class="sector-dot"></div>
+        <div><div style="font-size:14px;font-weight:800">${esc(ACTIVE_SECTOR.nom)}</div>
+        <div style="font-size:11.5px;color:var(--th-text-2)">secteur actif</div></div></div>
+      <div class="ctx-sep"></div>
+      <div><div style="font-size:14px;font-weight:800">${actifs.length} actifs · ${tests.length} en test</div>
+        <div style="font-size:11.5px;color:var(--th-text-2)">sur ${CHANNEL_PORTFOLIO.length} canaux déclarés</div></div>
+      <div style="margin-left:auto;font-size:11px;color:var(--th-text-3)">Les autres secteurs réutiliseront ce même portefeuille</div>
     </div>
-    <p class="section-label">Détail par canal</p>
-    <table class="data-table"><thead><tr><th>Canal</th><th>Campagnes</th><th>Impressions</th><th>Clics</th><th>Leads</th><th>Conversions</th><th>Coût</th><th>Coût/lead</th></tr></thead><tbody>
-      ${chans.map(ch=>{ const a=agg[ch]; const st=CHANNEL_STYLE[ch]||{};
-        return `<tr><td><span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span></td>
-        <td>${a.campaigns}</td><td>${a.impressions.toLocaleString('fr-FR')}</td><td>${a.clicks.toLocaleString('fr-FR')}</td>
-        <td>${a.leads}</td><td>${a.conversions}</td><td>${a.cost} €</td><td>${a.leads?Math.round(a.cost/a.leads)+' €':'—'}</td></tr>`; }).join('')}
-    </tbody></table>
-    <p class="section-label" style="margin-top:24px">Campagnes utilisant ce canal</p>
-    <table class="data-table"><thead><tr><th>Campagne</th><th>Segment</th><th>Statut</th><th>Leads</th><th>Coût</th></tr></thead><tbody>
-      ${relCamps.map(c=>{ const t=campTotals(c); return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer"><td class="dt-title">${esc(c.title)}</td><td><span class="badge">${esc(segName(c.segmentId))}</span></td><td>${statusBadge(c.status)}</td><td>${t.leads}</td><td>${t.cost} €</td></tr>`; }).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--th-text-2);padding:22px">Aucune campagne sur ce canal.</td></tr>`}
-    </tbody></table>
-    ${skeleton ? `<p class="section-label" style="margin-top:24px">Sections à venir</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
-        ${skeletonSections.map(s=>`<div class="placeholder" style="padding:22px 16px"><div class="placeholder-icon-wrap" style="margin:0 auto 10px">${ic('ti-layout-grid',18)}</div><div style="font-size:13px;font-weight:700;margin-bottom:6px">${s}</div><div class="placeholder-badge">À venir</div></div>`).join('')}
-      </div>` : ''}`;
+
+    <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-share')}</div><div class="val">${actifs.length}</div><div class="label">Canaux actifs</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-target-arrow')}</div><div class="val">${activeCampaigns}</div><div class="label">Campagnes en cours</div></div>
+      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-users')}</div><div class="val">${totalLeads}</div><div class="label">Leads générés</div></div>
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${totalConv}</div><div class="label">Clients acquis</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-coin')}</div><div class="val">${totalLeads?Math.round(totalCost/totalLeads)+' €':'—'}</div><div class="label">Coût moyen / lead</div></div>
+      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-trophy')}</div><div class="val" style="font-size:15px">${best?esc(best[0]):'—'}</div><div class="label">Canal le plus efficace</div></div>
+    </div>
+
+    <div class="filter-bar" style="margin-top:22px">
+      ${filters.map(f=>`<button class="filter-chip${channelFilter===f?' active':''}" onclick="setChannelFilter('${f}')">${f}</button>`).join('')}
+    </div>
+
+    ${CHANNEL_CATEGORIES.map(cat=>{
+      const list = CHANNEL_PORTFOLIO.filter(c=>c.cat===cat && matchFilter(c));
+      if(!list.length) return '';
+      return `<p class="section-label">${esc(cat)} <span style="color:var(--th-text-3);font-weight:600;text-transform:none;letter-spacing:0">· ${list.length}</span></p>
+        <div class="ch-grid">${list.map(card).join('')}</div>`;
+    }).join('')}
+
+    <div class="hint-bar" style="margin-top:20px">${ic('ti-bulb',16)}<span>Les performances sont <b>calculées depuis le Plan de campagnes</b>, jamais saisies ici. Un canal n'a de résultats que si une campagne l'utilise.</span></div>`;
 }
 
 /* ---- 5. Contenus ---- */
@@ -3147,7 +3377,6 @@ function refreshMktgAll(){
   renderMktgOverview(); renderMktgAudiences(); renderMktgCampaigns(); renderMktgChannels();
   renderMktgContents(); renderMktgAnalysis(); renderMktgExperiments(); renderMktgIntelligence();
   if(openCampaignId) renderCampaignDetail();
-  if(openChannelFamily) renderChannelDetail();
 }
 
 /* ================= SALES PORTAL ================= */
