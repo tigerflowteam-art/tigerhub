@@ -312,6 +312,33 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ch-metric .v{font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .ch-metric .l{font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-top:1px}
 .ch-spark{flex-shrink:0}
+.today-bar{display:flex;align-items:center;gap:20px;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;padding:15px 20px;margin-bottom:16px;box-shadow:var(--th-shadow-sm);flex-wrap:wrap;font-size:13px}
+.today-item{display:flex;align-items:center;gap:8px;color:var(--th-text-2)}
+.today-item b{color:var(--th-text);font-size:15px;font-weight:800}
+.today-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.todo-row{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--th-border);cursor:pointer}
+.todo-row:last-of-type{border-bottom:none}
+.todo-row:hover .todo-action{color:var(--th-orange)}
+.todo-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.todo-action{font-size:12px;font-weight:700;color:var(--th-text-3);white-space:nowrap;align-self:center;transition:color .12s}
+.launch-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--th-border);cursor:pointer}
+.launch-row:last-of-type{border-bottom:none}
+.launch-date{width:44px;text-align:center;flex-shrink:0;background:var(--th-bg-alt);border-radius:10px;padding:7px 0}
+.timeline{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding:8px 0}
+.tl-step{flex:1;min-width:96px;text-align:center;position:relative;padding-top:20px}
+.tl-step::before{content:'';position:absolute;top:5px;left:50%;right:-50%;height:2px;background:var(--th-border)}
+.tl-step:last-child::before{display:none}
+.tl-dot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:11px;height:11px;border-radius:50%;background:var(--th-border);border:2px solid var(--th-card);z-index:1}
+.tl-step.hl .tl-dot{background:var(--th-orange);width:14px;height:14px;top:-1px;box-shadow:0 0 0 3px var(--th-orange-bg)}
+.tl-date{font-size:11px;color:var(--th-text-3);font-weight:700;margin-bottom:3px}
+.tl-label{font-size:12px;font-weight:600}
+.tl-step.hl .tl-label{color:var(--th-orange);font-weight:800}
+.channel-pick{display:flex;align-items:center;gap:10px;background:var(--th-card);border:1px solid var(--th-border);border-radius:12px;padding:12px 14px}
+.channel-pick.used{border-color:var(--th-green);background:var(--th-green-bg)}
+.conn-card{display:flex;align-items:center;gap:11px;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;padding:14px 16px;box-shadow:var(--th-shadow-sm)}
+.conn-icon{width:30px;height:30px;border-radius:10px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.conn-label{font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.conn-val{font-size:12.5px;font-weight:600;margin-top:2px}
 .msg-card{background:var(--th-bg-alt);border-radius:13px;padding:15px 17px;margin-bottom:12px;border-left:3px solid var(--th-border)}
 .msg-card.works{border-left-color:var(--th-green);background:var(--th-green-bg)}
 .msg-card.fails{border-left-color:var(--th-red);background:var(--th-red-bg)}
@@ -1226,37 +1253,86 @@ const AUDIENCES = [
 ];
 
 /* ---------- Campagnes : source unique des résultats ---------- */
+const CAMPAIGN_OBJECTIVES = ['Acquisition','Notoriété','Conversion','Lancement','Réactivation','Fidélisation','Expérimentation'];
+const CHECKLIST_ITEMS = ['Audience définie','Objectif défini','Budget défini','Message validé','Contenu créé','Landing page prête','Tracking UTM configuré','Campagne mise en ligne'];
+
 const DEMO_CAMPAIGNS = [
-  { title:'Lancement TigerFlow — Dératisation France', sectorId:'derat', objective:'Acquisition', segmentId:'seg1', status:'En préparation',
-    startDate:'2026-09-15', endDate:'2026-11-15', budget:500, timeEstimated:18, timeReal:4,
-    offre:"2 mois offerts pour les 20 premiers inscrits", message:"Vos comptes rendus d'intervention prêts en 2 minutes, depuis le terrain",
-    results:{}, notes:"Campagne principale du lancement du 1er octobre." },
-  { title:'Notoriété — Présence LinkedIn fondatrice', sectorId:'derat', objective:'Notoriété', segmentId:'seg1', status:'En ligne',
-    startDate:'2026-08-01', endDate:'2026-12-31', budget:0, timeEstimated:24, timeReal:11,
-    offre:"", message:"Coulisses de la construction de TigerFlow avec des dératiseurs",
-    results:{ 'LinkedIn':{impressions:14200,clicks:420,leads:38,conversions:2,cost:0} },
-    notes:"Zéro budget, uniquement du temps. Bon retour sur l'audience métier." },
-  { title:'Contenu SEO — Réglementation et traçabilité', sectorId:'derat', objective:'Acquisition durable', segmentId:'seg2', status:'En ligne',
-    startDate:'2026-07-01', endDate:'2026-12-31', budget:400, timeEstimated:40, timeReal:34,
-    offre:"Guide gratuit : obligations réglementaires du dératiseur", message:"Traçabilité réglementaire automatique, prête pour vos audits",
-    results:{ 'SEO':{impressions:0,clicks:1180,leads:52,conversions:6,cost:400} },
-    notes:"Le sujet réglementaire attire exactement la bonne cible." },
-  { title:'Prospection ciblée — Contrats sanitaires', sectorId:'derat', objective:'Leads qualifiés', segmentId:'seg2', status:'En ligne',
-    startDate:'2026-08-15', endDate:'2026-10-31', budget:600, timeEstimated:20, timeReal:9,
-    offre:"Démonstration de 20 minutes", message:"Fournissez vos preuves de passage sans effort",
+  { title:'Lancement TigerFlow — Dératisation', sectorId:'derat', objective:'Lancement', segmentId:'seg1', status:'En préparation',
+    startDate:'2026-10-01', endDate:'2026-10-15', budget:300, timeEstimated:18, timeReal:6, responsable:'Sophie',
+    offre:"TigerFlow — logiciel de gestion des interventions", message:"Vos comptes rendus d'intervention prêts en 2 minutes, depuis le terrain", cta:"Demander une démonstration",
+    targets:{ leads:30, clients:5, cpl:10 },
+    checklist:[1,1,1,1,1,1,0,0],
+    channelBudgets:{ 'LinkedIn':200, 'Email':100 },
+    results:{}, notes:"Campagne principale du lancement du 1er octobre.",
+    sourceIdeaText:"Faire connaître TigerFlow aux dératiseurs" },
+
+  { title:'Google Ads — Dératisation TPE', sectorId:'derat', objective:'Acquisition', segmentId:'seg1', status:'Planifiée',
+    startDate:'2026-10-05', endDate:'2026-10-31', budget:500, timeEstimated:8, timeReal:2, responsable:'Sophie',
+    offre:"Essai gratuit 14 jours", message:"Le logiciel des professionnels du nuisible", cta:"Essayer gratuitement",
+    targets:{ leads:50, clients:4, cpl:10 },
+    checklist:[1,1,1,1,1,1,1,0],
+    channelBudgets:{ 'Google Ads':500 },
+    results:{}, notes:"" },
+
+  { title:'Guide — Choisir son logiciel de dératisation', sectorId:'derat', objective:'Acquisition', segmentId:'seg2', status:'Brouillon',
+    startDate:'2026-10-10', endDate:'2026-12-31', budget:150, timeEstimated:20, timeReal:3, responsable:'Sophie',
+    offre:"Guide PDF gratuit", message:"", cta:"Télécharger le guide",
+    targets:{ leads:40, clients:3, cpl:4 },
+    checklist:[1,1,0,0,1,0,0,0],
+    channelBudgets:{ 'SEO':150 },
+    results:{}, notes:"" },
+
+  { title:'Prospection — Contrats sanitaires', sectorId:'derat', objective:'Acquisition', segmentId:'seg2', status:'En ligne',
+    startDate:'2026-08-15', endDate:'2026-10-31', budget:600, timeEstimated:20, timeReal:9, responsable:'Sophie',
+    offre:"Démonstration de 20 minutes", message:"Traçabilité réglementaire automatique, prête pour vos audits", cta:"Réserver une démonstration",
+    targets:{ leads:60, clients:8, cpl:10 },
+    checklist:[1,1,1,1,1,1,1,1],
+    channelBudgets:{ 'LinkedIn':380, 'Email':220 },
     results:{ 'LinkedIn':{impressions:8400,clicks:310,leads:24,conversions:4,cost:380}, 'Email':{impressions:900,clicks:180,leads:14,conversions:3,cost:0} },
     notes:"Le combiné LinkedIn + email fonctionne bien sur ce segment." },
-  { title:'Test — Google Ads mots-clés métier', sectorId:'derat', objective:'Acquisition', segmentId:'seg1', status:'En pause',
-    startDate:'2026-08-01', endDate:'2026-08-20', budget:300, timeEstimated:6, timeReal:7,
-    offre:"Essai gratuit 14 jours", message:"Le logiciel des professionnels du nuisible",
+
+  { title:'Présence LinkedIn fondatrice', sectorId:'derat', objective:'Notoriété', segmentId:'seg1', status:'En ligne',
+    startDate:'2026-08-01', endDate:'2026-12-31', budget:0, timeEstimated:24, timeReal:11, responsable:'Sophie',
+    offre:"", message:"Coulisses de la construction de TigerFlow avec des dératiseurs", cta:"Suivre le projet",
+    targets:{ leads:50, clients:3, cpl:0 },
+    checklist:[1,1,1,1,1,0,1,1],
+    channelBudgets:{ 'LinkedIn':0 },
+    results:{ 'LinkedIn':{impressions:14200,clicks:420,leads:38,conversions:2,cost:0} },
+    notes:"Zéro budget, uniquement du temps investi." },
+
+  { title:'Contenu SEO — Réglementation', sectorId:'derat', objective:'Acquisition', segmentId:'seg2', status:'En ligne',
+    startDate:'2026-07-01', endDate:'2026-12-31', budget:400, timeEstimated:40, timeReal:34, responsable:'Sophie',
+    offre:"Guide gratuit obligations réglementaires", message:"Traçabilité réglementaire automatique", cta:"Lire l'article",
+    targets:{ leads:80, clients:6, cpl:5 },
+    checklist:[1,1,1,1,1,1,1,1],
+    channelBudgets:{ 'SEO':400 },
+    results:{ 'SEO':{impressions:0,clicks:1180,leads:52,conversions:6,cost:400} },
+    notes:"Le sujet réglementaire attire exactement la bonne cible." },
+
+  { title:'Email — Relance prospects tièdes', sectorId:'derat', objective:'Réactivation', segmentId:'seg3', status:'Brouillon',
+    startDate:'2026-10-15', endDate:'2026-11-15', budget:100, timeEstimated:6, timeReal:0, responsable:'Sophie',
+    offre:"Offre de rentrée", message:"", cta:"",
+    targets:{ leads:20, clients:2, cpl:5 },
+    checklist:[1,1,1,0,0,0,0,0],
+    channelBudgets:{ 'Email':100 },
+    results:{}, notes:"" },
+
+  { title:'Test Google Ads — mots-clés métier', sectorId:'derat', objective:'Expérimentation', segmentId:'seg1', status:'En pause',
+    startDate:'2026-08-01', endDate:'2026-08-20', budget:300, timeEstimated:6, timeReal:7, responsable:'Sophie',
+    offre:"Essai gratuit 14 jours", message:"Le logiciel des professionnels du nuisible", cta:"Essayer",
+    targets:{ leads:30, clients:3, cpl:10 },
+    checklist:[1,1,1,1,1,1,1,1],
+    channelBudgets:{ 'Google Ads':300 },
     results:{ 'Google Ads':{impressions:22000,clicks:410,leads:18,conversions:1,cost:290} },
     notes:"Coût par lead trop élevé sur ce marché de niche — mis en pause." },
-  { title:'Salon des professionnels du nuisible', sectorId:'derat', objective:'Leads terrain', segmentId:'seg2', status:'Planifiée',
-    startDate:'2026-11-18', endDate:'2026-11-20', budget:2500, timeEstimated:36, timeReal:0,
-    offre:"Démonstration sur stand", message:"", results:{}, notes:"" },
-  { title:'Partenariat — Fédération professionnelle', sectorId:'derat', objective:'Crédibilité + leads', segmentId:'seg2', status:'Brouillon',
-    startDate:'', endDate:'', budget:800, timeEstimated:14, timeReal:0,
-    offre:"Offre adhérents", message:"", results:{}, notes:"" },
+
+  { title:'Salon des professionnels du nuisible', sectorId:'derat', objective:'Lancement', segmentId:'seg2', status:'Planifiée',
+    startDate:'2026-11-18', endDate:'2026-11-20', budget:2500, timeEstimated:36, timeReal:0, responsable:'Sophie',
+    offre:"Démonstration sur stand", message:"", cta:"Venir nous voir",
+    targets:{ leads:150, clients:10, cpl:17 },
+    checklist:[1,1,1,0,0,0,0,0],
+    channelBudgets:{ 'Événement':2500 },
+    results:{}, notes:"" },
 ];
 
 async function seedDemoCampaignsIfEmpty(){
@@ -1897,41 +1973,169 @@ function renderMktgAudiences(){
   el.innerHTML = `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===audienceTab?' active':''}" onclick="switchAudienceTab(${i})">${t}</div>`).join('')}</div>${body}`;
 }
 
-/* ---- 3. Plan de campagnes ---- */
+/* ---- 3. Plan de campagnes ----
+   Hiérarchie UX : décision en haut · action au milieu · calendrier · détail en bas.
+   La page doit dire quoi faire, pas seulement montrer des chiffres. */
+
 let campView = 'Toutes';
 let campSearch = '';
+let campFilterChannel = 'Tous';
+let campFilterObjective = 'Tous';
 function setCampView(v){ campView = v; renderMktgCampaigns(); }
 function setCampSearch(v){ campSearch = v.toLowerCase(); renderMktgCampaigns(); }
+function setCampChannel(v){ campFilterChannel = v; renderMktgCampaigns(); }
+function setCampObjective(v){ campFilterObjective = v; renderMktgCampaigns(); }
+
+function checklistPct(c){
+  if(!c.checklist) return 0;
+  return Math.round(c.checklist.filter(x=>x).length / c.checklist.length * 100);
+}
+function missingItems(c){
+  if(!c.checklist) return [];
+  return CHECKLIST_ITEMS.filter((_,i)=>!c.checklist[i]);
+}
+function daysToStart(c){
+  if(!c.startDate) return null;
+  return Math.ceil((new Date(c.startDate) - new Date()) / 86400000);
+}
+
 function renderMktgCampaigns(){
   const el = document.getElementById('marketing-campaignsContent'); if(!el) return;
-  const views = { 'Toutes':()=>true, 'À préparer':c=>c.status==='Brouillon'||c.status==='En préparation', 'À venir':c=>c.status==='Planifiée', 'En cours':c=>c.status==='En ligne'||c.status==='En pause', 'Terminées':c=>c.status==='Terminée' };
+
+  const online = campaigns.filter(c=>c.status==='En ligne');
+  const toPrep = campaigns.filter(c=>c.status==='Brouillon'||c.status==='En préparation');
+  const upcoming = campaigns.filter(c=>c.status==='Planifiée');
+  const budgetPrevu = campaigns.filter(c=>c.status!=='Terminée'&&c.status!=='Annulée').reduce((s,c)=>s+(c.budget||0),0);
+  const totalLeads = campaigns.reduce((s,c)=>s+campTotals(c).leads,0);
+
+  /* ===== 1. BANDEAU AUJOURD'HUI ===== */
+  const bandeau = `
+    <div class="today-bar">
+      <div class="today-item"><span class="today-dot" style="background:var(--th-green)"></span><b>${online.length}</b> en ligne</div>
+      <div class="today-item"><span class="today-dot" style="background:var(--th-orange)"></span><b>${toPrep.length}</b> à préparer</div>
+      <div class="today-item"><span class="today-dot" style="background:var(--th-blue)"></span><b>${upcoming.length}</b> prévue${upcoming.length>1?'s':''}</div>
+      <div class="today-item" style="border-left:1px solid var(--th-border);padding-left:20px">${sectorBadge(ACTIVE_SECTOR.id)}</div>
+      <button class="btn-ghost" style="margin-left:auto" onclick="document.getElementById('todo-block').scrollIntoView({behavior:'smooth'})">Voir les actions du jour →</button>
+    </div>`;
+
+  /* ===== 2. KPI ===== */
+  const kpis = `
+    <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${online.length}</div><div class="label">En ligne</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-tools')}</div><div class="val">${toPrep.length}</div><div class="label">À préparer</div></div>
+      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-calendar')}</div><div class="val">${upcoming.length}</div><div class="label">À venir</div></div>
+      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-wallet')}</div><div class="val">${budgetPrevu} €</div><div class="label">Budget prévu</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-users')}</div><div class="val">${totalLeads}</div><div class="label">Leads générés</div></div>
+    </div>`;
+
+  /* ===== 3. À FAIRE MAINTENANT ===== */
+  const todos = [];
+  campaigns.forEach(c=>{
+    const d = daysToStart(c);
+    const miss = missingItems(c);
+    if(c.status==='Brouillon' && !c.budget)
+      todos.push({ urgence:'haute', titre:c.title, raison:'Budget non défini', detail:`${esc(segName(c.segmentId))}`, action:'Compléter', id:c.id });
+    else if((c.status==='Planifiée'||c.status==='En préparation') && d!==null && d>=0 && d<=7 && miss.length)
+      todos.push({ urgence:'moyenne', titre:c.title, raison:`Mise en ligne dans ${d} jour${d>1?'s':''} · ${miss.length} élément${miss.length>1?'s':''} manquant${miss.length>1?'s':''}`, detail:`${c.budget} € · ${esc(segName(c.segmentId))}`, action:'Préparer la campagne', id:c.id });
+    else if(c.status==='Brouillon' && miss.length>=4)
+      todos.push({ urgence:'moyenne', titre:c.title, raison:`${miss.length} éléments manquants avant de pouvoir lancer`, detail:`${esc(segName(c.segmentId))}`, action:'Compléter', id:c.id });
+  });
+  CONTENTS.filter(ct=>ct.statut==='À créer'||ct.statut==='À préparer').slice(0,2).forEach(ct=>{
+    todos.push({ urgence:'moyenne', titre:ct.titre, raison:`Contenu ${ct.statut.toLowerCase()} · publication prévue le ${fmtDate(ct.date)}`, detail:esc(ct.canal), action:'Voir le contenu', section:'contents' });
+  });
+
+  const blocTodo = `
+    <div class="card" id="todo-block">
+      <div class="card-header"><div class="card-title">${ic('ti-bolt',17)}<span>À faire maintenant</span></div>
+        ${todos.length?`<span class="badge ${todos.some(t=>t.urgence==='haute')?'red':'orange'}" style="${todos.some(t=>t.urgence==='haute')?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${todos.length}</span>`:''}</div>
+      ${todos.length ? todos.slice(0,5).map(t=>`
+        <div class="todo-row" onclick="${t.id?`openCampaignDetail('${t.id}')`:`gotoMktg('${t.section}')`}">
+          <span class="todo-dot" style="background:${t.urgence==='haute'?'var(--th-red)':'var(--th-orange)'}"></span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13.5px;font-weight:700;margin-bottom:3px">${esc(t.titre)}</div>
+            <div style="font-size:12px;color:var(--th-text-2)">${t.raison}</div>
+            <div style="font-size:11.5px;color:var(--th-text-3);margin-top:2px">${t.detail}</div>
+          </div>
+          <span class="todo-action">${t.action} →</span>
+        </div>`).join('')
+        : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div><div class="alert-text">Rien ne nécessite votre attention immédiate.</div></div>`}
+    </div>`;
+
+  /* ===== 4. PROCHAINS LANCEMENTS ===== */
+  const launches = campaigns
+    .filter(c=>['Brouillon','En préparation','Planifiée'].includes(c.status) && c.startDate)
+    .sort((a,b)=>new Date(a.startDate)-new Date(b.startDate))
+    .slice(0,5);
+  const blocLaunches = `
+    <div class="card">
+      <div class="card-header"><div class="card-title">${ic('ti-rocket',17)}<span>Prochains lancements</span></div></div>
+      ${launches.length ? launches.map(c=>{
+        const pct = checklistPct(c);
+        const d = daysToStart(c);
+        return `<div class="launch-row" onclick="openCampaignDetail('${c.id}')">
+          <div class="launch-date">
+            <div style="font-size:16px;font-weight:800;line-height:1">${new Date(c.startDate).getDate()}</div>
+            <div style="font-size:10px;color:var(--th-text-3);text-transform:uppercase;font-weight:700">${new Date(c.startDate).toLocaleDateString('fr-FR',{month:'short'}).replace('.','')}</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px">${esc(c.title)}</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;max-width:150px;background:var(--th-bg-alt);border-radius:6px;height:6px;overflow:hidden">
+                <div style="height:100%;width:${pct}%;border-radius:6px;background:${pct===100?'var(--th-green)':'var(--th-orange)'}"></div></div>
+              <span style="font-size:11.5px;font-weight:700;color:${pct===100?'var(--th-green)':'var(--th-orange)'}">${pct}% prêt</span>
+            </div>
+          </div>
+          ${d!==null && d>=0 ? `<span class="badge ${d<=3?'red':'gray'}">${d===0?"Aujourd'hui":`J-${d}`}</span>` : statusBadge(c.status)}
+        </div>`;
+      }).join('') : '<p class="empty-hint">Aucun lancement planifié.</p>'}
+    </div>`;
+
+  /* ===== 5. FILTRES ===== */
+  const views = { 'Toutes':()=>true, 'À faire':c=>c.status==='Brouillon'||c.status==='En préparation', 'À venir':c=>c.status==='Planifiée', 'En ligne':c=>c.status==='En ligne', 'En pause':c=>c.status==='En pause', 'Terminées':c=>c.status==='Terminée' };
+  const usedChannels = [...new Set(campaigns.flatMap(c=>Object.keys(c.channelBudgets||{})))];
+  const filtres = `
+    <div class="filter-bar" style="margin-top:26px">
+      ${Object.keys(views).map(v=>`<button class="filter-chip${campView===v?' active':''}" onclick="setCampView('${v}')">${v}</button>`).join('')}
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+      <div class="search-bar" style="margin-bottom:0;max-width:280px">${ic('ti-search')}<input type="text" placeholder="Rechercher..." oninput="setCampSearch(this.value)"></div>
+      <select class="status-select" onchange="setCampChannel(this.value)">
+        <option ${campFilterChannel==='Tous'?'selected':''}>Tous</option>
+        ${usedChannels.map(ch=>`<option ${campFilterChannel===ch?'selected':''}>${esc(ch)}</option>`).join('')}
+      </select>
+      <select class="status-select" onchange="setCampObjective(this.value)">
+        <option ${campFilterObjective==='Tous'?'selected':''}>Tous</option>
+        ${CAMPAIGN_OBJECTIVES.map(o=>`<option ${campFilterObjective===o?'selected':''}>${esc(o)}</option>`).join('')}
+      </select>
+    </div>`;
+
+  /* ===== 6. LISTE ===== */
   let list = campaigns.filter(views[campView]||(()=>true));
   if(campSearch) list = list.filter(c=>c.title.toLowerCase().includes(campSearch));
+  if(campFilterChannel!=='Tous') list = list.filter(c=>Object.keys(c.channelBudgets||{}).includes(campFilterChannel));
+  if(campFilterObjective!=='Tous') list = list.filter(c=>c.objective===campFilterObjective);
 
   const rows = list.map(c=>{
-    const t = campTotals(c);
-    const chs = campChannels(c);
+    const chs = Object.keys(c.channelBudgets||{});
+    const pct = checklistPct(c);
     return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer">
       <td><div class="dt-title">${esc(c.title)}</div><div class="dt-sub">${esc(c.objective||'')}</div></td>
-      <td>${sectorBadge(c.sectorId)}</td>
-      <td><span class="badge">${esc(segName(c.segmentId))}</span></td>
+      <td style="font-size:12.5px;color:var(--th-text-2)">${esc(segName(c.segmentId))}</td>
       <td>${chs.length ? chs.slice(0,2).map(ch=>{const st=CHANNEL_STYLE[ch]||{};return `<span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span>`;}).join(' ')+(chs.length>2?` <span class="badge">+${chs.length-2}</span>`:'') : '<span style="color:var(--th-text-3)">—</span>'}</td>
-      <td style="font-size:12px;color:var(--th-text-2)">${c.startDate?fmtDate(c.startDate):'—'}${c.endDate?' → '+fmtDate(c.endDate):''}</td>
-      <td>${c.budget||0} €</td><td>${t.cost} €</td>
-      <td style="font-size:12px">${c.timeReal||0} h <span style="color:var(--th-text-3)">/ ${c.timeEstimated||0} h</span></td>
-      <td>${t.leads}</td><td>${cpl(t)?cpl(t)+' €':'—'}</td>
+      <td style="font-size:12px;color:var(--th-text-2);white-space:nowrap">${c.startDate?fmtDate(c.startDate):'—'}${c.endDate?' → '+fmtDate(c.endDate):''}</td>
+      <td style="white-space:nowrap">${c.budget||0} €</td>
+      <td style="width:110px"><div style="display:flex;align-items:center;gap:7px">
+        <div style="flex:1;background:var(--th-bg-alt);border-radius:5px;height:5px;overflow:hidden"><div style="height:100%;width:${pct}%;border-radius:5px;background:${pct===100?'var(--th-green)':'var(--th-orange)'}"></div></div>
+        <span style="font-size:11px;color:var(--th-text-2);font-weight:700">${pct}%</span></div></td>
       <td>${statusBadge(c.status)}</td>
     </tr>`;
   }).join('');
 
-  el.innerHTML = `
-    <div class="filter-bar">
-      ${Object.keys(views).map(v=>`<button class="filter-chip${campView===v?' active':''}" onclick="setCampView('${v}')">${v}</button>`).join('')}
-      <button class="add-btn" style="margin-left:auto">${ic('ti-plus',14)} Nouvelle campagne</button>
-    </div>
-    <div class="search-bar">${ic('ti-search')}<input type="text" placeholder="Rechercher une campagne..." oninput="setCampSearch(this.value)"></div>
-    <table class="data-table"><thead><tr><th>Campagne</th><th>Secteur</th><th>Segment</th><th>Canaux</th><th>Période</th><th>Budget</th><th>Dépensé</th><th>Temps</th><th>Leads</th><th>Coût/lead</th><th>Statut</th></tr></thead>
-    <tbody>${rows || `<tr><td colspan="11" style="text-align:center;color:var(--th-text-2);padding:26px">Aucune campagne dans cette vue.</td></tr>`}</tbody></table>`;
+  el.innerHTML = bandeau + kpis
+    + `<div class="grid-2">${blocTodo}${blocLaunches}</div>`
+    + filtres
+    + `<table class="data-table"><thead><tr><th>Campagne</th><th>Cible</th><th>Canaux</th><th>Dates</th><th>Budget</th><th>Préparation</th><th>Statut</th></tr></thead>
+       <tbody>${rows || `<tr><td colspan="7" style="text-align:center;color:var(--th-text-2);padding:26px">Aucune campagne dans cette vue.</td></tr>`}</tbody></table>`;
 }
 
 /* ---- Fiche campagne ---- */
@@ -1949,6 +2153,12 @@ function closeCampaignDetail(){
   document.querySelector('#view-marketing .sub-item[data-section="campaigns"]').click();
 }
 function switchCampTab(i){ campTab = i; renderCampaignDetail(); }
+function toggleChecklistItem(id, idx){
+  const c = campaigns.find(x=>x.id===id); if(!c||!c.checklist) return;
+  c.checklist[idx] = c.checklist[idx] ? 0 : 1;
+  saveKey('marketing-os:actions', campaigns);
+  renderCampaignDetail(); refreshMktgAll();
+}
 function updateCampResult(id, ch, field, val){
   const c = campaigns.find(x=>x.id===id); if(!c) return;
   if(!c.results) c.results = {};
@@ -1963,122 +2173,188 @@ function updateCampField(id, field, val){
   saveKey('marketing-os:actions', campaigns);
   renderCampaignDetail(); refreshMktgAll();
 }
-function addChannelToCampaign(id){
-  const c = campaigns.find(x=>x.id===id); if(!c) return;
-  const avail = MKTG_CHANNELS.filter(ch=>!campChannels(c).includes(ch));
-  if(!avail.length) return;
-  if(!c.results) c.results = {};
-  c.results[avail[0]] = {impressions:0,clicks:0,leads:0,conversions:0,cost:0};
-  saveKey('marketing-os:actions', campaigns);
-  renderCampaignDetail(); refreshMktgAll();
-}
+
 function renderCampaignDetail(){
   const el = document.getElementById('marketing-campaignDetailContent');
   const c = campaigns.find(x=>x.id===openCampaignId);
   if(!el || !c) return;
   const t = campTotals(c);
   const seg = AUDIENCES.find(a=>a.id===c.segmentId);
-  const chs = campChannels(c);
-  const utm = `utm_source={canal}&utm_medium=marketing&utm_campaign=${(c.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-')}`;
-  const relContents = CONTENTS.filter(ct=>ct.campIdx!==null && campaigns[ct.campIdx] && campaigns[ct.campIdx].id===c.id);
-  const tabs = ['Présentation','Résultats','Contenus','Traçabilité','Notes'];
+  const chs = Object.keys(c.channelBudgets||{});
+  const pct = checklistPct(c);
+  const miss = missingItems(c);
+  const relContents = CONTENTS.filter(ct=>ct.segmentId===c.segmentId).slice(0,4);
+  const tabs = ['Vue d\'ensemble','Audience & message','Canaux & contenus','Résultats'];
   let body = '';
 
   if(campTab===0){
-    body = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
-      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-file-text',17)}<span>Présentation</span></div></div>
-        <div style="font-size:12.5px;line-height:2.2">
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Objectif</span><b>${esc(c.objective||'—')}</b></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Segment ciblé</span><b>${esc(segName(c.segmentId))}</b></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Offre</span><b>${esc(c.offre||'—')}</b></div>
-          <div style="display:flex;justify-content:space-between;gap:14px"><span style="color:var(--th-text-2);flex-shrink:0">Message</span><b style="text-align:right">${esc(c.message||'—')}</b></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Dates</span><b>${c.startDate?fmtDate(c.startDate):'—'} → ${c.endDate?fmtDate(c.endDate):'—'}</b></div>
-        </div></div>
-      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-wallet',17)}<span>Budget &amp; temps</span></div></div>
-        <div style="font-size:12.5px;line-height:2.4">
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Budget prévu</span><span><input class="stat-input" type="number" value="${c.budget||0}" onchange="updateCampField('${c.id}','budget',this.value)"> €</span></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Dépensé (calculé)</span><b>${t.cost} €</b></div>
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Temps estimé</span><span><input class="stat-input" type="number" value="${c.timeEstimated||0}" onchange="updateCampField('${c.id}','timeEstimated',this.value)"> h</span></div>
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Temps réel</span><span><input class="stat-input" type="number" value="${c.timeReal||0}" onchange="updateCampField('${c.id}','timeReal',this.value)"> h</span></div>
+    /* Planning déduit des dates */
+    const start = c.startDate ? new Date(c.startDate) : null;
+    const steps = start ? [
+      { j:-11, l:'Création' }, { j:-7, l:'Contenus' }, { j:-3, l:'Validation' }, { j:-1, l:'Tracking' },
+      { j:0, l:'Mise en ligne', hl:true }, { j:c.endDate?Math.round((new Date(c.endDate)-start)/86400000):14, l:'Fin' }
+    ].map(s=>({ ...s, date:new Date(start.getTime()+s.j*86400000) })) : [];
+
+    body = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:18px">
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-target',17)}<span>Objectif chiffré</span></div></div>
+          <div style="font-size:12.5px;line-height:2.1">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Leads attendus</span><b>${c.targets?c.targets.leads:'—'}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Clients attendus</span><b>${c.targets?c.targets.clients:'—'}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Coût par lead cible</span><b>${c.targets?c.targets.cpl+' €':'—'}</b></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Budget maximum</span><span><input class="stat-input" type="number" value="${c.budget||0}" onchange="updateCampField('${c.id}','budget',this.value)"> €</span></div>
+          </div></div>
+
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-checklist',17)}<span>Checklist de lancement</span></div>
+          <span class="badge ${pct===100?'green':'orange'}" style="${pct===100?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${c.checklist?c.checklist.filter(x=>x).length:0}/${CHECKLIST_ITEMS.length} · ${pct}%</span></div>
+          ${CHECKLIST_ITEMS.map((item,i)=>{
+            const done = c.checklist && c.checklist[i];
+            return `<div class="check-row ${done?'done':'todo'}" onclick="toggleChecklistItem('${c.id}',${i})" style="cursor:pointer">
+              <div class="check-dot">${done?ic('ti-circle-check',11):''}</div>${item}</div>`;
+          }).join('')}
+          ${miss.length?`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--th-border);font-size:12px;color:var(--th-orange);font-weight:600">${miss.length} élément${miss.length>1?'s':''} avant de pouvoir lancer</div>`:''}
         </div>
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--th-border);font-size:11.5px;color:var(--th-text-2)">Coût réel = <b style="color:var(--th-text)">${t.cost} €</b> + <b style="color:var(--th-text)">${c.timeReal||0} h</b> de travail</div>
+
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-wallet',17)}<span>Budget</span></div></div>
+          <div style="font-size:12.5px;line-height:2.1;margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Prévu</span><b>${c.budget||0} €</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Dépensé</span><b>${t.cost} €</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Disponible</span><b style="color:var(--th-green)">${(c.budget||0)-t.cost} €</b></div>
+          </div>
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">Par canal</div>
+          ${chs.map(ch=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0"><span style="color:var(--th-text-2)">${esc(ch)}</span><b>${c.channelBudgets[ch]} €</b></div>`).join('') || '<p class="empty-hint">Aucun canal.</p>'}
+        </div>
       </div>
-      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-users',17)}<span>Segment ciblé</span></div></div>
-        ${seg ? `<div style="font-size:12.5px;line-height:1.9">
-          <div style="font-weight:700;margin-bottom:8px">${esc(seg.nom)}</div>
-          <div style="color:var(--th-text-2)">${esc(seg.metier)} · ${esc(seg.taille)}</div>
-          <div style="color:var(--th-text-2);margin-bottom:10px">${esc(seg.zone)}</div>
-          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:700;text-transform:uppercase">Déclencheur</div>
-          <div style="color:var(--th-orange);font-weight:600">${esc(seg.persona.declencheur)}</div>
-        </div>` : '<p class="empty-hint">Aucun segment sélectionné.</p>'}
+
+      ${steps.length ? `<p class="section-label">Planning</p>
+      <div class="timeline">
+        ${steps.map(s=>`<div class="tl-step ${s.hl?'hl':''}">
+          <div class="tl-dot"></div>
+          <div class="tl-date">${s.date.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</div>
+          <div class="tl-label">${s.hl?'🚀 ':''}${s.l}</div>
+        </div>`).join('')}
+      </div>` : ''}`;
+  }
+  else if(campTab===1){
+    body = `
+      <div class="grid-2">
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-users',17)}<span>Audience ciblée</span></div>
+          <span class="card-link" onclick="closeCampaignDetail();setTimeout(()=>{gotoMktg('audiences');openSegment('${c.segmentId}')},60)">Voir l'audience →</span></div>
+          ${seg ? `<div style="font-size:15px;font-weight:800;margin-bottom:12px">${esc(seg.nom)}</div>
+            <div style="font-size:12.5px;line-height:2">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Métier</span><b>${esc(seg.metier)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Taille</span><b>${esc(seg.taille)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Zone</span><b>${esc(seg.zone)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Maturité numérique</span><b>${esc(seg.maturite)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Persona</span><b>${esc(seg.persona.role)}</b></div>
+            </div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border)">
+              <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Douleurs</div>
+              <div style="font-size:12.5px;color:var(--th-text-2);line-height:1.7;margin-bottom:10px">${esc(seg.persona.douleurs)}</div>
+              <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Objection principale</div>
+              <div style="font-size:12.5px;color:var(--th-text-2);line-height:1.7">${esc(seg.persona.objections)}</div>
+            </div>
+            <div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>Cette audience est définie dans <b>Audiences</b>. La campagne la sélectionne, elle ne la redéfinit pas.</span></div>`
+            : '<p class="empty-hint">Aucune audience sélectionnée.</p>'}
+        </div>
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-message-2',17)}<span>Offre &amp; message</span></div></div>
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Offre</div>
+          <div style="font-size:13px;margin-bottom:14px">${esc(c.offre||'—')}</div>
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Message principal</div>
+          <div style="font-size:13.5px;font-weight:700;line-height:1.6;color:var(--th-orange);margin-bottom:14px">${c.message?`« ${esc(c.message)} »`:'—'}</div>
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Appel à l'action</div>
+          <div style="font-size:13px">${esc(c.cta||'—')}</div>
+        </div>
+      </div>`;
+  }
+  else if(campTab===2){
+    body = `
+      <p class="section-label">Canaux utilisés</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:24px">
+        ${MKTG_CHANNELS.slice(0,8).map(ch=>{
+          const used = chs.includes(ch); const st = CHANNEL_STYLE[ch]||{};
+          return `<div class="channel-pick ${used?'used':''}">
+            <div class="check-dot" style="${used?'background:var(--th-green);border-color:var(--th-green);color:#fff':''}">${used?ic('ti-circle-check',11):''}</div>
+            <div style="width:26px;height:26px;border-radius:8px;background:${st.tint||'var(--th-bg-alt)'};display:flex;align-items:center;justify-content:center;color:${st.c||'var(--th-text-3)'}">${ic(st.icon||'ti-target',14)}</div>
+            <span style="flex:1;font-size:12.5px;font-weight:600">${esc(ch)}</span>
+            ${used?`<span style="font-size:11.5px;font-weight:700">${c.channelBudgets[ch]} €</span>`:''}
+          </div>`;
+        }).join('')}
       </div>
-    </div>`;
-  } else if(campTab===1){
+      <p class="section-label">Contenus associés</p>
+      ${relContents.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">
+        ${relContents.map(ct=>{
+          const sc = ct.statut==='Publié'?'green':ct.statut==='À créer'?'gray':ct.statut==='Programmé'?'purple':'orange';
+          const scS = sc==='purple'?'color:var(--th-purple);background:var(--th-purple-bg)':sc==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':'';
+          return `<div class="card" style="padding:14px;cursor:pointer" onclick="closeCampaignDetail();setTimeout(()=>gotoMktg('contents'),60)">
+            <div style="width:100%;height:60px;border-radius:10px;background:var(--th-bg-alt);display:flex;align-items:center;justify-content:center;color:var(--th-orange);margin-bottom:10px">${ic('ti-photo',20)}</div>
+            <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;line-height:1.4">${esc(ct.titre)}</div>
+            <span class="badge ${sc}" style="${scS}">${esc(ct.statut)}</span></div>`;
+        }).join('')}</div>`
+        : `<div class="empty">${ic('ti-photo',24)}Aucun contenu associé pour l'instant.</div>`}`;
+  }
+  else {
     const rows = chs.map(ch=>{
-      const r = c.results[ch]; const st = CHANNEL_STYLE[ch]||{};
+      const r = (c.results&&c.results[ch]) || {impressions:0,clicks:0,leads:0,conversions:0,cost:0};
+      const st = CHANNEL_STYLE[ch]||{};
       return `<tr>
         <td><span class="badge" style="background:${st.tint||'var(--th-bg-alt)'};color:${st.c||'var(--th-text-2)'}">${esc(ch)}</span></td>
-        <td><input class="stat-input" type="number" value="${r.impressions||0}" onchange="updateCampResult('${c.id}','${ch}','impressions',this.value)"></td>
-        <td><input class="stat-input" type="number" value="${r.clicks||0}" onchange="updateCampResult('${c.id}','${ch}','clicks',this.value)"></td>
-        <td><input class="stat-input" type="number" value="${r.leads||0}" onchange="updateCampResult('${c.id}','${ch}','leads',this.value)"></td>
-        <td><input class="stat-input" type="number" value="${r.conversions||0}" onchange="updateCampResult('${c.id}','${ch}','conversions',this.value)"></td>
-        <td><input class="stat-input" type="number" value="${r.cost||0}" onchange="updateCampResult('${c.id}','${ch}','cost',this.value)"> €</td>
+        <td><input class="stat-input" type="number" value="${r.impressions}" onchange="updateCampResult('${c.id}','${ch}','impressions',this.value)"></td>
+        <td><input class="stat-input" type="number" value="${r.clicks}" onchange="updateCampResult('${c.id}','${ch}','clicks',this.value)"></td>
+        <td><input class="stat-input" type="number" value="${r.leads}" onchange="updateCampResult('${c.id}','${ch}','leads',this.value)"></td>
+        <td><input class="stat-input" type="number" value="${r.conversions}" onchange="updateCampResult('${c.id}','${ch}','conversions',this.value)"></td>
+        <td><input class="stat-input" type="number" value="${r.cost}" onchange="updateCampResult('${c.id}','${ch}','cost',this.value)"> €</td>
         <td>${r.leads>0?Math.round(r.cost/r.leads)+' €':'—'}</td></tr>`;
     }).join('');
+    const cplReal = t.leads?Math.round(t.cost/t.leads):null;
+    const cplTarget = c.targets?c.targets.cpl:null;
     body = `
-      <div class="hint-bar" style="margin-bottom:16px">${ic('ti-bulb',16)}<span><b>Point de saisie unique :</b> les résultats se saisissent ici, canal par canal. TigerHub calcule ensuite tous les totaux et toutes les agrégations automatiquement.</span></div>
-      <table class="data-table"><thead><tr><th>Canal</th><th>Impressions</th><th>Clics</th><th>Leads</th><th>Conversions</th><th>Coût</th><th>Coût/lead</th></tr></thead>
-      <tbody>${rows || `<tr><td colspan="7" style="text-align:center;color:var(--th-text-2);padding:22px">Aucun canal. Ajoutez-en un pour saisir des résultats.</td></tr>`}</tbody></table>
-      <button class="import-btn" style="margin-top:12px" onclick="addChannelToCampaign('${c.id}')">${ic('ti-plus',14)} Ajouter un canal</button>
-      <p class="section-label" style="margin-top:24px">Totaux calculés</p>
+      <div class="hint-bar" style="margin-bottom:16px">${ic('ti-bulb',16)}<span><b>Point de saisie unique :</b> les résultats se saisissent ici, canal par canal. Toutes les autres vues les calculent automatiquement.</span></div>
+      ${chs.length ? `<table class="data-table"><thead><tr><th>Canal</th><th>Impressions</th><th>Clics</th><th>Leads</th><th>Conversions</th><th>Coût</th><th>Coût/lead</th></tr></thead><tbody>${rows}</tbody></table>`
+        : `<div class="empty">${ic('ti-chart-bar',24)}Aucun canal configuré sur cette campagne.</div>`}
+      <p class="section-label" style="margin-top:24px">Depuis le lancement</p>
       <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
         <div class="stat-card"><div class="val">${t.impressions.toLocaleString('fr-FR')}</div><div class="label">Impressions</div></div>
-        <div class="stat-card blue"><div class="val">${t.leads}</div><div class="label">Leads</div></div>
-        <div class="stat-card green"><div class="val">${t.conversions}</div><div class="label">Conversions</div></div>
-        <div class="stat-card red"><div class="val">${t.cost} €</div><div class="label">Coût total</div></div>
-        <div class="stat-card purple"><div class="val">${convRate(t)}%</div><div class="label">Taux de conversion</div></div>
-      </div>`;
-  } else if(campTab===2){
-    body = relContents.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px">
-      ${relContents.map(ct=>`<div class="card" style="padding:14px">
-        <div style="width:100%;height:64px;border-radius:10px;background:var(--th-bg-alt);display:flex;align-items:center;justify-content:center;color:var(--th-orange);margin-bottom:10px">${ic('ti-photo',20)}</div>
-        <div style="font-size:12.5px;font-weight:700;margin-bottom:5px">${esc(ct.titre)}</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="badge">${esc(ct.type)}</span><span class="badge ${ct.statut==='Publié'?'green':ct.statut==='À créer'?'gray':'blue'}">${esc(ct.statut)}</span></div>
-      </div>`).join('')}</div>` : `<div class="empty">${ic('ti-photo',24)}Aucun contenu relié à cette campagne. Les contenus se gèrent dans la section Contenus et se relient ici.</div>`;
-  } else if(campTab===3){
-    body = `<div class="card">
-      <div class="card-header"><div class="card-title">${ic('ti-link',17)}<span>UTM générés automatiquement</span></div></div>
-      <p style="font-size:12.5px;color:var(--th-text-2);margin-bottom:14px">Un lien de suivi est généré pour chaque canal de la campagne, selon la convention définie dans les Paramètres.</p>
-      ${chs.length ? chs.map(ch=>`<div style="background:var(--th-bg-alt);border-radius:10px;padding:11px 13px;margin-bottom:8px;font-family:monospace;font-size:11px;word-break:break-all">
-        <span style="color:var(--th-orange);font-weight:700">${esc(ch)}</span><br>${esc(utm.replace('{canal}', ch.toLowerCase().replace(/\s/g,'-')))}</div>`).join('')
-        : '<p class="empty-hint">Ajoutez un canal pour générer les liens de suivi.</p>'}
-    </div>
-    <div class="card" style="margin-top:16px">
-      <div class="card-header"><div class="card-title">${ic('ti-share',17)}<span>Connexions</span></div></div>
-      <div style="font-size:12.5px;line-height:2.1">
-        <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Idée d'origine</span><b>${c.sourceIdeaId?'Depuis la Boîte à idées':'—'}</b></div>
-        <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Contenus associés</span><b>${relContents.length}</b></div>
-        <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Prospects générés</span><b>${t.conversions} → Développement commercial</b></div>
+        <div class="stat-card"><div class="val">${t.clicks}</div><div class="label">Clics</div></div>
+        <div class="stat-card blue"><div class="val">${t.leads}</div><div class="label">Leads${c.targets?` / ${c.targets.leads} visés`:''}</div></div>
+        <div class="stat-card green"><div class="val">${t.conversions}</div><div class="label">Clients${c.targets?` / ${c.targets.clients} visés`:''}</div></div>
+        <div class="stat-card ${cplReal!==null&&cplTarget!==null?(cplReal<=cplTarget?'green':'red'):''}"><div class="val">${cplReal!==null?cplReal+' €':'—'}</div><div class="label">Coût/lead${cplTarget?` · cible ${cplTarget} €`:''}</div></div>
       </div>
-    </div>`;
-  } else {
-    body = `<div class="card">
-      <div class="card-header"><div class="card-title">${ic('ti-notebook',17)}<span>Notes &amp; apprentissages</span></div></div>
-      <textarea style="width:100%;min-height:120px;border:1px solid var(--th-border);border-radius:11px;padding:13px;font-size:13px;font-family:inherit;line-height:1.7;resize:vertical" onchange="updateCampField('${c.id}','notes',this.value)" placeholder="Ce que cette campagne vous a appris...">${esc(c.notes||'')}</textarea>
-    </div>`;
+      <div style="display:flex;justify-content:flex-end;margin-top:16px">
+        <button class="btn-ghost" onclick="closeCampaignDetail();setTimeout(()=>gotoMktg('analysis'),60)">Voir l'analyse complète →</button>
+      </div>`;
   }
 
   el.innerHTML = `
     <div class="btn-back" onclick="closeCampaignDetail()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour au plan de campagnes</div>
     <div class="page-head">
       <div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h1 style="margin-bottom:2px">${esc(c.title)}</h1>${statusBadge(c.status)}</div>
-        <p class="subtitle">${esc(sectorName(c.sectorId))} · ${esc(c.objective||'')} · ${esc(segName(c.segmentId))}</p>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px"><h1 style="margin-bottom:0">${esc(c.title)}</h1>${statusBadge(c.status)}</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
+          <span>${ic('ti-calendar',13)} ${c.startDate?fmtDate(c.startDate):'—'}${c.endDate?' → '+fmtDate(c.endDate):''}</span>
+          <span>${ic('ti-target',13)} ${esc(segName(c.segmentId))}</span>
+          <span>${ic('ti-share',13)} ${chs.join(', ')||'—'}</span>
+          <span>${ic('ti-wallet',13)} ${c.budget||0} €</span>
+          <span>${ic('ti-user-check',13)} ${esc(c.responsable||'—')}</span>
+        </div>
       </div>
       <select class="status-select" onchange="updateCampField('${c.id}','status',this.value)">${CAMPAIGN_STATUSES.map(s=>`<option ${c.status===s?'selected':''}>${s}</option>`).join('')}</select>
     </div>
     <div class="tabs">${tabs.map((t2,i)=>`<div class="tab${i===campTab?' active':''}" onclick="switchCampTab(${i})">${t2}</div>`).join('')}</div>
-    ${body}`;
+    ${body}
+    <p class="section-label" style="margin-top:26px">Connexions</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px">
+      <div class="conn-card"><div class="conn-icon">${ic('ti-bulb',15)}</div>
+        <div><div class="conn-label">Vient de</div><div class="conn-val">${c.sourceIdeaText?`« ${esc(c.sourceIdeaText)} »`:'Création directe'}</div></div></div>
+      <div class="conn-card" onclick="closeCampaignDetail();setTimeout(()=>{gotoMktg('audiences');openSegment('${c.segmentId}')},60)" style="cursor:pointer">
+        <div class="conn-icon">${ic('ti-users',15)}</div>
+        <div><div class="conn-label">Cible</div><div class="conn-val">${esc(segName(c.segmentId))}</div></div></div>
+      <div class="conn-card" onclick="closeCampaignDetail();setTimeout(()=>gotoMktg('contents'),60)" style="cursor:pointer">
+        <div class="conn-icon">${ic('ti-photo',15)}</div>
+        <div><div class="conn-label">Utilise</div><div class="conn-val">${relContents.length} contenu${relContents.length>1?'s':''}</div></div></div>
+      <div class="conn-card"><div class="conn-icon">${ic('ti-user-plus',15)}</div>
+        <div><div class="conn-label">A généré</div><div class="conn-val">${t.conversions} client${t.conversions>1?'s':''} → Dév. commercial</div></div></div>
+    </div>`;
 }
 
 /* ---- 4. Canaux (agrégations calculées) ---- */
