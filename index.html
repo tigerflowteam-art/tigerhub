@@ -343,6 +343,16 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .action-reco-icon{width:40px;height:40px;border-radius:13px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .data-src-card{background:var(--th-bg-alt);border-radius:13px;padding:15px}
 .data-src-icon{width:32px;height:32px;border-radius:10px;background:var(--th-card);color:var(--th-orange);display:flex;align-items:center;justify-content:center}
+.call-row{display:flex;align-items:center;gap:14px;background:var(--th-card);border:1px solid var(--th-border);border-radius:15px;padding:15px 17px;margin-bottom:10px;box-shadow:var(--th-shadow-sm);flex-wrap:wrap}
+.call-row:hover{box-shadow:var(--th-shadow)}
+.call-prio{width:5px;align-self:stretch;border-radius:3px;flex-shrink:0;min-height:44px}
+.call-phone{font-size:14px;font-weight:700;color:var(--th-text);white-space:nowrap;flex-shrink:0;padding:0 6px}
+.call-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.call-res{border:1.5px solid var(--th-border);border-radius:11px;padding:11px 13px;font-size:12.5px;font-weight:600;cursor:pointer;text-align:center;transition:all .12s}
+.call-res:hover{border-color:var(--th-orange)}
+.call-res.sel{border-color:var(--th-orange);background:var(--th-orange-bg);color:var(--th-orange);font-weight:700}
+.call-suggestion{display:flex;align-items:center;gap:12px;background:var(--th-green-bg);color:var(--th-green);border-radius:12px;padding:13px 16px}
+.tour-stop.todo{border-left:3px solid var(--th-orange)}
 .pros-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;background:var(--th-card);border:1px solid var(--th-border);border-radius:18px;padding:22px 24px;margin-bottom:14px;box-shadow:var(--th-shadow)}
 .pros-hero-metrics{display:flex;align-items:center;gap:20px;flex-shrink:0}
 .phm-item{text-align:right}
@@ -677,6 +687,8 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 </aside>
 <div id="app"></div>
 <div class="modal-overlay" id="wizard-overlay"><div class="wiz-modal"><div id="wizard-body"></div></div></div>
+<div class="modal-overlay" id="call-overlay"><div class="wiz-modal" style="max-width:560px"><div id="call-body"></div></div></div>
+<div class="modal-overlay" id="visit-overlay"><div class="wiz-modal" style="max-width:560px"><div id="visit-body"></div></div></div>
 <div class="modal-overlay" id="import-overlay"><div class="wiz-modal" style="max-width:560px"><div id="import-body"></div></div></div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -711,6 +723,7 @@ const ICONS = {
 'building':'<rect x="5" y="3" width="14" height="18" rx="1"/><rect x="8" y="7" width="2" height="2"/><rect x="14" y="7" width="2" height="2"/><rect x="8" y="12" width="2" height="2"/><rect x="14" y="12" width="2" height="2"/>',
 'building-bank':'<path d="M3 10 12 4 21 10"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="6" y1="10" x2="6" y2="18"/><line x1="10" y1="10" x2="10" y2="18"/><line x1="14" y1="10" x2="14" y2="18"/><line x1="18" y1="10" x2="18" y2="18"/><line x1="4" y1="20" x2="20" y2="20"/>',
 'bulb':'<circle cx="12" cy="10" r="6"/><line x1="10" y1="18" x2="14" y2="18"/><line x1="10" y1="21" x2="14" y2="21"/>',
+'camera':'<path d="M3 8h3l2-2h8l2 2h3v12H3z"/><circle cx="12" cy="13" r="3.5"/>',
 'calendar':'<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/>',
 'calendar-event':'<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"/>',
 'calendar-week':'<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="6" y1="14" x2="18" y2="14"/>',
@@ -5705,8 +5718,6 @@ const SALES_OBJECTIONS = [
 /* ==================== RENDUS PROSPECTION COMMERCIALE ==================== */
 
 let openProspectId = null;
-let prospectingTab = 0;
-let openTourId = null;
 let perfTab = 0;
 let docsTab = 0;
 
@@ -5723,9 +5734,6 @@ function daysFromToday(iso){ if(!iso) return null; return Math.ceil((new Date(is
 
 function openProspect(id){ openProspectId = id; prospectTab = 0; renderSalesAll(); gotoSales('prospects'); }
 function closeProspect(){ openProspectId = null; renderSalesAll(); }
-function switchProspectingTab(i){ prospectingTab = i; openTourId = null; renderProspection(); }
-function openTour(id){ openTourId = id; renderProspection(); }
-function closeTour(){ openTourId = null; renderProspection(); }
 function switchPerfTab(i){ perfTab = i; renderSalesPerf(); }
 function switchDocsTab(i){ docsTab = i; renderSalesDocs(); }
 function gotoSales(sectionId){
@@ -6283,104 +6291,338 @@ function renderProspects(){
       <div class="alert-text"><b>${sansAction} prospect${sansAction>1?'s':''} sans prochaine action.</b> Ils risquent d'être oubliés — cliquez pour les afficher.</div></div>` : ''}`;
 }
 
-/* ---------- 3. PROSPECTION ---------- */
+/* ---------- 3. PROSPECTION ----------
+   Cet écran ne montre pas des données : il dit quoi faire maintenant.
+   Saisie en 3 champs maximum, une seule fiche prospect mise à jour. */
+
+let prospectingTab = 0;
+let openTourId = null;
+let callRepFilter = 'Tous';
+let openCallProspect = null;
+let callDraft = null;
+let openVisitStop = null;
+let visitDraft = null;
+
+function switchProspectingTab(i){ prospectingTab = i; openTourId = null; renderProspection(); }
+function openTour(id){ openTourId = id; renderProspection(); }
+function closeTour(){ openTourId = null; renderProspection(); }
+function setCallRep(v){ callRepFilter = v; renderProspection(); }
+
+/* Priorité d'appel : en retard d'abord, puis à rappeler, puis jamais contacté */
+function callPriority(p){
+  const today = todayISO();
+  if(p.prochainContact && p.prochainContact < today) return { rang:0, label:'En retard', c:'red' };
+  if(p.prochainContact === today) return { rang:1, label:"Aujourd'hui", c:'orange' };
+  if(p.stage === 'À rappeler') return { rang:2, label:'À rappeler', c:'orange' };
+  if(!p.dernierContact) return { rang:3, label:'Jamais contacté', c:'blue' };
+  return { rang:4, label:'À suivre', c:'gray' };
+}
+function callQueue(){
+  const today = todayISO();
+  return scopedProspects()
+    .filter(p=>!['Gagné','Perdu'].includes(p.stage))
+    .filter(p=>callRepFilter==='Tous' || p.repId===callRepFilter)
+    .filter(p=>{
+      const pr = callPriority(p);
+      return pr.rang <= 3;   // seulement ce qui appelle une action
+    })
+    .sort((a,b)=>callPriority(a).rang - callPriority(b).rang);
+}
+
+/* --- Saisie d'appel : 3 champs, rien de plus --- */
+function openCallForm(prospectId){
+  openCallProspect = prospectId;
+  callDraft = { resultat:null, note:'', prochaine:'', date:'' };
+  document.getElementById('call-overlay').classList.add('open');
+  renderCallForm();
+}
+function closeCallForm(){
+  openCallProspect = null;
+  document.getElementById('call-overlay').classList.remove('open');
+}
+function setCallField(f, v){ callDraft[f] = v; if(f==='resultat') renderCallForm(); }
+
+/* Chaque résultat propose la suite logique — l'utilisateur ne réfléchit pas */
+const CALL_NEXT = {
+  'Pas de réponse':      { action:'Rappeler', jours:2, stage:null },
+  'Répondeur':           { action:'Rappeler', jours:2, stage:null },
+  'Mauvais numéro':      { action:'Trouver le bon numéro', jours:7, stage:null },
+  'À rappeler':          { action:'Rappeler', jours:3, stage:'À rappeler' },
+  'Intéressé':           { action:'Proposer un rendez-vous', jours:2, stage:'Qualifié' },
+  'Pas intéressé':       { action:null, jours:null, stage:'Perdu' },
+  "Demande d'informations": { action:'Envoyer les informations', jours:1, stage:'Contacté' },
+  'RDV obtenu':          { action:'Préparer le rendez-vous', jours:1, stage:'RDV obtenu' },
+  'Refus définitif':     { action:null, jours:null, stage:'Perdu' },
+  'Hors cible':          { action:null, jours:null, stage:'Perdu' },
+};
+function renderCallForm(){
+  const el = document.getElementById('call-body'); if(!el) return;
+  const p = prospectById(openCallProspect); if(!p) return;
+  const suggestion = callDraft.resultat ? CALL_NEXT[callDraft.resultat] : null;
+  const suggDate = suggestion && suggestion.jours!==null
+    ? new Date(Date.now()+suggestion.jours*86400000).toISOString().slice(0,10) : '';
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div class="hist-icon" style="width:38px;height:38px;background:var(--th-orange-bg);color:var(--th-orange)">${ic('ti-phone',18)}</div>
+      <div><div style="font-size:16px;font-weight:800">${esc(p.entreprise)}</div>
+        <div style="font-size:12.5px;color:var(--th-text-2)">${esc(p.contact)} · ${esc(p.tel)}</div></div>
+    </div>
+
+    <div class="wiz-lab" style="margin-top:0">1 · Résultat de l'appel</div>
+    <div class="call-results">
+      ${CALL_RESULTS.map(r=>`<div class="call-res ${callDraft.resultat===r?'sel':''}" onclick="setCallField('resultat','${r.replace(/'/g,"\\\\'")}')">${esc(r)}</div>`).join('')}
+    </div>
+
+    ${callDraft.resultat ? `
+      <div class="wiz-lab">2 · Note</div>
+      <textarea class="param-textarea" placeholder="Ce qui s'est dit, en une ligne..." oninput="setCallField('note',this.value)">${esc(callDraft.note)}</textarea>
+
+      <div class="wiz-lab">3 · Prochaine action</div>
+      ${suggestion && suggestion.action ? `
+        <div class="call-suggestion">
+          <div style="flex:1"><div style="font-size:13.5px;font-weight:700">${esc(suggestion.action)}</div>
+            <div style="font-size:11.5px;color:var(--th-text-2);margin-top:2px">Proposé automatiquement · ${fmtDate(suggDate)}</div></div>
+          ${ic('ti-circle-check',18)}
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:10px">
+          <input type="text" class="wiz-input" placeholder="Modifier l'action..." value="${esc(callDraft.prochaine || suggestion.action)}" oninput="setCallField('prochaine',this.value)">
+          <input type="date" class="wiz-input" value="${callDraft.date || suggDate}" oninput="setCallField('date',this.value)">
+        </div>`
+        : `<div class="call-suggestion" style="background:var(--th-bg-alt)">
+            <div style="flex:1;font-size:13px;color:var(--th-text-2)">Aucune suite prévue — le prospect passera en <b>Perdu</b>.</div>
+          </div>`}
+
+      ${suggestion && suggestion.stage ? `<div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>L'étape passera automatiquement à <b>${esc(suggestion.stage)}</b>.</span></div>` : ''}
+    ` : `<div style="font-size:12.5px;color:var(--th-text-3);padding:24px 0;text-align:center">Choisissez un résultat pour continuer.</div>`}
+
+    <div class="wiz-foot">
+      <button class="btn-ghost" onclick="closeCallForm()">Annuler</button>
+      ${callDraft.resultat ? `<button class="add-btn" onclick="saveCall()">Enregistrer l'appel</button>` : ''}
+    </div>`;
+}
+function saveCall(){
+  const p = prospectById(openCallProspect); if(!p || !callDraft.resultat) return;
+  const sugg = CALL_NEXT[callDraft.resultat] || {};
+  const action = callDraft.prochaine || sugg.action || null;
+  const date = callDraft.date || (sugg.jours!==null && sugg.jours!==undefined
+    ? new Date(Date.now()+sugg.jours*86400000).toISOString().slice(0,10) : null);
+
+  CALLS.unshift({ id:'c_'+Date.now(), prospectId:p.id, repId:CURRENT_USER.id, date:todayISO(),
+    resultat:callDraft.resultat, note:callDraft.note, prochaineAction:action, dateRappel:date });
+
+  /* Une seule fiche mise à jour — pas de doublon */
+  p.dernierContact = todayISO();
+  if(sugg.stage) p.stage = sugg.stage;
+  else if(p.stage==='À contacter') p.stage = 'Contacté';
+  p.prochaineAction = action;
+  p.prochainContact = date;
+
+  closeCallForm();
+  renderSalesAll();
+}
+
+/* --- Saisie de visite terrain --- */
+function openVisitForm(tourId, prospectId){
+  openVisitStop = { tourId, prospectId };
+  visitDraft = { resultat:null, note:'', prochaine:'', date:'' };
+  document.getElementById('visit-overlay').classList.add('open');
+  renderVisitForm();
+}
+function closeVisitForm(){ openVisitStop = null; document.getElementById('visit-overlay').classList.remove('open'); }
+function setVisitField(f, v){ visitDraft[f] = v; if(f==='resultat') renderVisitForm(); }
+const VISIT_NEXT = {
+  'Personne rencontrée': { action:'Rappeler le décideur', jours:3, stage:'Contacté' },
+  'Contact obtenu':      { action:'Appeler pour qualifier', jours:2, stage:'Contacté' },
+  'Intéressé':           { action:'Proposer un rendez-vous', jours:2, stage:'Qualifié' },
+  'RDV obtenu':          { action:'Préparer le rendez-vous', jours:1, stage:'RDV obtenu' },
+  'À rappeler':          { action:'Rappeler', jours:3, stage:'À rappeler' },
+  'Refus':               { action:null, jours:null, stage:'Perdu' },
+  'Hors cible':          { action:null, jours:null, stage:'Perdu' },
+  'Absent':              { action:'Repasser ou appeler', jours:5, stage:null },
+};
+function renderVisitForm(){
+  const el = document.getElementById('visit-body'); if(!el || !openVisitStop) return;
+  const p = prospectById(openVisitStop.prospectId); if(!p) return;
+  const opts = Object.keys(VISIT_NEXT);
+  const sugg = visitDraft.resultat ? VISIT_NEXT[visitDraft.resultat] : null;
+  const suggDate = sugg && sugg.jours!==null ? new Date(Date.now()+sugg.jours*86400000).toISOString().slice(0,10) : '';
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div class="hist-icon" style="width:38px;height:38px;background:var(--th-orange-bg);color:var(--th-orange)">${ic('ti-map',18)}</div>
+      <div><div style="font-size:16px;font-weight:800">${esc(p.entreprise)}</div>
+        <div style="font-size:12.5px;color:var(--th-text-2)">${esc(p.ville)} · visite terrain</div></div>
+    </div>
+    <div class="wiz-lab" style="margin-top:0">1 · Résultat de la visite</div>
+    <div class="call-results">
+      ${opts.map(r=>`<div class="call-res ${visitDraft.resultat===r?'sel':''}" onclick="setVisitField('resultat','${r}')">${esc(r)}</div>`).join('')}
+    </div>
+    ${visitDraft.resultat ? `
+      <div class="wiz-lab">2 · Note</div>
+      <textarea class="param-textarea" placeholder="Ce qui s'est passé sur place..." oninput="setVisitField('note',this.value)">${esc(visitDraft.note)}</textarea>
+      <div class="wiz-lab">3 · Prochaine action</div>
+      ${sugg && sugg.action ? `<div style="display:grid;grid-template-columns:2fr 1fr;gap:10px">
+          <input type="text" class="wiz-input" value="${esc(visitDraft.prochaine || sugg.action)}" oninput="setVisitField('prochaine',this.value)">
+          <input type="date" class="wiz-input" value="${visitDraft.date || suggDate}" oninput="setVisitField('date',this.value)"></div>`
+        : `<div class="call-suggestion" style="background:var(--th-bg-alt)"><div style="flex:1;font-size:13px;color:var(--th-text-2)">Aucune suite prévue.</div></div>`}
+      <div class="hint-bar" style="margin-top:14px">${ic('ti-camera',15)}<span>Photo de façade, carte de visite et position GPS — <b>disponibles dans l'application mobile</b>.</span></div>
+    ` : `<div style="font-size:12.5px;color:var(--th-text-3);padding:24px 0;text-align:center">Choisissez un résultat pour continuer.</div>`}
+    <div class="wiz-foot">
+      <button class="btn-ghost" onclick="closeVisitForm()">Annuler</button>
+      ${visitDraft.resultat ? `<button class="add-btn" onclick="saveVisit()">Enregistrer la visite</button>` : ''}
+    </div>`;
+}
+function saveVisit(){
+  if(!openVisitStop || !visitDraft.resultat) return;
+  const { tourId, prospectId } = openVisitStop;
+  const t = TOURS.find(x=>x.id===tourId);
+  const stop = t && t.stops.find(s=>s.prospectId===prospectId);
+  const p = prospectById(prospectId);
+  const sugg = VISIT_NEXT[visitDraft.resultat] || {};
+  if(stop){ stop.statut = visitDraft.resultat; stop.resultat = visitDraft.resultat; stop.note = visitDraft.note; }
+  if(p){
+    p.dernierContact = todayISO();
+    if(sugg.stage) p.stage = sugg.stage;
+    const action = visitDraft.prochaine || sugg.action || null;
+    const date = visitDraft.date || (sugg.jours!==null && sugg.jours!==undefined
+      ? new Date(Date.now()+sugg.jours*86400000).toISOString().slice(0,10) : null);
+    p.prochaineAction = action; p.prochainContact = date;
+  }
+  if(t && t.stops.every(s=>s.statut!=='À visiter')) t.statut = 'Terminée';
+  closeVisitForm();
+  renderSalesAll();
+}
+
+/* ---------- RENDU ---------- */
 function renderProspection(){
   const el = document.getElementById('sales-prospectionContent'); if(!el) return;
-  const tabs = ['Téléphone','Terrain'];
+  const tabs = ['Prospection téléphonique','Prospection terrain'];
+  const today = todayISO();
   let body = '';
 
   if(prospectingTab===0){
-    const today = todayISO();
-    const aAppeler = scopedProspects().filter(p=>['À contacter','Contacté'].includes(p.stage) || (p.prochainContact && p.prochainContact<=today));
+    const queue = callQueue();
+    const enRetard = queue.filter(p=>callPriority(p).rang===0);
+    const aujourdhui = queue.filter(p=>callPriority(p).rang===1);
+    const callsDuJour = CALLS.filter(c=>c.date===today);
+    const rdvObtenus = callsDuJour.filter(c=>c.resultat==='RDV obtenu').length;
+
     body = `
-      <div class="hint-bar" style="margin-bottom:16px">${ic('ti-bolt',16)}<span>Saisie rapide après l'appel : <b>résultat → note → prochaine action</b>. Rien d'autre n'est demandé.</span></div>
-      <p class="section-label">Liste d'appels</p>
-      <table class="data-table"><thead><tr><th>Entreprise</th><th>Contact</th><th>Téléphone</th><th>Dernier appel</th><th>Résultat</th><th>À rappeler</th><th></th></tr></thead><tbody>
-        ${aAppeler.map(p=>{
-          const last = prospectCalls(p.id).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
-          const retard = last && last.dateRappel && last.dateRappel<=today;
-          return `<tr>
-            <td onclick="openProspect('${p.id}')" style="cursor:pointer"><div class="dt-title">${esc(p.entreprise)}</div><div class="dt-sub">${esc(p.ville)}</div></td>
-            <td style="font-size:12.5px">${esc(p.contact)}</td>
-            <td style="font-size:12.5px;font-weight:600">${esc(p.tel)}</td>
-            <td style="font-size:12px;color:var(--th-text-2)">${last?fmtDate(last.date):'—'}</td>
-            <td>${last?`<span class="badge ${last.resultat==='RDV obtenu'?'green':last.resultat.includes('Pas')||last.resultat.includes('Refus')?'red':'blue'}">${esc(last.resultat)}</span>`:'<span class="badge gray">Jamais appelé</span>'}</td>
-            <td style="font-size:12px;${retard?'color:var(--th-red);font-weight:700':''}">${last&&last.dateRappel?fmtDate(last.dateRappel)+(retard?' · en retard':''):'—'}</td>
-            <td class="dt-actions"><button class="qa-btn" style="padding:6px 11px" onclick="event.stopPropagation();openCallForm('${p.id}')">${ic('ti-phone',13)} Saisir l'appel</button></td>
-          </tr>`;
-        }).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun appel à passer.</td></tr>`}
-      </tbody></table>
-      <p class="section-label" style="margin-top:24px">Derniers appels</p>
-      <div class="card">
-        ${CALLS.sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(c=>{
-          const p = prospectById(c.prospectId);
-          return `<div class="hist-row" onclick="openProspect('${c.prospectId}')" style="cursor:pointer">
-            <div class="hist-icon">${ic('ti-phone',14)}</div>
-            <div style="flex:1;min-width:0">
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:3px">
-                <span style="font-size:13px;font-weight:700">${esc(p?p.entreprise:'—')}</span>
-                <span class="badge ${c.resultat==='RDV obtenu'?'green':c.resultat.includes('Pas')||c.resultat.includes('Refus')?'red':'blue'}">${esc(c.resultat)}</span></div>
-              ${c.note?`<div style="font-size:12px;color:var(--th-text-2);line-height:1.6">${esc(c.note)}</div>`:''}
-              <div style="font-size:11px;color:var(--th-text-3);margin-top:3px">${esc(repName(c.repId))}</div></div>
-            <span style="font-size:11.5px;color:var(--th-text-3);white-space:nowrap">${fmtDate(c.date)}</span></div>`;
-        }).join('')}
-      </div>`;
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card ${enRetard.length?'red':''}"><div class="stat-card-icon">${ic('ti-alert-triangle')}</div>
+          <div class="val">${enRetard.length}</div><div class="label">En retard</div></div>
+        <div class="stat-card"><div class="stat-card-icon">${ic('ti-phone')}</div>
+          <div class="val">${queue.length}</div><div class="label">Appels à passer</div></div>
+        <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-circle-check')}</div>
+          <div class="val">${callsDuJour.length}</div><div class="label">Appels passés aujourd'hui</div></div>
+        <div class="stat-card green"><div class="stat-card-icon">${ic('ti-calendar')}</div>
+          <div class="val">${rdvObtenus}</div><div class="label">RDV obtenus aujourd'hui</div></div>
+      </div>
+
+      ${canSeeAllReps()?`<div class="filter-bar">
+        <button class="filter-chip${callRepFilter==='Tous'?' active':''}" onclick="setCallRep('Tous')">Tous</button>
+        ${SALES_REPS.map(r=>`<button class="filter-chip${callRepFilter===r.id?' active':''}" onclick="setCallRep('${r.id}')">${esc(r.nom)}</button>`).join('')}
+      </div>`:''}
+
+      <p class="section-label">Qui appeler maintenant</p>
+      ${queue.length ? queue.map(p=>{
+        const pr = callPriority(p);
+        const last = prospectCalls(p.id).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+        return `<div class="call-row">
+          <span class="call-prio" style="background:var(--th-${pr.c==='gray'?'text-3':pr.c})"></span>
+          <div style="flex:1;min-width:0;cursor:pointer" onclick="openProspect('${p.id}')">
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:3px">
+              <span style="font-size:14px;font-weight:700">${esc(p.entreprise)}</span>
+              <span class="badge ${pr.c}" style="${pr.c==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${pr.label}</span>
+              ${stageBadge(p.stage)}
+            </div>
+            <div style="font-size:12.5px;color:var(--th-text-2)">${esc(p.contact)} · ${esc(p.fonction)}</div>
+            ${p.prochaineAction?`<div style="font-size:12px;color:var(--th-orange);font-weight:600;margin-top:3px">${esc(p.prochaineAction)}${p.prochainContact?` · ${fmtDate(p.prochainContact)}`:''}</div>`:''}
+            ${last?`<div style="font-size:11.5px;color:var(--th-text-3);margin-top:3px">Dernier appel ${fmtDate(last.date)} · ${esc(last.resultat)}${last.note?` — ${esc(last.note)}`:''}</div>`:'<div style="font-size:11.5px;color:var(--th-text-3);margin-top:3px">Jamais appelé</div>'}
+          </div>
+          <div class="call-phone">${esc(p.tel)}</div>
+          <button class="add-btn" style="flex-shrink:0" onclick="openCallForm('${p.id}')">${ic('ti-phone',14)} Saisir l'appel</button>
+        </div>`;
+      }).join('')
+        : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div>
+            <div class="alert-text"><b>Aucun appel à passer.</b> Tous les prospects ont une action planifiée à une date future.</div></div>`}
+
+      <p class="section-label" style="margin-top:24px">Appels du jour</p>
+      ${callsDuJour.length ? `<div class="card">${callsDuJour.map(c=>{ const p = prospectById(c.prospectId);
+        return `<div class="hist-row" onclick="openProspect('${c.prospectId}')" style="cursor:pointer">
+          <div class="hist-icon">${ic('ti-phone',14)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:3px">
+              <span style="font-size:13px;font-weight:700">${esc(p?p.entreprise:'—')}</span>
+              <span class="badge ${c.resultat==='RDV obtenu'?'green':c.resultat.includes('Pas')||c.resultat.includes('Refus')||c.resultat.includes('Hors')?'red':'blue'}">${esc(c.resultat)}</span></div>
+            ${c.note?`<div style="font-size:12px;color:var(--th-text-2)">${esc(c.note)}</div>`:''}
+            ${c.prochaineAction?`<div style="font-size:11.5px;color:var(--th-orange);font-weight:600;margin-top:3px">→ ${esc(c.prochaineAction)}${c.dateRappel?` le ${fmtDate(c.dateRappel)}`:''}</div>`:''}
+          </div></div>`; }).join('')}</div>`
+        : `<div class="empty">${ic('ti-phone',24)}Aucun appel passé aujourd'hui.</div>`}`;
   }
   else if(openTourId){
     const t = TOURS.find(x=>x.id===openTourId);
+    const done = t.stops.filter(s=>s.statut!=='À visiter').length;
     body = `
       <div class="btn-back" onclick="closeTour()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux tournées</div>
       <div class="page-head"><div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><h1 style="margin-bottom:0">${esc(t.nom)}</h1><span class="badge ${t.statut==='Terminée'?'green':'blue'}">${esc(t.statut)}</span></div>
-        <p class="subtitle">${fmtDate(t.date)} · ${esc(repName(t.repId))} · ${t.stops.length} arrêt${t.stops.length>1?'s':''}</p></div></div>
-      ${t.stops.map(s=>{ const p = prospectById(s.prospectId);
-        return `<div class="tour-stop">
-          <div class="tour-num">${s.ordre}</div>
-          <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><h1 style="margin-bottom:0">${esc(t.nom)}</h1>
+          <span class="badge ${t.statut==='Terminée'?'green':'blue'}">${esc(t.statut)}</span></div>
+        <p class="subtitle">${fmtDate(t.date)} · ${esc(repName(t.repId))} · ${done}/${t.stops.length} visitées</p></div>
+        <button class="btn-ghost" onclick="comingSoon('Ouvrir l\\'itinéraire')">${ic('ti-map',14)} Itinéraire</button></div>
+      ${t.stops.sort((a,b)=>a.ordre-b.ordre).map(s=>{ const p = prospectById(s.prospectId);
+        const aFaire = s.statut==='À visiter';
+        return `<div class="tour-stop ${aFaire?'todo':''}">
+          <div class="tour-num" style="${aFaire?'':'background:var(--th-green)'}">${aFaire?s.ordre:'✓'}</div>
+          <div style="flex:1;min-width:0;cursor:pointer" onclick="openProspect('${s.prospectId}')">
             <div style="font-size:13.5px;font-weight:700;margin-bottom:3px">${esc(p?p.entreprise:'—')}</div>
-            <div style="font-size:12px;color:var(--th-text-2)">${esc(s.adresse)}</div>
+            <div style="font-size:12px;color:var(--th-text-2)">${esc(s.adresse)}${p?` · ${esc(p.contact)}`:''}</div>
             ${s.note?`<div style="font-size:12px;color:var(--th-text-2);line-height:1.6;margin-top:6px">${esc(s.note)}</div>`:''}
           </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-            <span class="badge ${s.statut==='RDV obtenu'?'green':s.statut==='Refus'?'red':s.statut==='À visiter'?'gray':'blue'}">${esc(s.statut)}</span>
-            ${s.statut==='À visiter'?`<button class="qa-btn" style="padding:6px 11px" onclick="comingSoon('Enregistrer la visite')">Saisir</button>`:''}
+          <div style="display:flex;gap:9px;align-items:center;flex-shrink:0">
+            ${aFaire ? `<button class="add-btn" onclick="openVisitForm('${t.id}','${s.prospectId}')">${ic('ti-map',14)} Saisir la visite</button>`
+              : `<span class="badge ${s.statut==='RDV obtenu'||s.statut==='Intéressé'?'green':s.statut==='Refus'||s.statut==='Hors cible'?'red':'blue'}">${esc(s.statut)}</span>`}
           </div></div>`;
       }).join('')}
-      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Photo, carte de visite et géolocalisation seront disponibles dans l'application mobile — <b>intégration à connecter</b>.</span></div>`;
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-camera',16)}<span>Photo de façade, scan de carte de visite et position GPS seront disponibles dans <b>l'application mobile</b> — intégration à connecter.</span></div>`;
   }
   else {
+    const aVenir = TOURS.filter(t=>t.statut!=='Terminée');
+    const passees = TOURS.filter(t=>t.statut==='Terminée');
+    const totalVisites = TOURS.reduce((s,t)=>s+t.stops.filter(x=>x.statut!=='À visiter').length,0);
+    const rdvTerrain = TOURS.reduce((s,t)=>s+t.stops.filter(x=>x.statut==='RDV obtenu').length,0);
+    const tourCard = t => {
+      const done = t.stops.filter(s=>s.statut!=='À visiter').length;
+      const jours = daysFromToday(t.date);
+      return `<div class="tour-card" onclick="openTour('${t.id}')">
+        <div class="tour-icon">${ic('ti-map',18)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:4px">
+            <span style="font-size:14.5px;font-weight:700">${esc(t.nom)}</span>
+            ${jours===0?`<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">Aujourd'hui</span>`:''}</div>
+          <div style="font-size:12px;color:var(--th-text-2)">${fmtDate(t.date)} · ${esc(repName(t.repId))} · ${t.stops.length} entreprise${t.stops.length>1?'s':''}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+            <div style="flex:1;max-width:160px;background:var(--th-bg-alt);border-radius:6px;height:6px;overflow:hidden">
+              <div style="height:100%;width:${t.stops.length?done/t.stops.length*100:0}%;border-radius:6px;background:var(--th-green)"></div></div>
+            <span style="font-size:11.5px;color:var(--th-text-2);font-weight:600">${done}/${t.stops.length} visitées</span></div>
+        </div>
+        <span class="badge ${t.statut==='Terminée'?'green':'blue'}">${esc(t.statut)}</span></div>`;
+    };
     body = `
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-map')}</div><div class="val">${aVenir.length}</div><div class="label">Tournées à venir</div></div>
+        <div class="stat-card"><div class="stat-card-icon">${ic('ti-building')}</div><div class="val">${TOURS.reduce((s,t)=>s+t.stops.length,0)}</div><div class="label">Entreprises planifiées</div></div>
+        <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${totalVisites}</div><div class="label">Visites réalisées</div></div>
+        <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-calendar')}</div><div class="val">${rdvTerrain}</div><div class="label">RDV obtenus</div></div>
+      </div>
       <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="add-btn">${ic('ti-plus',14)} Nouvelle tournée</button></div>
-      ${TOURS.map(t=>{
-        const done = t.stops.filter(s=>s.statut!=='À visiter').length;
-        return `<div class="tour-card" onclick="openTour('${t.id}')">
-          <div class="tour-icon">${ic('ti-map',18)}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:14.5px;font-weight:700;margin-bottom:4px">${esc(t.nom)}</div>
-            <div style="font-size:12px;color:var(--th-text-2)">${fmtDate(t.date)} · ${esc(repName(t.repId))} · ${t.stops.length} entreprise${t.stops.length>1?'s':''}</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-              <div style="flex:1;max-width:160px;background:var(--th-bg-alt);border-radius:6px;height:6px;overflow:hidden">
-                <div style="height:100%;width:${t.stops.length?done/t.stops.length*100:0}%;border-radius:6px;background:var(--th-green)"></div></div>
-              <span style="font-size:11.5px;color:var(--th-text-2);font-weight:600">${done}/${t.stops.length} visitées</span></div>
-          </div>
-          <span class="badge ${t.statut==='Terminée'?'green':'blue'}">${esc(t.statut)}</span></div>`;
-      }).join('')}`;
+      <p class="section-label">Tournées à venir</p>
+      ${aVenir.length ? aVenir.map(tourCard).join('') : `<div class="empty">${ic('ti-map',24)}Aucune tournée planifiée.</div>`}
+      ${passees.length?`<p class="section-label" style="margin-top:24px">Tournées passées</p>${passees.map(tourCard).join('')}`:''}`;
   }
-  el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===prospectingTab?' active':''}" onclick="switchProspectingTab(${i})">${t}</div>`).join('')}</div>${body}`;
-}
 
-function openCallForm(prospectId){
-  const p = prospectById(prospectId);
-  const res = prompt(`Appel — ${p.entreprise}\n\nRésultat ?\n\n${CALL_RESULTS.map((r,i)=>`${i+1}. ${r}`).join('\n')}\n\nEntrez le numéro :`);
-  const idx = parseInt(res,10)-1;
-  if(isNaN(idx) || !CALL_RESULTS[idx]) return;
-  const note = prompt("Note (facultative) :") || '';
-  CALLS.unshift({ id:'c_'+Date.now(), prospectId, repId:SALES_REPS[0].id, date:todayISO(),
-    resultat:CALL_RESULTS[idx], note, prochaineAction:null, dateRappel:null });
-  if(CALL_RESULTS[idx]==='RDV obtenu') p.stage = 'RDV obtenu';
-  else if(p.stage==='À contacter') p.stage = 'Contacté';
-  p.dernierContact = todayISO();
-  renderSalesAll();
+  el.innerHTML = sectorSelector() + `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===prospectingTab?' active':''}" onclick="switchProspectingTab(${i})">${t}</div>`).join('')}</div>${body}
+    <div class="hint-bar" style="margin-top:20px">${ic('ti-bulb',16)}<span>Chaque saisie met à jour <b>la fiche prospect existante</b> : étape, dernier contact et prochaine action. Aucune donnée n'est créée en double.</span></div>`;
 }
 
 /* ---------- 4. PIPELINE ---------- */
