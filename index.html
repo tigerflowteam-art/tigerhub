@@ -343,6 +343,46 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .action-reco-icon{width:40px;height:40px;border-radius:13px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .data-src-card{background:var(--th-bg-alt);border-radius:13px;padding:15px}
 .data-src-icon{width:32px;height:32px;border-radius:10px;background:var(--th-card);color:var(--th-orange);display:flex;align-items:center;justify-content:center}
+.pros-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;background:var(--th-card);border:1px solid var(--th-border);border-radius:18px;padding:22px 24px;margin-bottom:14px;box-shadow:var(--th-shadow)}
+.pros-hero-metrics{display:flex;align-items:center;gap:20px;flex-shrink:0}
+.phm-item{text-align:right}
+.phm-val{font-size:22px;font-weight:800;letter-spacing:-0.02em;line-height:1.1}
+.phm-lab{font-size:11px;color:var(--th-text-3);font-weight:700;text-transform:uppercase;margin-top:3px}
+.phm-sub{font-size:11.5px;color:var(--th-text-2);margin-top:2px}
+.phm-sep{width:1px;height:44px;background:var(--th-border)}
+.next-action-hero{display:flex;align-items:center;gap:16px;background:var(--th-orange-bg);border-radius:16px;padding:18px 22px;margin-bottom:18px;flex-wrap:wrap}
+.next-action-hero.late{background:var(--th-red-bg)}
+.next-action-hero.won{background:var(--th-green-bg)}
+.next-action-hero.lost{background:var(--th-bg-alt)}
+.next-action-hero.empty{background:var(--th-bg-alt);border:1px dashed var(--th-border)}
+.nah-icon{width:42px;height:42px;border-radius:14px;background:var(--th-card);color:var(--th-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.next-action-hero.late .nah-icon{color:var(--th-red)}
+.pros-pipe{display:flex;align-items:center;gap:0;overflow-x:auto;padding:6px 0}
+.pp-step{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:74px;flex-shrink:0}
+.pp-icon{width:38px;height:38px;border-radius:13px;background:var(--th-bg-alt);color:var(--th-text-3);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.pp-step.done .pp-icon{background:var(--th-green-bg);color:var(--th-green)}
+.pp-step.cur .pp-icon{background:var(--th-orange);color:#fff;box-shadow:0 0 0 4px var(--th-orange-bg)}
+.pp-lab{font-size:11.5px;font-weight:600;color:var(--th-text-3)}
+.pp-step.done .pp-lab{color:var(--th-text-2)}
+.pp-step.cur .pp-lab{color:var(--th-orange);font-weight:800}
+.pp-line{flex:1;min-width:16px;height:2px;background:var(--th-border);margin-bottom:26px}
+.pp-line.done{background:var(--th-green)}
+.origin-chain{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.oc-step{font-size:10.5px;font-weight:700;background:var(--th-bg-alt);color:var(--th-text-3);border-radius:7px;padding:4px 9px}
+.oc-step.done{background:var(--th-orange-bg);color:var(--th-orange)}
+.oc-arrow{color:var(--th-text-3);transform:rotate(180deg)}
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:9px}
+.activity-item{background:var(--th-bg-alt);border-radius:11px;padding:11px 8px;text-align:center;cursor:pointer;transition:background .12s}
+.activity-item:hover{background:var(--th-orange-bg)}
+.activity-num{font-size:19px;font-weight:800;letter-spacing:-0.02em;line-height:1}
+.activity-lab{font-size:10.5px;color:var(--th-text-2);font-weight:600;margin-top:3px}
+.src-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--th-border)}
+.src-row:last-of-type{border-bottom:none}
+.src-icon{width:30px;height:30px;border-radius:10px;background:var(--th-bg-alt);color:var(--th-text-2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.commission-mini{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+.cm-item{background:var(--th-bg-alt);border-radius:12px;padding:14px}
+.cm-val{font-size:19px;font-weight:800;letter-spacing:-0.02em}
+.cm-lab{font-size:11px;color:var(--th-text-2);font-weight:600;margin-top:3px;line-height:1.3}
 .quick-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
 .qa-btn{display:inline-flex;align-items:center;gap:7px;background:var(--th-card);border:1px solid var(--th-border);border-radius:11px;padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--th-text-2);cursor:pointer;font-family:inherit;transition:all .12s;box-shadow:var(--th-shadow-sm)}
 .qa-btn:hover{border-color:var(--th-orange);color:var(--th-orange)}
@@ -5410,11 +5450,26 @@ function refreshMktgAll(){
    Aucune double saisie : le contrat signé crée le client, qui déclenche
    la commission. Le secteur est transversal, comme dans Marketing. */
 
-const PROSPECT_STAGES = ['Nouveau','À contacter','Contacté','Qualifié','RDV obtenu','Démonstration','Devis envoyé','Contrat envoyé','Signature en attente','Gagné','Perdu'];
+const PROSPECT_STAGES = ['À contacter','Contacté','À rappeler','Qualifié','RDV obtenu','Démonstration','Devis envoyé','Contrat envoyé','Gagné','Perdu'];
+/* Mode de prospection déduit de la source — jamais saisi deux fois */
+const PROSPECTING_MODES = ['Téléphone','Terrain','Marketing','Autre'];
+function prospectingMode(p){
+  if(p.campaignId) return 'Marketing';
+  const s = (p.source||'').toLowerCase();
+  if(s.includes('téléphon')) return 'Téléphone';
+  if(s.includes('terrain')) return 'Terrain';
+  if(s.includes('campagne')||s.includes('linkedin')||s.includes('formulaire')) return 'Marketing';
+  return 'Autre';
+}
+/* Un prospect gagné EST le client : même fiche, jamais recréée */
+function clientOf(prospectId){ return WON_CLIENTS.find(c=>c.prospectId===prospectId); }
+/* MRR potentiel dérivé de la valeur annuelle */
+function prospectMRR(p){ return p.valeur ? Math.round(p.valeur/12) : 0; }
 const STAGE_STYLE = {
   'Nouveau':{c:'var(--th-text-2)',bg:'var(--th-bg-alt)'},
   'À contacter':{c:'var(--th-orange)',bg:'var(--th-orange-bg)'},
   'Contacté':{c:'var(--th-blue)',bg:'var(--th-blue-bg)'},
+  'À rappeler':{c:'var(--th-orange)',bg:'var(--th-orange-bg)'},
   'Qualifié':{c:'var(--th-blue)',bg:'var(--th-blue-bg)'},
   'RDV obtenu':{c:'var(--th-purple)',bg:'var(--th-purple-bg)'},
   'Démonstration':{c:'var(--th-purple)',bg:'var(--th-purple-bg)'},
@@ -5510,7 +5565,7 @@ const PROSPECTS_DATA = [
   { id:'p5', entreprise:'Pest Control Grenoble', contact:'Antoine Devaux', fonction:'Responsable technique',
     tel:'04 76 xx xx 91', email:'a.devaux@pcg.fr', site:'',
     ville:'Grenoble', zone:'Auvergne-Rhône-Alpes', sectorId:'derat', taille:'11 salariés', techniciens:7,
-    source:'Prospection téléphonique', repId:'rep3', stage:'Contacté',
+    source:'Prospection téléphonique', repId:'rep3', stage:'À rappeler',
     cree:'2026-09-25', dernierContact:'2026-10-03', prochainContact:'2026-10-10',
     prochaineAction:'Rappeler pour qualifier le besoin', valeur:0, campaignId:null,
     notes:"Premier contact positif mais peu de temps à consacrer. Rappeler en fin de journée." },
@@ -5650,9 +5705,6 @@ const SALES_OBJECTIONS = [
 /* ==================== RENDUS PROSPECTION COMMERCIALE ==================== */
 
 let openProspectId = null;
-let prospectTab = 0;
-let prospectFilter = 'Tous';
-let prospectSearch = '';
 let prospectingTab = 0;
 let openTourId = null;
 let perfTab = 0;
@@ -5671,9 +5723,6 @@ function daysFromToday(iso){ if(!iso) return null; return Math.ceil((new Date(is
 
 function openProspect(id){ openProspectId = id; prospectTab = 0; renderSalesAll(); gotoSales('prospects'); }
 function closeProspect(){ openProspectId = null; renderSalesAll(); }
-function switchProspectTab(i){ prospectTab = i; renderProspects(); }
-function setProspectFilter(v){ prospectFilter = v; renderProspects(); }
-function setProspectSearch(v){ prospectSearch = v.toLowerCase(); renderProspects(); }
 function switchProspectingTab(i){ prospectingTab = i; openTourId = null; renderProspection(); }
 function openTour(id){ openTourId = id; renderProspection(); }
 function closeTour(){ openTourId = null; renderProspection(); }
@@ -5687,246 +5736,551 @@ function comingSoon(what){
   alert(`${what}\n\nIntégration à connecter — cette fonctionnalité nécessite un service externe et sera disponible dans la version réelle.`);
 }
 
-/* ---------- 1. TABLEAU DE BORD ---------- */
+/* ---------- 1. TABLEAU DE BORD ----------
+   Objectif : comprendre la situation commerciale en 10 secondes.
+   Pas de graphique décoratif, uniquement ce qui déclenche une décision. */
+
+let dashRep = 'Tous';
+let dashPeriod = 'month';
+const DASH_PERIODS = { 'week':'7 jours', 'month':'Ce mois', 'quarter':'Ce trimestre', 'all':'Tout' };
+/* En V1 l'utilisateur connecté est l'Owner. Un freelance ne verrait que ses données. */
+const CURRENT_USER = SALES_REPS[0];
+function canSeeAllReps(){ return CURRENT_USER.isOwner; }
+function setDashRep(v){ dashRep = v; renderSalesDashboard(); }
+function setDashPeriod(v){ dashPeriod = v; renderSalesDashboard(); }
+
+function dashBounds(){
+  const now = new Date();
+  if(dashPeriod==='all') return null;
+  if(dashPeriod==='week') return { from:new Date(now.getTime()-7*86400000), to:now };
+  if(dashPeriod==='quarter'){ const q=Math.floor(now.getMonth()/3); return { from:new Date(now.getFullYear(),q*3,1), to:now }; }
+  return { from:new Date(now.getFullYear(),now.getMonth(),1), to:now };
+}
+function inDashPeriod(iso){
+  const b = dashBounds();
+  if(!b || !iso) return !b;
+  const d = new Date(iso);
+  return d >= b.from && d <= b.to;
+}
+/* Périmètre : secteur + commercial. Un freelance est verrouillé sur lui-même. */
+function dashRepId(){ return canSeeAllReps() ? dashRep : CURRENT_USER.id; }
+function dashProspects(){
+  const rep = dashRepId();
+  return scopedProspects().filter(p=>rep==='Tous' || p.repId===rep);
+}
+function dashFilter(arr){
+  const rep = dashRepId();
+  return arr.filter(x=>rep==='Tous' || x.repId===rep);
+}
+
 function renderSalesDashboard(){
   const el = document.getElementById('sales-dashboardContent'); if(!el) return;
-  const P = scopedProspects();
+  const P = dashProspects();
+  const ids = new Set(P.map(p=>p.id));
   const today = todayISO();
 
+  /* --- Pipeline potentiel : opportunités ouvertes uniquement --- */
+  const ouvertes = P.filter(p=>!['Gagné','Perdu','Nouveau','À contacter'].includes(p.stage));
+  const pipelineValeur = ouvertes.reduce((s,p)=>s+p.valeur,0);
+  const pipelineMRR = Math.round(pipelineValeur/12);
+
+  /* --- Compteurs de parcours --- */
   const aContacter = P.filter(p=>p.stage==='À contacter').length;
+  const demosPrevues = dashFilter(MEETINGS).filter(m=>ids.has(m.prospectId) && ['Planifié','Confirmé'].includes(m.statut)).length;
+  const devisAttente = dashFilter(QUOTES).filter(q=>ids.has(q.prospectId) && ['Envoyé','Vu'].includes(q.statut)).length;
+  const contratsAttente = dashFilter(CONTRACTS).filter(c=>ids.has(c.prospectId) && ['Envoyé','Ouvert','Signature en attente'].includes(c.statut)).length;
+  const gagnes = P.filter(p=>p.stage==='Gagné');
+  const perdus = P.filter(p=>p.stage==='Perdu');
+
+  /* --- Taux de conversion, périmètre explicite --- */
   const contactes = P.filter(p=>!['Nouveau','À contacter'].includes(p.stage)).length;
-  const rdvObtenus = P.filter(p=>['RDV obtenu','Démonstration','Devis envoyé','Contrat envoyé','Signature en attente','Gagné'].includes(p.stage)).length;
-  const demosPrevues = MEETINGS.filter(m=>['Planifié','Confirmé'].includes(m.statut)).length;
-  const devisAttente = QUOTES.filter(q=>['Envoyé','Vu'].includes(q.statut)).length;
-  const contratsAttente = CONTRACTS.filter(c=>['Envoyé','Ouvert','Signature en attente'].includes(c.statut)).length;
-  const gagnes = P.filter(p=>p.stage==='Gagné').length;
-  const perdus = P.filter(p=>p.stage==='Perdu').length;
-  const tauxConv = (gagnes+perdus)>0 ? Math.round(gagnes/(gagnes+perdus)*100) : 0;
-  const mrr = WON_CLIENTS.reduce((s,c)=>s+c.mrr,0);
-  const cmAttente = COMMISSIONS.filter(c=>c.statut==='En attente').reduce((s,c)=>s+c.montant,0);
-  const cmAcquises = COMMISSIONS.filter(c=>['Acquise','À payer'].includes(c.statut)).reduce((s,c)=>s+c.montant,0);
-  const cmPayees = COMMISSIONS.filter(c=>c.statut==='Payée').reduce((s,c)=>s+c.montant,0);
+  const tauxProspectClient = P.length ? Math.round(gagnes.length/P.length*100) : 0;
+  const tauxContacteClient = contactes ? Math.round(gagnes.length/contactes*100) : 0;
+  const tauxDecide = (gagnes.length+perdus.length) ? Math.round(gagnes.length/(gagnes.length+perdus.length)*100) : 0;
 
-  const appelsAFaire = CALLS.filter(c=>c.dateRappel && c.dateRappel<=today);
-  const relances = P.filter(p=>p.prochainContact && p.prochainContact<=today && p.prochaineAction);
-  const rdvAujourdhui = MEETINGS.filter(m=>m.date===today);
-  const tourneesJour = TOURS.filter(t=>t.date===today);
+  const clients = WON_CLIENTS.filter(c=>ids.has(c.prospectId));
+  const mrr = clients.reduce((s,c)=>s+c.mrr,0);
 
-  const aFaire = [];
-  relances.forEach(p=>{
-    const d = daysFromToday(p.prochainContact);
-    aFaire.push({ urgence: d<0?'haute':'moyenne', titre:p.entreprise, action:p.prochaineAction,
-      quand: d<0?`En retard de ${-d} jour${-d>1?'s':''}`:"Aujourd'hui", qui:repName(p.repId), id:p.id });
+  /* --- Relances à faire : prospects, RDV, devis, contrats --- */
+  const relances = [];
+  P.forEach(p=>{
+    if(p.prochainContact && p.prochainContact<=today && p.prochaineAction){
+      const d = daysFromToday(p.prochainContact);
+      relances.push({ type:'Prospect', icon:'ti-user-plus', retard:d<0, jours:d,
+        titre:p.entreprise, action:p.prochaineAction, qui:repName(p.repId), id:p.id });
+    }
   });
-  MEETINGS.filter(m=>['Planifié','Confirmé'].includes(m.statut) && daysFromToday(m.date)!==null && daysFromToday(m.date)<=2 && daysFromToday(m.date)>=0).forEach(m=>{
-    const p = prospectById(m.prospectId);
-    aFaire.push({ urgence:'moyenne', titre:p?p.entreprise:'—', action:`${m.objectif} · ${m.type}`,
-      quand: daysFromToday(m.date)===0?`Aujourd'hui ${m.heure}`:`Dans ${daysFromToday(m.date)} j`, qui:repName(m.repId), id:m.prospectId });
+  dashFilter(MEETINGS).filter(m=>ids.has(m.prospectId)).forEach(m=>{
+    const d = daysFromToday(m.date);
+    if(['Planifié','Confirmé'].includes(m.statut) && d!==null && d<=1){
+      const p = prospectById(m.prospectId);
+      relances.push({ type:'Rendez-vous', icon:'ti-calendar', retard:d<0, jours:d,
+        titre:p?p.entreprise:'—', action:`${m.objectif} · ${m.heure} · ${m.type}`, qui:repName(m.repId), id:m.prospectId });
+    }
   });
+  dashFilter(QUOTES).filter(q=>ids.has(q.prospectId)).forEach(q=>{
+    if(['Envoyé','Vu'].includes(q.statut)){
+      const d = daysFromToday(q.validite);
+      if(d!==null && d<=7){
+        const p = prospectById(q.prospectId);
+        relances.push({ type:'Devis', icon:'ti-file-invoice', retard:d<0, jours:d,
+          titre:p?p.entreprise:'—', action:d<0?`Devis expiré (${q.montantAnnuel} €)`:`Devis expire dans ${d} j (${q.montantAnnuel} €)`,
+          qui:repName(q.repId), id:q.prospectId });
+      }
+    }
+  });
+  dashFilter(CONTRACTS).filter(c=>ids.has(c.prospectId)).forEach(c=>{
+    if(['Envoyé','Ouvert','Signature en attente'].includes(c.statut)){
+      const d = c.envoye ? -daysFromToday(c.envoye) : 0;
+      if(d>=3){
+        const p = prospectById(c.prospectId);
+        relances.push({ type:'Contrat', icon:'ti-file-certificate', retard:d>=7, jours:-d,
+          titre:p?p.entreprise:'—', action:`Contrat envoyé il y a ${d} j, non signé (${c.montantAnnuel} €)`,
+          qui:repName(c.repId), id:c.prospectId });
+      }
+    }
+  });
+  relances.sort((a,b)=>(a.jours||0)-(b.jours||0));
+  const enRetard = relances.filter(r=>r.retard).length;
+
+  /* Prochaine action prévue, pour l'état vide */
+  const prochaine = P.filter(p=>p.prochainContact && p.prochainContact>today && p.prochaineAction)
+    .sort((a,b)=>new Date(a.prochainContact)-new Date(b.prochainContact))[0];
+
+  /* --- Activité du mois, filtrée par période --- */
+  const act = {
+    appels: dashFilter(CALLS).filter(c=>ids.has(c.prospectId) && inDashPeriod(c.date)).length,
+    contacts: P.filter(p=>p.dernierContact && inDashPeriod(p.dernierContact)).length,
+    rdv: dashFilter(MEETINGS).filter(m=>ids.has(m.prospectId) && inDashPeriod(m.date)).length,
+    demos: dashFilter(MEETINGS).filter(m=>ids.has(m.prospectId) && m.statut==='Réalisé' && inDashPeriod(m.date)).length,
+    devis: dashFilter(QUOTES).filter(q=>ids.has(q.prospectId) && q.statut!=='Brouillon' && inDashPeriod(q.date)).length,
+    contrats: dashFilter(CONTRACTS).filter(c=>ids.has(c.prospectId) && inDashPeriod(c.envoye)).length,
+    clients: clients.filter(c=>inDashPeriod(c.signature)).length,
+  };
+
+  /* --- Source des clients gagnés --- */
+  const sources = {};
+  gagnes.forEach(p=>{
+    const src = p.campaignId ? 'Marketing' : p.source;
+    if(!sources[src]) sources[src] = { n:0, valeur:0, campIds:new Set() };
+    sources[src].n++; sources[src].valeur += p.valeur;
+    if(p.campaignId) sources[src].campIds.add(p.campaignId);
+  });
+
+  /* --- Commissions --- */
+  const cms = dashFilter(COMMISSIONS);
+  const cmTotal = s => cms.filter(c=>c.statut===s).reduce((x,c)=>x+c.montant,0);
 
   el.innerHTML = sectorSelector() + `
+    <div class="ana-filters" style="margin-bottom:18px">
+      <div class="ana-filter-group">
+        <span class="ana-filter-lab">Période</span>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${Object.entries(DASH_PERIODS).map(([k,l])=>`<button class="filter-chip${dashPeriod===k?' active':''}" onclick="setDashPeriod('${k}')">${l}</button>`).join('')}
+        </div>
+      </div>
+      <div class="ana-filter-group">
+        <span class="ana-filter-lab">Commercial</span>
+        ${canSeeAllReps()
+          ? `<select class="status-select" onchange="setDashRep(this.value)">
+              <option value="Tous" ${dashRep==='Tous'?'selected':''}>Tous les commerciaux</option>
+              ${SALES_REPS.map(r=>`<option value="${r.id}" ${dashRep===r.id?'selected':''}>${esc(r.nom)}</option>`).join('')}</select>`
+          : `<div style="display:flex;align-items:center;gap:8px;padding:9px 0"><span class="badge">${esc(CURRENT_USER.nom)}</span>
+              <span style="font-size:11px;color:var(--th-text-3)">${ic('ti-lock',12)} vos données uniquement</span></div>`}
+      </div>
+      <div style="margin-left:auto;font-size:11.5px;color:var(--th-text-3);align-self:flex-end;padding-bottom:8px">
+        ${P.length} prospect${P.length>1?'s':''} dans le périmètre
+      </div>
+    </div>
+
     <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
-      <div class="stat-card"><div class="stat-card-icon">${ic('ti-user-plus')}</div><div class="val">${aContacter}</div><div class="label">À contacter</div></div>
-      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-phone')}</div><div class="val">${contactes}</div><div class="label">Contactés</div></div>
-      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-calendar')}</div><div class="val">${demosPrevues}</div><div class="label">RDV / démos prévus</div></div>
-      <div class="stat-card"><div class="stat-card-icon">${ic('ti-file-invoice')}</div><div class="val">${devisAttente}</div><div class="label">Devis en attente</div></div>
-      <div class="stat-card"><div class="stat-card-icon">${ic('ti-file-certificate')}</div><div class="val">${contratsAttente}</div><div class="label">Contrats à signer</div></div>
-      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-trophy')}</div><div class="val">${gagnes}</div><div class="label">Clients gagnés</div></div>
+      <div class="stat-card purple" onclick="gotoSales('pipeline')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-timeline')}</div>
+        <div class="val">${pipelineMRR} €</div><div class="label">MRR potentiel · ${pipelineValeur} € / an</div></div>
+      <div class="stat-card" onclick="gotoSales('prospects')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-user-plus')}</div>
+        <div class="val">${aContacter}</div><div class="label">À contacter</div></div>
+      <div class="stat-card blue" onclick="gotoSales('meetings')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-calendar')}</div>
+        <div class="val">${demosPrevues}</div><div class="label">RDV / démos prévus</div></div>
+      <div class="stat-card" onclick="gotoSales('quotes')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-file-invoice')}</div>
+        <div class="val">${devisAttente}</div><div class="label">Devis en attente</div></div>
+      <div class="stat-card" onclick="gotoSales('contracts')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-file-certificate')}</div>
+        <div class="val">${contratsAttente}</div><div class="label">Contrats à signer</div></div>
+      <div class="stat-card green" onclick="gotoSales('clients')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-trophy')}</div>
+        <div class="val">${gagnes.length}</div><div class="label">Clients · ${mrr} € MRR</div></div>
     </div>
 
     <div class="grid-2">
       <div class="card">
         <div class="card-header"><div class="card-title">${ic('ti-bolt',17)}<span>Aujourd'hui</span></div>
-          ${aFaire.length?`<span class="badge ${aFaire.some(a=>a.urgence==='haute')?'red':'orange'}" style="${aFaire.some(a=>a.urgence==='haute')?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${aFaire.length}</span>`:''}</div>
-        ${aFaire.length ? aFaire.slice(0,6).map(a=>`
-          <div class="todo-row" onclick="openProspect('${a.id}')">
-            <span class="todo-dot" style="background:${a.urgence==='haute'?'var(--th-red)':'var(--th-orange)'}"></span>
+          ${relances.length?`<span class="badge ${enRetard?'red':'orange'}" style="${enRetard?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${relances.length}${enRetard?` · ${enRetard} en retard`:''}</span>`:''}</div>
+        ${relances.length ? relances.slice(0,7).map(r=>`
+          <div class="todo-row" onclick="openProspect('${r.id}')">
+            <span class="todo-dot" style="background:${r.retard?'var(--th-red)':'var(--th-orange)'}"></span>
+            <div class="hist-icon" style="width:26px;height:26px">${ic(r.icon,13)}</div>
             <div style="flex:1;min-width:0">
-              <div style="font-size:13.5px;font-weight:700;margin-bottom:3px">${esc(a.titre)}</div>
-              <div style="font-size:12px;color:var(--th-text-2)">${esc(a.action)}</div>
-              <div style="font-size:11.5px;color:var(--th-text-3);margin-top:2px">${esc(a.quand)} · ${esc(a.qui)}</div>
+              <div style="font-size:13.5px;font-weight:700;margin-bottom:3px">${esc(r.titre)}</div>
+              <div style="font-size:12px;color:var(--th-text-2)">${esc(r.action)}</div>
+              <div style="font-size:11.5px;color:${r.retard?'var(--th-red)':'var(--th-text-3)'};margin-top:2px;font-weight:${r.retard?'700':'500'}">
+                ${esc(r.type)} · ${r.retard?`en retard de ${Math.abs(r.jours)} j`:"aujourd'hui"} · ${esc(r.qui)}</div>
             </div>
             <span class="todo-action">Ouvrir →</span></div>`).join('')
-          : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div><div class="alert-text">Aucune action en attente aujourd'hui.</div></div>`}
-        ${appelsAFaire.length||tourneesJour.length?`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border);display:flex;gap:16px;font-size:12px;color:var(--th-text-2)">
-          ${appelsAFaire.length?`<span onclick="gotoSales('prospection')" style="cursor:pointer">${ic('ti-phone',13)} ${appelsAFaire.length} rappel${appelsAFaire.length>1?'s':''} à faire →</span>`:''}
-          ${tourneesJour.length?`<span onclick="gotoSales('prospection')" style="cursor:pointer">${ic('ti-map',13)} ${tourneesJour.length} tournée aujourd'hui →</span>`:''}
-        </div>`:''}
+          : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div>
+              <div class="alert-text"><b>Aucune relance en retard.</b> ${prochaine
+                ? `Prochaine action : <b>${esc(prochaine.prochaineAction)}</b> chez ${esc(prochaine.entreprise)}, le ${fmtDate(prochaine.prochainContact)}.`
+                : `Aucune action planifiée — pensez à programmer vos prochaines relances.`}</div></div>`}
       </div>
 
       <div class="card">
-        <div class="card-header"><div class="card-title">${ic('ti-chart-bar',17)}<span>Ce mois-ci</span></div></div>
-        ${[
-          [contactes,'prospects contactés','prospects'],
-          [MEETINGS.filter(m=>m.statut==='Réalisé').length,'démonstrations réalisées','meetings'],
-          [QUOTES.filter(q=>q.statut!=='Brouillon').length,'devis envoyés','quotes'],
-          [CONTRACTS.filter(c=>c.statut==='Signé').length,'contrats signés','contracts'],
-        ].map(x=>`<div class="week-row" onclick="gotoSales('${x[2]}')">
-          <span class="week-num">${x[0]}</span><span style="flex:1">${esc(x[1])}</span>${ic('ti-arrow-left',14)}</div>`).join('')}
-        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border);font-size:12.5px;line-height:2">
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Taux de conversion</span><b>${tauxConv}%</b></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">MRR généré</span><b style="color:var(--th-green)">${mrr} €</b></div>
+        <div class="card-header"><div class="card-title">${ic('ti-chart-bar',17)}<span>Activité · ${DASH_PERIODS[dashPeriod]}</span></div></div>
+        <div class="activity-grid">
+          ${[[act.appels,'appels','prospection'],[act.contacts,'contacts','prospects'],[act.rdv,'RDV','meetings'],
+             [act.demos,'démos','meetings'],[act.devis,'devis','quotes'],[act.contrats,'contrats','contracts'],
+             [act.clients,'clients','clients']].map(x=>`
+            <div class="activity-item" onclick="gotoSales('${x[2]}')">
+              <div class="activity-num">${x[0]}</div><div class="activity-lab">${esc(x[1])}</div></div>`).join('')}
+        </div>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--th-border)">
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px">Taux de conversion</div>
+          <div style="font-size:12.5px;line-height:2">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Prospect → Client</span><b>${tauxProspectClient}%</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Contacté → Client</span><b>${tauxContacteClient}%</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Dossiers décidés (hors en cours)</span><b>${tauxDecide}%</b></div>
+          </div>
         </div>
       </div>
     </div>
 
-    <p class="section-label">Commissions</p>
-    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
-      <div class="stat-card" onclick="gotoSales('commissions')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-history')}</div><div class="val">${cmAttente} €</div><div class="label">En attente d'acquisition</div></div>
-      <div class="stat-card blue" onclick="gotoSales('commissions')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${cmAcquises} €</div><div class="label">Acquises, à payer</div></div>
-      <div class="stat-card green" onclick="gotoSales('commissions')" style="cursor:pointer"><div class="stat-card-icon">${ic('ti-coin')}</div><div class="val">${cmPayees} €</div><div class="label">Déjà payées</div></div>
-    </div>
-    <div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',16)}<span>Une signature ne rend pas la commission acquise : il faut <b>${COMMISSION_SETTINGS.moisAcquisition} mois d'abonnement payé</b> (réglable dans Paramètres).</span></div>`;
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">${ic('ti-share',17)}<span>D'où viennent les clients gagnés</span></div></div>
+        ${Object.keys(sources).length ? Object.entries(sources).sort((a,b)=>b[1].n-a[1].n).map(([src,d])=>{
+          const isMktg = src==='Marketing';
+          return `<div class="src-row" ${isMktg?`onclick="selectModule('marketing');setTimeout(()=>gotoMktg('analysis'),80)" style="cursor:pointer"`:''}>
+            <div class="src-icon" style="${isMktg?'background:var(--th-orange-bg);color:var(--th-orange)':''}">${ic(isMktg?'ti-target-arrow':src.includes('téléphon')?'ti-phone':src.includes('terrain')?'ti-map':src.includes('ecommandation')?'ti-users':'ti-share',14)}</div>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${esc(src)}</div>
+              ${isMktg?`<div style="font-size:11.5px;color:var(--th-orange);font-weight:600">${d.campIds.size} campagne${d.campIds.size>1?'s':''} → voir l'analyse marketing</div>`:''}</div>
+            <div style="text-align:right;flex-shrink:0"><div style="font-size:14px;font-weight:800">${d.n}</div>
+              <div style="font-size:11px;color:var(--th-text-3)">${d.valeur} € / an</div></div></div>`;
+        }).join('')
+          : `<div class="waiting-block">${ic('ti-share',22)}<p>Les sources apparaîtront dès le premier client signé.</p></div>`}
+        ${Object.keys(sources).includes('Marketing')?`<div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>La traçabilité <b>campagne → lead → client</b> permet à Marketing de calculer son vrai coût d'acquisition.</span></div>`:''}
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">${ic('ti-coin',17)}<span>Commissions</span></div>
+          <span class="card-link" onclick="gotoSales('commissions')">Détail →</span></div>
+        <div class="commission-mini">
+          ${[['En attente d\'acquisition',cmTotal('En attente'),'gray'],['Acquises',cmTotal('Acquise'),'blue'],
+             ['À payer',cmTotal('À payer'),'purple'],['Payées',cmTotal('Payée'),'green']].map(x=>`
+            <div class="cm-item"><div class="cm-val" style="color:var(--th-${x[2]==='gray'?'text-2':x[2]})">${x[1]} €</div>
+              <div class="cm-lab">${x[0]}</div></div>`).join('')}
+        </div>
+        <div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>Règle d'acquisition : <b>${COMMISSION_SETTINGS.moisAcquisition} mois d'abonnement payé</b>${COMMISSION_SETTINGS.clawbackActif?` · clawback sous ${COMMISSION_SETTINGS.clawbackMois} mois`:''} — configurable dans Paramètres.</span></div>
+      </div>
+    </div>`;
 }
 
-/* ---------- 2. PROSPECTS ---------- */
+/* ---------- 2. PROSPECTS ----------
+   Objectif : en ouvrant une fiche, comprendre en 5 secondes qui est le
+   prospect, où il en est, ce qu'il peut rapporter, qui le suit et
+   quelle est la prochaine action.
+   Un prospect gagné n'est jamais recréé ailleurs : il devient le client. */
+
+let prosFilterStage = 'Tous';
+let prosFilterRep = 'Tous';
+let prosFilterSource = 'Toutes';
+let prosFilterMode = 'Tous';
+let prosFilterPeriod = 'all';
+let prosNoAction = false;
+let prospectSearch = '';
+
+const PROS_PERIODS = { 'all':'Tout', '7d':'7 jours', '30d':'30 jours', 'quarter':'Trimestre' };
+function setPros(kind, v){
+  if(kind==='stage') prosFilterStage = v;
+  else if(kind==='rep') prosFilterRep = v;
+  else if(kind==='source') prosFilterSource = v;
+  else if(kind==='mode') prosFilterMode = v;
+  else if(kind==='period') prosFilterPeriod = v;
+  renderProspects();
+}
+function toggleNoAction(){ prosNoAction = !prosNoAction; renderProspects(); }
+function setProspectSearch(v){ prospectSearch = v.toLowerCase(); renderProspects(); }
+function prosInPeriod(p){
+  if(prosFilterPeriod==='all') return true;
+  const ref = p.dernierContact || p.cree;
+  if(!ref) return false;
+  const days = prosFilterPeriod==='7d'?7:prosFilterPeriod==='30d'?30:90;
+  return (new Date() - new Date(ref)) <= days*86400000;
+}
+function hasNoNextAction(p){
+  return !['Gagné','Perdu'].includes(p.stage) && (!p.prochaineAction || !p.prochainContact);
+}
+
+/* Pipeline visuel : 7 étapes lisibles, la fiche montre où on en est */
+const PIPE_STEPS = [
+  { lab:'Prospect', icon:'ti-user-plus', stages:['À contacter'] },
+  { lab:'Contact',  icon:'ti-phone',     stages:['Contacté','À rappeler','Qualifié'] },
+  { lab:'RDV',      icon:'ti-calendar',  stages:['RDV obtenu'] },
+  { lab:'Démo',     icon:'ti-presentation', stages:['Démonstration'] },
+  { lab:'Devis',    icon:'ti-file-invoice', stages:['Devis envoyé'] },
+  { lab:'Contrat',  icon:'ti-file-certificate', stages:['Contrat envoyé'] },
+  { lab:'Client',   icon:'ti-trophy',    stages:['Gagné'] },
+];
+function pipeIndex(stage){
+  const i = PIPE_STEPS.findIndex(s=>s.stages.includes(stage));
+  return i;
+}
+
 function renderProspects(){
   const el = document.getElementById('sales-prospectsContent'); if(!el) return;
 
-  /* --- Fiche prospect --- */
+  /* ===== FICHE PROSPECT ===== */
   if(openProspectId){
     const p = prospectById(openProspectId);
     if(!p){ openProspectId=null; return renderProspects(); }
     const calls = prospectCalls(p.id), meets = prospectMeetings(p.id);
     const quotes = prospectQuotes(p.id), contracts = prospectContracts(p.id);
     const camp = p.campaignId ? campaigns.find(c=>c.id===p.campaignId) : null;
-    const client = WON_CLIENTS.find(c=>c.prospectId===p.id);
-    const tabs = ['Vue d\'ensemble','Historique','Devis & contrats'];
-    let body = '';
+    const client = clientOf(p.id);
+    const cur = pipeIndex(p.stage);
+    const perdu = p.stage==='Perdu';
+    const retard = p.prochainContact && p.prochainContact < todayISO();
+    const tours = TOURS.filter(t=>t.stops.some(s=>s.prospectId===p.id));
 
-    if(prospectTab===0){
-      body = `
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
-          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-building',17)}<span>Entreprise</span></div></div>
-            <div style="font-size:12.5px;line-height:2.1">
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Contact</span><b>${esc(p.contact)}</b></div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Fonction</span><b>${esc(p.fonction)}</b></div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Téléphone</span><b>${esc(p.tel)}</b></div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Email</span><b style="font-size:11.5px">${esc(p.email||'—')}</b></div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Ville</span><b>${esc(p.ville)}</b></div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Taille</span><b>${esc(p.taille)}${p.techniciens?` · ${p.techniciens} techniciens`:''}</b></div>
-            </div></div>
-          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-target',17)}<span>Suivi commercial</span></div></div>
-            <div style="font-size:12.5px;line-height:2.1">
-              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Étape</span>${stageBadge(p.stage)}</div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Commercial</span><b>${esc(repName(p.repId))}</b></div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Source</span><b>${esc(p.source)}</b></div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Dernier contact</span><b>${p.dernierContact?fmtDate(p.dernierContact):'—'}</b></div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Valeur potentielle</span><b>${p.valeur?p.valeur+' € / an':'—'}</b></div>
-            </div>
-            ${p.prochaineAction?`<div class="next-action">
-              <div class="next-action-icon">${ic('ti-flag',15)}</div>
-              <div style="flex:1"><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase">Prochaine action</div>
-                <div style="font-size:13px;font-weight:700;margin-top:2px">${esc(p.prochaineAction)}</div>
-                <div style="font-size:11.5px;color:var(--th-text-2);margin-top:2px">${p.prochainContact?fmtDate(p.prochainContact):''} · ${esc(repName(p.repId))}</div></div>
-            </div>`:''}
-          </div>
-          <div class="card"><div class="card-header"><div class="card-title">${ic('ti-notebook',17)}<span>Notes</span></div></div>
-            <p style="font-size:12.5px;line-height:1.75;color:var(--th-text-2)">${esc(p.notes||'Aucune note.')}</p>
-          </div>
-        </div>
-
-        ${camp?`<p class="section-label">Origine marketing</p>
-        <div class="card">
-          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-            <div class="conn-icon">${ic('ti-target-arrow',15)}</div>
-            <div style="flex:1"><div style="font-size:13.5px;font-weight:700">${esc(camp.title)}</div>
-              <div style="font-size:12px;color:var(--th-text-2);margin-top:3px">${esc(segName(camp.segmentId))} · ${Object.keys(camp.channelBudgets||{}).join(', ')}</div></div>
-            <button class="btn-ghost" onclick="selectModule('marketing');setTimeout(()=>goToCampaign('${camp.id}'),80)">Voir la campagne →</button>
-          </div>
-          <div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>Ce prospect vient du Marketing. La traçabilité <b>campagne → lead → client</b> est conservée pour mesurer le vrai coût d'acquisition.</span></div>
-        </div>`:''}`;
-    }
-    else if(prospectTab===1){
-      const events = [
-        ...calls.map(c=>({ d:c.date, type:'Appel', icon:'ti-phone', titre:c.resultat, note:c.note, qui:repName(c.repId) })),
-        ...meets.map(m=>({ d:m.date, type:'Rendez-vous', icon:'ti-calendar', titre:`${m.objectif} · ${m.type}`, note:m.notes, qui:repName(m.repId), statut:m.statut })),
-        ...quotes.map(q=>({ d:q.date, type:'Devis', icon:'ti-file-invoice', titre:`${q.montantAnnuel} € / an`, note:'', qui:repName(q.repId), statut:q.statut })),
-        ...contracts.map(c=>({ d:c.envoye, type:'Contrat', icon:'ti-file-certificate', titre:`${c.montantAnnuel} € / an`, note:'', qui:repName(c.repId), statut:c.statut })),
-      ].sort((a,b)=>new Date(b.d)-new Date(a.d));
-      body = events.length ? `<div class="card">${events.map(e=>`
-        <div class="hist-row">
-          <div class="hist-icon">${ic(e.icon,14)}</div>
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">
-              <span style="font-size:13px;font-weight:700">${esc(e.titre)}</span>
-              ${e.statut?`<span class="badge">${esc(e.statut)}</span>`:''}</div>
-            ${e.note?`<div style="font-size:12px;color:var(--th-text-2);line-height:1.6">${esc(e.note)}</div>`:''}
-            <div style="font-size:11px;color:var(--th-text-3);margin-top:3px">${esc(e.type)} · ${esc(e.qui)}</div>
-          </div>
-          <span style="font-size:11.5px;color:var(--th-text-3);white-space:nowrap">${fmtDate(e.d)}</span>
-        </div>`).join('')}</div>`
-        : `<div class="empty">${ic('ti-history',24)}Aucun historique pour ce prospect.</div>`;
-    }
-    else {
-      body = `
-        <p class="section-label">Devis</p>
-        ${quotes.length ? `<table class="data-table"><thead><tr><th>Offre</th><th>Utilisateurs</th><th>Montant annuel</th><th>Envoyé</th><th>Statut</th></tr></thead><tbody>
-          ${quotes.map(q=>{ const o = offerById(q.offerId);
-            return `<tr onclick="gotoSales('quotes')" style="cursor:pointer"><td class="dt-title">${esc(o?o.nom:'—')}</td>
-            <td>${q.users}</td><td>${q.montantAnnuel} €</td><td>${fmtDate(q.date)}</td>
-            <td><span class="badge ${q.statut==='Accepté'?'green':q.statut==='Refusé'?'red':'blue'}">${esc(q.statut)}</span></td></tr>`; }).join('')}
-        </tbody></table>` : `<div class="empty">${ic('ti-file-invoice',24)}Aucun devis. Créez-en un après la démonstration.</div>`}
-        <p class="section-label" style="margin-top:24px">Contrats</p>
-        ${contracts.length ? `<table class="data-table"><thead><tr><th>Contrat</th><th>Montant</th><th>Début</th><th>Durée</th><th>Statut</th></tr></thead><tbody>
-          ${contracts.map(c=>`<tr onclick="gotoSales('contracts')" style="cursor:pointer"><td class="dt-title">Contrat ${esc(p.entreprise)}</td>
-            <td>${c.montantAnnuel} €</td><td>${fmtDate(c.debut)}</td><td>${esc(c.duree)}</td>
-            <td><span class="badge ${c.statut==='Signé'?'green':'orange'}" style="${c.statut==='Signé'?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${esc(c.statut)}</span></td></tr>`).join('')}
-        </tbody></table>` : `<div class="empty">${ic('ti-file-certificate',24)}Aucun contrat. Il se crée depuis un devis accepté.</div>`}`;
-    }
+    /* Historique chronologique unifié — aucune donnée propre à la fiche */
+    const events = [
+      ...calls.map(c=>({ d:c.date, type:'Appel', icon:'ti-phone', titre:c.resultat, note:c.note, qui:repName(c.repId) })),
+      ...tours.flatMap(t=>t.stops.filter(s=>s.prospectId===p.id && s.resultat).map(s=>({
+        d:t.date, type:'Visite terrain', icon:'ti-map', titre:s.resultat, note:s.note, qui:repName(t.repId) }))),
+      ...meets.map(m=>({ d:m.date, type:m.objectif.includes('Démonstration')?'Démonstration':'Rendez-vous', icon:'ti-calendar',
+        titre:`${m.objectif} · ${m.type}`, note:m.notes, qui:repName(m.repId), statut:m.statut })),
+      ...quotes.map(q=>({ d:q.date, type:'Devis', icon:'ti-file-invoice', titre:`${q.montantAnnuel} € / an`, note:'', qui:repName(q.repId), statut:q.statut })),
+      ...contracts.map(c=>({ d:c.envoye, type:'Contrat', icon:'ti-file-certificate', titre:`${c.montantAnnuel} € / an`, note:'', qui:repName(c.repId), statut:c.statut })),
+      ...(client?[{ d:client.signature, type:'Client', icon:'ti-trophy', titre:`Signature — ${client.montantAnnuel} € / an`, note:`Abonnement démarré le ${fmtDate(client.debutAbo)}`, qui:repName(client.repId) }]:[]),
+    ].filter(e=>e.d).sort((a,b)=>new Date(b.d)-new Date(a.d));
 
     el.innerHTML = `
       <div class="btn-back" onclick="closeProspect()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux prospects</div>
-      <div class="page-head">
-        <div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px"><h1 style="margin-bottom:0">${esc(p.entreprise)}</h1>${stageBadge(p.stage)}${sectorBadge(p.sectorId)}</div>
-          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
+
+      <!-- RÉSUMÉ : tout ce qu'il faut savoir en 5 secondes -->
+      <div class="pros-hero">
+        <div style="flex:1;min-width:260px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+            <h1 style="margin-bottom:0">${esc(p.entreprise)}</h1>${stageBadge(p.stage)}${sectorBadge(p.sectorId)}
+          </div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
             <span>${ic('ti-user-check',13)} ${esc(p.contact)} · ${esc(p.fonction)}</span>
             <span>${ic('ti-map',13)} ${esc(p.ville)}</span>
             <span>${ic('ti-briefcase',13)} ${esc(repName(p.repId))}</span>
+            <span>${ic('ti-share',13)} ${esc(p.source)}</span>
+          </div>
+        </div>
+        <div class="pros-hero-metrics">
+          <div class="phm-item">
+            <div class="phm-val">${p.valeur?prospectMRR(p)+' €':'—'}</div>
+            <div class="phm-lab">MRR potentiel</div>
+            ${p.valeur?`<div class="phm-sub">${p.valeur} € / an</div>`:''}
+          </div>
+          <div class="phm-sep"></div>
+          <div class="phm-item">
+            <div class="phm-val" style="font-size:15px">${p.dernierContact?fmtDate(p.dernierContact):'Jamais'}</div>
+            <div class="phm-lab">Dernier contact</div>
           </div>
         </div>
       </div>
+
+      <!-- PROCHAINE ACTION : le plus important, isolé -->
+      ${p.prochaineAction ? `<div class="next-action-hero ${retard?'late':''}">
+        <div class="nah-icon">${ic('ti-flag',18)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em">Prochaine action</div>
+          <div style="font-size:15px;font-weight:800;margin:3px 0">${esc(p.prochaineAction)}</div>
+          <div style="font-size:12px;color:${retard?'var(--th-red)':'var(--th-text-2)'};font-weight:${retard?'700':'500'}">
+            ${p.prochainContact?fmtDate(p.prochainContact):'Non planifiée'}${retard?` · en retard de ${Math.abs(daysFromToday(p.prochainContact))} jour${Math.abs(daysFromToday(p.prochainContact))>1?'s':''}`:''} · ${esc(repName(p.repId))}</div>
+        </div>
+      </div>`
+      : client ? `<div class="next-action-hero won">
+        <div class="nah-icon" style="background:var(--th-green-bg);color:var(--th-green)">${ic('ti-trophy',18)}</div>
+        <div style="flex:1"><div style="font-size:15px;font-weight:800;margin-bottom:3px">Client depuis le ${fmtDate(client.signature)}</div>
+          <div style="font-size:12px;color:var(--th-text-2)">${client.montantAnnuel} € / an · ${client.mrr} € MRR · abonnement ${client.statutAbo.toLowerCase()}</div></div>
+        <button class="btn-ghost" onclick="gotoSales('clients')">Voir dans Clients →</button>
+      </div>`
+      : perdu ? `<div class="next-action-hero lost">
+        <div class="nah-icon" style="background:var(--th-red-bg);color:var(--th-red)">${ic('ti-circle-x',18)}</div>
+        <div style="flex:1"><div style="font-size:15px;font-weight:800;margin-bottom:3px">Prospect perdu</div>
+          <div style="font-size:12px;color:var(--th-text-2)">${esc(p.notes||'Aucun motif renseigné.')}</div></div>
+      </div>`
+      : `<div class="next-action-hero empty">
+        <div class="nah-icon" style="background:var(--th-bg-alt);color:var(--th-text-3)">${ic('ti-alert-triangle',18)}</div>
+        <div style="flex:1"><div style="font-size:15px;font-weight:800;margin-bottom:3px">Aucune prochaine action définie</div>
+          <div style="font-size:12px;color:var(--th-text-2)">Ce prospect risque d'être oublié. Planifiez une relance.</div></div>
+        <button class="add-btn" onclick="comingSoon('Planifier une action')">Planifier</button>
+      </div>`}
+
+      <!-- PIPELINE VISUEL -->
+      <div class="card" style="margin-bottom:18px">
+        <div class="pros-pipe">
+          ${PIPE_STEPS.map((s,i)=>{
+            const cls = perdu ? (i<cur?'done':'') : i<cur ? 'done' : i===cur ? 'cur' : '';
+            return `<div class="pp-step ${cls}">
+              <div class="pp-icon">${ic(s.icon,15)}</div>
+              <div class="pp-lab">${s.lab}</div>
+            </div>${i<PIPE_STEPS.length-1?`<div class="pp-line ${i<cur?'done':''}"></div>`:''}`;
+          }).join('')}
+        </div>
+        ${perdu?`<div class="alert warn" style="margin-top:14px"><div class="alert-icon">${ic('ti-circle-x',14)}</div>
+          <div class="alert-text">Parcours interrompu au stade <b>${esc(PIPE_STEPS[Math.max(0,cur)]?PIPE_STEPS[Math.max(0,cur)].lab:'Contact')}</b>.</div></div>`:''}
+      </div>
+
+      <!-- ACTIONS RAPIDES -->
       <div class="quick-actions">
         <button class="qa-btn" onclick="comingSoon('Appeler ${esc(p.contact)}')">${ic('ti-phone',15)} Appeler</button>
         <button class="qa-btn" onclick="comingSoon('Envoyer un email')">${ic('ti-mail',15)} Email</button>
+        <button class="qa-btn" onclick="comingSoon('Planifier une relance')">${ic('ti-repeat',15)} Relancer</button>
         <button class="qa-btn" onclick="gotoSales('meetings')">${ic('ti-calendar',15)} Programmer RDV</button>
-        <button class="qa-btn" onclick="comingSoon('Ajouter une note')">${ic('ti-notebook',15)} Note</button>
-        <button class="qa-btn" onclick="comingSoon('Planifier une relance')">${ic('ti-repeat',15)} Relance</button>
+        <button class="qa-btn" onclick="gotoSales('meetings')">${ic('ti-presentation',15)} Programmer démo</button>
         <button class="qa-btn" onclick="gotoSales('quotes')">${ic('ti-file-invoice',15)} Créer devis</button>
         <button class="qa-btn" onclick="gotoSales('contracts')">${ic('ti-file-certificate',15)} Créer contrat</button>
       </div>
-      <div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===prospectTab?' active':''}" onclick="switchProspectTab(${i})">${t}</div>`).join('')}</div>
-      ${body}`;
+
+      <div class="grid-2">
+        <!-- HISTORIQUE -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-history',17)}<span>Historique</span></div>
+            <span style="font-size:11.5px;color:var(--th-text-3)">${events.length} événement${events.length>1?'s':''}</span></div>
+          ${events.length ? events.map(e=>`
+            <div class="hist-row">
+              <div class="hist-icon">${ic(e.icon,14)}</div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">
+                  <span style="font-size:13px;font-weight:700">${esc(e.titre)}</span>
+                  ${e.statut?`<span class="badge">${esc(e.statut)}</span>`:''}</div>
+                ${e.note?`<div style="font-size:12px;color:var(--th-text-2);line-height:1.6">${esc(e.note)}</div>`:''}
+                <div style="font-size:11px;color:var(--th-text-3);margin-top:3px">${esc(e.type)} · ${esc(e.qui)}</div>
+              </div>
+              <span style="font-size:11.5px;color:var(--th-text-3);white-space:nowrap">${fmtDate(e.d)}</span>
+            </div>`).join('')
+            : `<div class="waiting-block">${ic('ti-history',22)}<p>Aucun échange enregistré. L'historique se remplit automatiquement depuis Prospection, Rendez-vous, Devis et Contrats.</p></div>`}
+        </div>
+
+        <!-- CONTEXTE -->
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-building',17)}<span>Entreprise</span></div></div>
+            <div style="font-size:12.5px;line-height:2.1">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Téléphone</span><b>${esc(p.tel)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Email</span><b style="font-size:11.5px">${esc(p.email||'—')}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Site</span><b style="font-size:11.5px">${esc(p.site||'—')}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Taille</span><b>${esc(p.taille)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Techniciens</span><b>${p.techniciens||'—'}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Mode de prospection</span><b>${esc(prospectingMode(p))}</b></div>
+            </div>
+            ${p.notes?`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border)">
+              <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Notes</div>
+              <p style="font-size:12.5px;line-height:1.7;color:var(--th-text-2)">${esc(p.notes)}</p></div>`:''}
+          </div>
+
+          ${camp?`<div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-target-arrow',17)}<span>Origine marketing</span></div></div>
+            <div class="origin-chain">
+              ${['Campagne','Lead','Prospect','Commercial',client?'Client':'…'].map((x,i,arr)=>`
+                <div class="oc-step ${i<=2||client?'done':''}">${esc(x)}</div>
+                ${i<arr.length-1?`<div class="oc-arrow">${ic('ti-arrow-left',11)}</div>`:''}`).join('')}
+            </div>
+            <div style="margin-top:14px;font-size:13px;font-weight:700">${esc(camp.title)}</div>
+            <div style="font-size:12px;color:var(--th-text-2);margin-top:3px">${esc(segName(camp.segmentId))} · ${Object.keys(camp.channelBudgets||{}).join(', ')}</div>
+            <button class="btn-ghost" style="margin-top:12px;width:100%" onclick="selectModule('marketing');setTimeout(()=>goToCampaign('${camp.id}'),80)">Voir la campagne →</button>
+          </div>`:''}
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">${ic('ti-link',17)}<span>Documents liés</span></div></div>
+            <div style="font-size:12.5px;line-height:2.1">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Devis</span>
+                ${quotes.length?`<span class="obj-link" onclick="gotoSales('quotes')">${quotes.length} devis →</span>`:'<span style="color:var(--th-text-3)">Aucun</span>'}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Contrats</span>
+                ${contracts.length?`<span class="obj-link" onclick="gotoSales('contracts')">${contracts.length} contrat →</span>`:'<span style="color:var(--th-text-3)">Aucun</span>'}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Client</span>
+                ${client?`<span class="obj-link" onclick="gotoSales('clients')">Fiche client →</span>`:'<span style="color:var(--th-text-3)">Pas encore</span>'}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Commission</span>
+                ${client&&COMMISSIONS.find(c=>c.clientId===client.id)?`<span class="obj-link" onclick="gotoSales('commissions')">Voir →</span>`:'<span style="color:var(--th-text-3)">—</span>'}</div>
+            </div>
+            <div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>Une seule fiche du premier appel jusqu'à la commission. <b>Rien n'est recréé</b> en cours de route.</span></div>
+          </div>
+        </div>
+      </div>`;
     return;
   }
 
-  /* --- Liste --- */
-  let list = scopedProspects();
-  if(prospectFilter!=='Tous') list = list.filter(p=>p.stage===prospectFilter);
+  /* ===== LISTE ===== */
+  const all = scopedProspects();
+  let list = all;
+  if(prosFilterStage!=='Tous') list = list.filter(p=>p.stage===prosFilterStage);
+  if(prosFilterRep!=='Tous') list = list.filter(p=>p.repId===prosFilterRep);
+  if(prosFilterSource!=='Toutes') list = list.filter(p=>p.source===prosFilterSource);
+  if(prosFilterMode!=='Tous') list = list.filter(p=>prospectingMode(p)===prosFilterMode);
+  list = list.filter(prosInPeriod);
+  if(prosNoAction) list = list.filter(hasNoNextAction);
   if(prospectSearch) list = list.filter(p=>p.entreprise.toLowerCase().includes(prospectSearch) || p.contact.toLowerCase().includes(prospectSearch));
-  const stagesUsed = [...new Set(scopedProspects().map(p=>p.stage))];
+
+  const sansAction = all.filter(hasNoNextAction).length;
+  const stagesUsed = [...new Set(all.map(p=>p.stage))];
+  const sourcesUsed = [...new Set(all.map(p=>p.source))];
 
   el.innerHTML = sectorSelector() + `
+    <div class="ana-filters" style="margin-bottom:16px">
+      <div class="ana-filter-group"><span class="ana-filter-lab">Commercial</span>
+        <select class="status-select" onchange="setPros('rep',this.value)">
+          <option value="Tous" ${prosFilterRep==='Tous'?'selected':''}>Tous</option>
+          ${SALES_REPS.map(r=>`<option value="${r.id}" ${prosFilterRep===r.id?'selected':''}>${esc(r.nom)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Source</span>
+        <select class="status-select" onchange="setPros('source',this.value)">
+          <option value="Toutes" ${prosFilterSource==='Toutes'?'selected':''}>Toutes</option>
+          ${sourcesUsed.map(s=>`<option ${prosFilterSource===s?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Mode</span>
+        <select class="status-select" onchange="setPros('mode',this.value)">
+          <option value="Tous" ${prosFilterMode==='Tous'?'selected':''}>Tous</option>
+          ${PROSPECTING_MODES.map(m=>`<option ${prosFilterMode===m?'selected':''}>${esc(m)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Période</span>
+        <select class="status-select" onchange="setPros('period',this.value)">
+          ${Object.entries(PROS_PERIODS).map(([k,l])=>`<option value="${k}" ${prosFilterPeriod===k?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Alerte</span>
+        <button class="filter-chip${prosNoAction?' active':''}" onclick="toggleNoAction()" style="${sansAction&&!prosNoAction?'border-color:var(--th-red);color:var(--th-red)':''}">
+          ${ic('ti-alert-triangle',13)} Sans prochaine action${sansAction?` · ${sansAction}`:''}</button></div>
+      <div style="margin-left:auto;font-size:11.5px;color:var(--th-text-3);align-self:flex-end;padding-bottom:8px">
+        ${list.length} / ${all.length} prospect${all.length>1?'s':''}</div>
+    </div>
+
     <div class="filter-bar">
-      ${['Tous',...PROSPECT_STAGES.filter(s=>stagesUsed.includes(s))].map(s=>`<button class="filter-chip${prospectFilter===s?' active':''}" onclick="setProspectFilter('${s}')">${s}</button>`).join('')}
+      ${['Tous',...PROSPECT_STAGES.filter(s=>stagesUsed.includes(s))].map(s=>`<button class="filter-chip${prosFilterStage===s?' active':''}" onclick="setPros('stage','${s}')">${s}</button>`).join('')}
       <button class="add-btn" style="margin-left:auto">${ic('ti-plus',14)} Nouveau prospect</button>
     </div>
     <div class="search-bar" style="max-width:320px">${ic('ti-search')}<input type="text" placeholder="Rechercher une entreprise..." oninput="setProspectSearch(this.value)"></div>
-    <table class="data-table"><thead><tr><th>Entreprise</th><th>Contact</th><th>Ville</th><th>Source</th><th>Commercial</th><th>Prochaine action</th><th>Valeur</th><th>Étape</th></tr></thead><tbody>
+
+    <table class="data-table"><thead><tr>
+      <th>Entreprise</th><th>Contact</th><th>Ville</th><th>Source</th><th>Commercial</th>
+      <th>Dernier contact</th><th>Prochaine action</th><th>Valeur potentielle</th><th>Étape</th>
+    </tr></thead><tbody>
       ${list.map(p=>{
         const retard = p.prochainContact && p.prochainContact < todayISO();
+        const noAct = hasNoNextAction(p);
+        const cl = clientOf(p.id);
         return `<tr onclick="openProspect('${p.id}')" style="cursor:pointer">
-          <td><div class="dt-title">${esc(p.entreprise)}</div><div class="dt-sub">${esc(p.taille)}</div></td>
+          <td><div class="dt-title">${esc(p.entreprise)}</div><div class="dt-sub">${esc(p.taille)}${cl?' · client':''}</div></td>
           <td style="font-size:12.5px">${esc(p.contact)}<div class="dt-sub">${esc(p.fonction)}</div></td>
           <td style="font-size:12px;color:var(--th-text-2)">${esc(p.ville)}</td>
-          <td><span class="badge">${esc(p.source)}</span></td>
+          <td><span class="badge">${esc(p.source)}</span>${prospectingMode(p)==='Marketing'?`<div class="dt-sub" style="color:var(--th-orange);font-weight:600">Marketing</div>`:''}</td>
           <td style="font-size:12px;color:var(--th-text-2)">${esc(repName(p.repId))}</td>
-          <td style="font-size:12px">${p.prochaineAction?`${esc(p.prochaineAction)}<div class="dt-sub" style="${retard?'color:var(--th-red);font-weight:700':''}">${p.prochainContact?fmtDate(p.prochainContact):''}${retard?' · en retard':''}</div>`:'<span style="color:var(--th-text-3)">—</span>'}</td>
-          <td style="white-space:nowrap">${p.valeur?p.valeur+' €':'—'}</td>
+          <td style="font-size:12px;white-space:nowrap">${p.dernierContact?fmtDate(p.dernierContact):'<span style="color:var(--th-text-3)">Jamais</span>'}</td>
+          <td style="font-size:12px">${p.prochaineAction
+            ? `${esc(p.prochaineAction)}<div class="dt-sub" style="${retard?'color:var(--th-red);font-weight:700':''}">${p.prochainContact?fmtDate(p.prochainContact):''}${retard?' · en retard':''}</div>`
+            : noAct ? `<span class="badge red">${ic('ti-alert-triangle',11)} Aucune</span>` : '<span style="color:var(--th-text-3)">—</span>'}</td>
+          <td style="white-space:nowrap">${p.valeur?`<b>${prospectMRR(p)} € MRR</b><div class="dt-sub">${p.valeur} € / an</div>`:'<span style="color:var(--th-text-3)">—</span>'}</td>
           <td>${stageBadge(p.stage)}</td></tr>`;
-      }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun prospect pour ce filtre.</td></tr>`}
-    </tbody></table>`;
+      }).join('') || `<tr><td colspan="9" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun prospect pour ces filtres.</td></tr>`}
+    </tbody></table>
+
+    ${sansAction && !prosNoAction ? `<div class="alert warn" style="margin-top:16px;cursor:pointer" onclick="toggleNoAction()">
+      <div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+      <div class="alert-text"><b>${sansAction} prospect${sansAction>1?'s':''} sans prochaine action.</b> Ils risquent d'être oubliés — cliquez pour les afficher.</div></div>` : ''}`;
 }
 
 /* ---------- 3. PROSPECTION ---------- */
