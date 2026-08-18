@@ -312,6 +312,11 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ch-metric .v{font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .ch-metric .l{font-size:10.5px;color:var(--th-text-3);font-weight:600;margin-top:1px}
 .ch-spark{flex-shrink:0}
+.msg-card{background:var(--th-bg-alt);border-radius:13px;padding:15px 17px;margin-bottom:12px;border-left:3px solid var(--th-border)}
+.msg-card.works{border-left-color:var(--th-green);background:var(--th-green-bg)}
+.msg-card.fails{border-left-color:var(--th-red);background:var(--th-red-bg)}
+.insight-card{display:flex;gap:13px;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;padding:15px 17px;margin-bottom:10px;box-shadow:var(--th-shadow-sm)}
+.insight-icon{width:30px;height:30px;border-radius:10px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .ctx-bar{display:flex;align-items:center;gap:22px;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;padding:15px 20px;margin-bottom:8px;box-shadow:var(--th-shadow-sm);flex-wrap:wrap}
 .ctx-main{display:flex;align-items:center;gap:11px}
 .ctx-sep{width:1px;height:30px;background:var(--th-border)}
@@ -643,7 +648,7 @@ const MODULES = [
     { id:'scripts', label:'Scripts', icon:'ti-message-2', desc:"Scripts d'appel et de relance." },
     { id:'settings', label:'Paramètres', icon:'ti-settings', desc:"Étapes du pipeline, accès." },
   ]},
-  { id:'pm', label:'Gestion produit', icon:'ti-tools', sections:[
+  { id:'pm', label:'Évolution du produit', icon:'ti-tools', sections:[
     { id:'roadmap', label:'Roadmap', icon:'ti-map', kind:'pmRoadmap' },
     { id:'backlog', label:'Backlog', icon:'ti-list-check', kind:'pmBacklog' },
     { id:'versions', label:'Versions', icon:'ti-versions', desc:"Regrouper par version de TigerFlow." },
@@ -1625,61 +1630,271 @@ function gotoMktg(sectionId){
   if(item) item.click();
 }
 
-/* ---- 2. Audiences ---- */
+/* ---- 2. Audiences — structure V1 ----
+   Question : « À qui je parle, qu'est-ce qui les fait réagir, et qui répond le mieux ? »
+   Règle : l'audience se définit ici une seule fois. Une campagne la sélectionne,
+   ne la redéfinit jamais. Les performances sont calculées depuis les campagnes. */
+
+const MATURITE_NIVEAUX = ['Aucune','Faible','Moyenne','Élevée'];
+const SEGMENT_STATUSES = ['À explorer','En test','Validé','Prioritaire','Écarté'];
+
+/* Messages testés : rattachés à un segment, avec résultat mesuré */
+const MESSAGES = [
+  { id:'m1', segmentId:'seg2', texte:"Traçabilité réglementaire automatique, prête pour vos audits", angle:'Conformité', canal:'LinkedIn', campIdx:3, impressions:8400, clicks:310, leads:24, verdict:'fonctionne',
+    pourquoi:"Parle directement à la peur du contrôle sanitaire raté, qui est le vrai déclencheur d'achat de ce segment." },
+  { id:'m2', segmentId:'seg1', texte:"Vos comptes rendus d'intervention prêts en 2 minutes, depuis le terrain", angle:'Gain de temps concret', canal:'LinkedIn', campIdx:1, impressions:14200, clicks:420, leads:38, verdict:'fonctionne',
+    pourquoi:"Chiffre précis et bénéfice immédiatement imaginable par un technicien sur le terrain." },
+  { id:'m3', segmentId:'seg1', texte:"Le logiciel tout-en-un pour les professionnels du nuisible", angle:'Générique', canal:'Google Ads', campIdx:4, impressions:22000, clicks:410, leads:18, verdict:'ne fonctionne pas',
+    pourquoi:"Trop générique. Ne dit ni la douleur résolue ni ce qui change concrètement." },
+  { id:'m4', segmentId:'seg2', texte:"Gagnez du temps sur vos tournées", angle:'Gain de temps vague', canal:'LinkedIn', campIdx:null, impressions:3200, clicks:48, leads:2, verdict:'ne fonctionne pas',
+    pourquoi:"Le gain de temps n'est pas la priorité de ce segment — la conformité l'est." },
+  { id:'m5', segmentId:'seg3', texte:"Facturez sur place, en fin d'intervention", angle:'Trésorerie', canal:'Email', campIdx:null, impressions:900, clicks:64, leads:6, verdict:'à confirmer',
+    pourquoi:"Volume encore trop faible pour conclure. À retester sur une campagne dédiée." },
+];
+
+/* Recherche & insights : ce qu'on a appris du terrain */
+const INSIGHTS = [
+  { id:'i1', segmentId:'seg2', source:'Entretien client', texte:"Un contrôle sanitaire raté peut faire perdre un contrat annuel entier — la traçabilité n'est pas du confort, c'est de la survie commerciale.", date:'2026-07-18', impact:'Fort' },
+  { id:'i2', segmentId:'seg1', source:'Appel prospect', texte:"Les techniciens refusent tout outil qui demande plus de 2 minutes par intervention. Au-delà, ils reviennent au papier.", date:'2026-07-25', impact:'Fort' },
+  { id:'i3', segmentId:'seg1', source:'Observation terrain', texte:"Les comptes rendus sont souvent rédigés le soir, de mémoire — d'où les oublis et les litiges clients.", date:'2026-08-02', impact:'Fort' },
+  { id:'i4', segmentId:'seg3', source:'Appel prospect', texte:"Les indépendants comparent systématiquement le coût de l'abonnement à une seule intervention facturée.", date:'2026-08-05', impact:'Moyen' },
+  { id:'i5', segmentId:'seg2', source:'Analyse concurrence', texte:"Aucun concurrent ne met en avant la conformité HACCP dans sa communication — c'est un angle libre.", date:'2026-07-30', impact:'Fort' },
+];
+
+/* Objections récurrentes et réponses éprouvées */
+const OBJECTIONS = [
+  { id:'o1', segmentId:'seg1', objection:"Mes techniciens ne sont pas à l'aise avec le numérique", frequence:'Très fréquente', reponse:"Montrer l'application terrain : 3 boutons, aucune saisie clavier obligatoire. Proposer un test sur une seule tournée.", efficacite:'Efficace' },
+  { id:'o2', segmentId:'seg2', objection:"Nous avons déjà nos process internes", frequence:'Fréquente', reponse:"Ne pas opposer. Demander combien de temps prend la préparation d'un audit aujourd'hui, puis montrer l'export automatique.", efficacite:'Efficace' },
+  { id:'o3', segmentId:'seg3', objection:"Un abonnement de plus, ça fait cher", frequence:'Très fréquente', reponse:"Ramener au coût d'un impayé ou d'une intervention non facturée. L'abonnement mensuel coûte moins qu'une intervention.", efficacite:'À améliorer' },
+  { id:'o4', segmentId:'seg1', objection:"On verra après la saison", frequence:'Fréquente', reponse:"Proposer une mise en place pendant la période creuse, pour être prêt à la reprise.", efficacite:'Efficace' },
+  { id:'o5', segmentId:'seg2', objection:"Il faudrait convaincre mon associé", frequence:'Occasionnelle', reponse:"Fournir un document d'une page chiffrant le temps gagné sur les audits, destiné à être transmis.", efficacite:'À tester' },
+];
+
+/* ========== RENDUS AUDIENCES ========== */
 let audienceTab = 0;
-let openAudienceId = null;
-function switchAudienceTab(i){ audienceTab = i; renderMktgAudiences(); }
+let openSegmentId = null;
+function switchAudienceTab(i){ audienceTab = i; openSegmentId = null; renderMktgAudiences(); }
+function openSegment(id){ openSegmentId = id; renderMktgAudiences(); }
+function closeSegment(){ openSegmentId = null; renderMktgAudiences(); }
+
+function segMessages(sid){ return MESSAGES.filter(m=>m.segmentId===sid); }
+function segInsights(sid){ return INSIGHTS.filter(i=>i.segmentId===sid); }
+function segObjections(sid){ return OBJECTIONS.filter(o=>o.segmentId===sid); }
+function segCampaigns(sid){ return campaigns.filter(c=>c.segmentId===sid); }
+function verdictBadge(v){
+  const map = { 'fonctionne':['green','Fonctionne'], 'ne fonctionne pas':['red','Ne fonctionne pas'], 'à confirmer':['gray','À confirmer'] };
+  const [c,l] = map[v]||['gray','—'];
+  return `<span class="badge ${c}">${l}</span>`;
+}
+
 function renderMktgAudiences(){
   const el = document.getElementById('marketing-audiencesContent'); if(!el) return;
+
+  /* --- Fiche segment détaillée --- */
+  if(openSegmentId){
+    const s = AUDIENCES.find(a=>a.id===openSegmentId);
+    if(!s){ openSegmentId = null; return renderMktgAudiences(); }
+    const agg = aggregateBySegment()[s.id] || {leads:0,conversions:0,cost:0,time:0,campaigns:0};
+    const msgs = segMessages(s.id), ins = segInsights(s.id), objs = segObjections(s.id), camps = segCampaigns(s.id);
+    el.innerHTML = `
+      <div class="btn-back" onclick="closeSegment()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux segments</div>
+      <div class="page-head">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h1 style="margin-bottom:2px">${esc(s.nom)}</h1>
+          <span class="badge ${s.potentiel==='Élevé'?'green':'gray'}">Potentiel ${esc(s.potentiel)}</span></div>
+          <p class="subtitle">${esc(s.metier)} · ${esc(s.taille)} · ${esc(s.zone)}</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin-bottom:18px">
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-user-check',17)}<span>Qui c'est</span></div></div>
+          <div style="font-size:12.5px;line-height:2">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Rôle</span><b>${esc(s.persona.role)}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Taille</span><b>${esc(s.taille)}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Zone</span><b>${esc(s.zone)}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Maturité numérique</span><b>${esc(s.maturite)}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Phase</span><b>${esc(s.phase)}</b></div>
+          </div></div>
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-alert-triangle',17)}<span>Ce qui les bloque</span></div></div>
+          <div style="font-size:12.5px;line-height:1.75;color:var(--th-text-2);margin-bottom:14px">${esc(s.persona.douleurs)}</div>
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Déclencheur d'achat</div>
+          <div style="font-size:13px;color:var(--th-orange);font-weight:700;line-height:1.5">${esc(s.persona.declencheur)}</div></div>
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-chart-bar',17)}<span>Résultats</span></div></div>
+          <div style="font-size:12.5px;line-height:2">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Campagnes</span><b>${agg.campaigns}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Leads générés</span><b>${agg.leads}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Clients</span><b>${agg.conversions}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Taux de conversion</span><b>${agg.leads?Math.round(agg.conversions/agg.leads*100)+'%':'—'}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Coût par lead</span><b>${agg.leads?Math.round(agg.cost/agg.leads)+' €':'—'}</b></div>
+          </div></div>
+      </div>
+
+      <p class="section-label">Messages testés sur ce segment</p>
+      ${msgs.length ? msgs.map(m=>`<div class="msg-card ${m.verdict==='fonctionne'?'works':m.verdict==='ne fonctionne pas'?'fails':''}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:8px;flex-wrap:wrap">
+          <div style="font-size:13.5px;font-weight:700;line-height:1.5">« ${esc(m.texte)} »</div>${verdictBadge(m.verdict)}</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px">
+          <span class="badge">${esc(m.angle)}</span><span class="badge">${esc(m.canal)}</span>
+          <span class="badge">${m.clicks} clics</span><span class="badge">${m.leads} leads</span></div>
+        <div style="font-size:12.5px;color:var(--th-text-2);line-height:1.65"><b style="color:var(--th-text)">Pourquoi :</b> ${esc(m.pourquoi)}</div>
+      </div>`).join('') : `<div class="empty">${ic('ti-message-2',24)}Aucun message testé sur ce segment.</div>`}
+
+      <p class="section-label" style="margin-top:24px">Objections rencontrées</p>
+      ${objs.length ? `<table class="data-table"><thead><tr><th>Objection</th><th>Fréquence</th><th>Réponse qui marche</th><th>Efficacité</th></tr></thead><tbody>
+        ${objs.map(o=>`<tr><td class="dt-title">${esc(o.objection)}</td><td><span class="badge">${esc(o.frequence)}</span></td>
+        <td style="font-size:12.5px;color:var(--th-text-2)">${esc(o.reponse)}</td>
+        <td><span class="badge ${o.efficacite==='Efficace'?'green':o.efficacite==='À améliorer'?'orange':'gray'}" style="${o.efficacite==='À améliorer'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(o.efficacite)}</span></td></tr>`).join('')}
+      </tbody></table>` : `<div class="empty">${ic('ti-message-2',24)}Aucune objection documentée.</div>`}
+
+      <p class="section-label" style="margin-top:24px">Ce qu'on a appris du terrain</p>
+      ${ins.length ? ins.map(i=>`<div class="insight-card">
+        <div class="insight-icon">${ic('ti-bulb',15)}</div>
+        <div style="flex:1"><div style="font-size:13px;line-height:1.65;margin-bottom:6px">${esc(i.texte)}</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap"><span class="badge">${esc(i.source)}</span><span class="badge">${fmtDate(i.date)}</span>
+        <span class="badge ${i.impact==='Fort'?'green':'gray'}">Impact ${esc(i.impact)}</span></div></div>
+      </div>`).join('') : `<div class="empty">${ic('ti-bulb',24)}Aucun apprentissage terrain documenté.</div>`}
+
+      <p class="section-label" style="margin-top:24px">Campagnes ciblant ce segment</p>
+      ${camps.length ? `<table class="data-table"><thead><tr><th>Campagne</th><th>Statut</th><th>Leads</th><th>Clients</th><th>Coût</th></tr></thead><tbody>
+        ${camps.map(c=>{ const t=campTotals(c); return `<tr onclick="openCampaignDetail('${c.id}')" style="cursor:pointer"><td class="dt-title">${esc(c.title)}</td><td>${statusBadge(c.status)}</td><td>${t.leads}</td><td>${t.conversions}</td><td>${t.cost} €</td></tr>`; }).join('')}
+      </tbody></table>` : `<div class="empty">${ic('ti-target-arrow',24)}Aucune campagne ne cible ce segment.</div>`}`;
+    return;
+  }
+
+  /* --- Vue à onglets --- */
+  const tabs = ['Vue d\'ensemble','Segments','Messages','Objections','Recherche','Performance'];
   const segAgg = aggregateBySegment();
-  const tabs = ['Secteurs','Segments','Personas','Messages','Performances'];
   let body = '';
 
   if(audienceTab === 0){
-    body = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:18px">
-      ${SECTORS.map(s=>`<div class="card" style="${s.actif?'border-left:3px solid var(--th-orange)':'opacity:.62'}">
+    const totalLeads = Object.values(segAgg).reduce((s,a)=>s+a.leads,0);
+    const best = Object.entries(segAgg).filter(([,a])=>a.leads>0).sort((a,b)=>(b[1].conversions/b[1].leads)-(a[1].conversions/a[1].leads))[0];
+    const worksMsgs = MESSAGES.filter(m=>m.verdict==='fonctionne');
+    const failsMsgs = MESSAGES.filter(m=>m.verdict==='ne fonctionne pas');
+    const topObjection = OBJECTIONS.filter(o=>o.frequence==='Très fréquente');
+    body = `
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+        <div class="stat-card"><div class="stat-card-icon">${ic('ti-users')}</div><div class="val">${AUDIENCES.length}</div><div class="label">Segments définis</div></div>
+        <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-message-2')}</div><div class="val">${MESSAGES.length}</div><div class="label">Messages testés</div></div>
+        <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div><div class="val">${worksMsgs.length}</div><div class="label">Messages qui marchent</div></div>
+        <div class="stat-card red"><div class="stat-card-icon">${ic('ti-circle-x')}</div><div class="val">${failsMsgs.length}</div><div class="label">Messages écartés</div></div>
+        <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-bulb')}</div><div class="val">${INSIGHTS.length}</div><div class="label">Apprentissages terrain</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-trophy',17)}<span>Segment le plus prometteur</span></div></div>
+          ${best ? `<div style="font-size:15px;font-weight:800;margin-bottom:8px">${esc(segName(best[0]))}</div>
+            <div style="font-size:12.5px;color:var(--th-text-2);line-height:1.8">
+              <div style="display:flex;justify-content:space-between"><span>Leads</span><b style="color:var(--th-text)">${best[1].leads}</b></div>
+              <div style="display:flex;justify-content:space-between"><span>Taux de conversion</span><b style="color:var(--th-green)">${Math.round(best[1].conversions/best[1].leads*100)}%</b></div>
+              <div style="display:flex;justify-content:space-between"><span>Coût par lead</span><b style="color:var(--th-text)">${Math.round(best[1].cost/best[1].leads)} €</b></div>
+            </div>
+            <button class="import-btn" style="margin-top:14px" onclick="openSegment('${best[0]}')">Voir la fiche complète</button>`
+            : `<div class="waiting-block">${ic('ti-users',22)}<p>Les performances par segment apparaîtront après vos premières campagnes.</p></div>`}
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-message-2',17)}<span>Ce qui fait réagir</span></div></div>
+          ${worksMsgs.slice(0,2).map(m=>`<div style="padding:10px 0;border-bottom:1px solid var(--th-border)">
+            <div style="font-size:12.5px;font-weight:600;line-height:1.5;margin-bottom:4px">« ${esc(m.texte)} »</div>
+            <div style="display:flex;gap:6px"><span class="badge green">${m.leads} leads</span><span class="badge">${esc(m.angle)}</span></div></div>`).join('')}
+          ${failsMsgs.slice(0,1).map(m=>`<div style="padding:10px 0">
+            <div style="font-size:12.5px;font-weight:600;line-height:1.5;margin-bottom:4px;color:var(--th-text-2)">« ${esc(m.texte)} »</div>
+            <div style="display:flex;gap:6px"><span class="badge red">Écarté</span><span class="badge">${esc(m.angle)}</span></div></div>`).join('')}
+        </div>
+      </div>
+      ${topObjection.length ? `<div class="card">
+        <div class="card-header"><div class="card-title">${ic('ti-alert-triangle',17)}<span>Objections les plus fréquentes</span></div>
+          <span class="card-link" onclick="switchAudienceTab(3)">Tout voir →</span></div>
+        ${topObjection.map(o=>`<div style="padding:11px 0;border-bottom:1px solid var(--th-border)">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px">« ${esc(o.objection)} »</div>
+          <div style="font-size:12.5px;color:var(--th-text-2);line-height:1.6">${esc(o.reponse)}</div></div>`).join('')}
+      </div>` : ''}`;
+  }
+  else if(audienceTab === 1){
+    body = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:18px">
+      ${SECTORS.map(s=>`<div class="card" style="${s.actif?'border-left:3px solid var(--th-orange)':'opacity:.6'}">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <div style="font-size:15px;font-weight:700">${esc(s.nom)}</div>
-          ${s.actif?'<span class="badge green">Actif</span>':'<span class="badge gray">À venir</span>'}
-        </div>
+          ${s.actif?'<span class="badge green">Actif</span>':'<span class="badge gray">À venir</span>'}</div>
         <div style="font-size:12.5px;color:var(--th-text-2);margin-bottom:12px">${esc(s.libelle)}</div>
         <div style="font-size:12px;color:var(--th-text-2);line-height:1.9">
-          <div style="display:flex;justify-content:space-between"><span>Segments définis</span><b style="color:var(--th-text)">${AUDIENCES.filter(a=>a.sectorId===s.id).length}</b></div>
+          <div style="display:flex;justify-content:space-between"><span>Segments</span><b style="color:var(--th-text)">${AUDIENCES.filter(a=>a.sectorId===s.id).length}</b></div>
           <div style="display:flex;justify-content:space-between"><span>Campagnes</span><b style="color:var(--th-text)">${campaigns.filter(c=>c.sectorId===s.id).length}</b></div>
-          <div style="display:flex;justify-content:space-between"><span>Lancement</span><b style="color:var(--th-text)">${s.lancement?fmtDate(s.lancement):'Non planifié'}</b></div>
         </div></div>`).join('')}</div>
-      <div class="hint-bar">${ic('ti-bulb',16)}<span>TigerHub est <b>multi-secteurs par conception</b> mais <b>mono-secteur en V1</b> : seule la dératisation est active. Les autres pourront être activés sans refonte, environ tous les 3 mois.</span></div>`;
-  } else if(audienceTab === 1){
-    body = `<table class="data-table"><thead><tr><th>Segment</th><th>Métier</th><th>Taille</th><th>Zone</th><th>Maturité digitale</th><th>Phase</th><th>Potentiel</th></tr></thead><tbody>
-      ${AUDIENCES.map(a=>`<tr><td class="dt-title">${esc(a.nom)}</td><td><span class="badge">${esc(a.metier)}</span></td><td>${esc(a.taille)}</td><td>${esc(a.zone)}</td><td>${esc(a.maturite)}</td><td><span class="badge blue">${esc(a.phase)}</span></td><td><span class="badge ${a.potentiel==='Élevé'?'green':a.potentiel==='Moyen'?'orange':'gray'}" style="${a.potentiel==='Moyen'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(a.potentiel)}</span></td></tr>`).join('')}
-    </tbody></table>`;
-  } else if(audienceTab === 2){
-    body = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
-      ${AUDIENCES.map(a=>`<div class="card">
-        <div class="card-header"><div class="card-title">${ic('ti-user-check',17)}<span>${esc(a.nom)}</span></div></div>
-        <div style="font-size:12.5px;line-height:1.8">
-          <div style="margin-bottom:10px"><span style="color:var(--th-text-3);font-weight:700;font-size:10.5px;text-transform:uppercase">Rôle</span><div>${esc(a.persona.role)}</div></div>
-          <div style="margin-bottom:10px"><span style="color:var(--th-text-3);font-weight:700;font-size:10.5px;text-transform:uppercase">Douleurs</span><div style="color:var(--th-text-2)">${esc(a.persona.douleurs)}</div></div>
-          <div style="margin-bottom:10px"><span style="color:var(--th-text-3);font-weight:700;font-size:10.5px;text-transform:uppercase">Objections</span><div style="color:var(--th-text-2)">${esc(a.persona.objections)}</div></div>
-          <div><span style="color:var(--th-text-3);font-weight:700;font-size:10.5px;text-transform:uppercase">Déclencheur d'achat</span><div style="color:var(--th-orange);font-weight:600">${esc(a.persona.declencheur)}</div></div>
-        </div></div>`).join('')}</div>`;
-  } else if(audienceTab === 3){
-    body = `<table class="data-table"><thead><tr><th>Segment</th><th>Accroche testée</th><th>Performance</th></tr></thead><tbody>
-      ${AUDIENCES.flatMap(a=>a.messages.map(m=>`<tr><td>${esc(a.nom)}</td><td class="dt-title">« ${esc(m.texte)} »</td>
-        <td><span class="badge ${m.perf==='fonctionne'?'green':m.perf==='ne fonctionne pas'?'red':'gray'}">${m.perf==='fonctionne'?'Fonctionne':m.perf==='ne fonctionne pas'?'Ne fonctionne pas':'À confirmer'}</span></td></tr>`)).join('')}
-    </tbody></table>`;
-  } else {
-    body = `<table class="data-table"><thead><tr><th>Segment</th><th>Campagnes</th><th>Leads</th><th>Conversions</th><th>Taux</th><th>Coût / lead</th><th>Temps investi</th><th>Potentiel</th></tr></thead><tbody>
-      ${AUDIENCES.map(a=>{ const s = segAgg[a.id]||{leads:0,conversions:0,cost:0,time:0,campaigns:0};
-        return `<tr><td class="dt-title">${esc(a.nom)}</td><td>${s.campaigns}</td><td>${s.leads}</td><td>${s.conversions}</td>
-        <td><span class="badge ${s.leads&&s.conversions/s.leads>0.1?'green':'gray'}">${s.leads?Math.round(s.conversions/s.leads*100):0}%</span></td>
-        <td>${s.leads?Math.round(s.cost/s.leads)+' €':'—'}</td><td>${s.time} h</td>
-        <td><span class="badge ${a.potentiel==='Élevé'?'green':'gray'}">${esc(a.potentiel)}</span></td></tr>`; }).join('')}
-    </tbody></table>`;
+      <p class="section-label">Segments du secteur actif</p>
+      <table class="data-table"><thead><tr><th>Segment</th><th>Métier</th><th>Taille</th><th>Zone</th><th>Maturité</th><th>Phase</th><th>Messages</th><th>Potentiel</th></tr></thead><tbody>
+        ${AUDIENCES.map(a=>`<tr onclick="openSegment('${a.id}')" style="cursor:pointer">
+          <td class="dt-title">${esc(a.nom)}</td><td><span class="badge">${esc(a.metier)}</span></td>
+          <td>${esc(a.taille)}</td><td>${esc(a.zone)}</td><td>${esc(a.maturite)}</td>
+          <td><span class="badge blue">${esc(a.phase)}</span></td><td>${segMessages(a.id).length}</td>
+          <td><span class="badge ${a.potentiel==='Élevé'?'green':'gray'}">${esc(a.potentiel)}</span></td></tr>`).join('')}
+      </tbody></table>
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Un segment se définit ici <b>une seule fois</b>. Une campagne le sélectionne, elle ne le redéfinit jamais.</span></div>`;
+  }
+  else if(audienceTab === 2){
+    body = `
+      <div class="grid-2">
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-circle-check',17)}<span>Ce qui fait réagir</span></div></div>
+          ${MESSAGES.filter(m=>m.verdict==='fonctionne').map(m=>`<div class="msg-card works" style="margin-bottom:10px">
+            <div style="font-size:13px;font-weight:700;line-height:1.5;margin-bottom:7px">« ${esc(m.texte)} »</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><span class="badge">${esc(segName(m.segmentId))}</span>
+            <span class="badge">${esc(m.angle)}</span><span class="badge green">${m.leads} leads</span></div>
+            <div style="font-size:12px;color:var(--th-text-2);line-height:1.6">${esc(m.pourquoi)}</div></div>`).join('')}
+        </div>
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-circle-x',17)}<span>Ce qui ne fonctionne pas</span></div></div>
+          ${MESSAGES.filter(m=>m.verdict!=='fonctionne').map(m=>`<div class="msg-card ${m.verdict==='ne fonctionne pas'?'fails':''}" style="margin-bottom:10px">
+            <div style="font-size:13px;font-weight:700;line-height:1.5;margin-bottom:7px">« ${esc(m.texte)} »</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><span class="badge">${esc(segName(m.segmentId))}</span>
+            <span class="badge">${esc(m.angle)}</span>${verdictBadge(m.verdict)}</div>
+            <div style="font-size:12px;color:var(--th-text-2);line-height:1.6">${esc(m.pourquoi)}</div></div>`).join('')}
+        </div>
+      </div>
+      <p class="section-label">Tous les messages testés</p>
+      <table class="data-table"><thead><tr><th>Message</th><th>Segment</th><th>Angle</th><th>Canal</th><th>Clics</th><th>Leads</th><th>Verdict</th></tr></thead><tbody>
+        ${MESSAGES.map(m=>`<tr onclick="openSegment('${m.segmentId}')" style="cursor:pointer"><td class="dt-title">« ${esc(m.texte)} »</td>
+          <td style="font-size:12px;color:var(--th-text-2)">${esc(segName(m.segmentId))}</td><td><span class="badge">${esc(m.angle)}</span></td>
+          <td>${esc(m.canal)}</td><td>${m.clicks}</td><td>${m.leads}</td><td>${verdictBadge(m.verdict)}</td></tr>`).join('')}
+      </tbody></table>`;
+  }
+  else if(audienceTab === 3){
+    body = `
+      <table class="data-table"><thead><tr><th>Objection</th><th>Segment</th><th>Fréquence</th><th>Réponse qui marche</th><th>Efficacité</th></tr></thead><tbody>
+        ${OBJECTIONS.map(o=>`<tr onclick="openSegment('${o.segmentId}')" style="cursor:pointer">
+          <td class="dt-title">« ${esc(o.objection)} »</td>
+          <td style="font-size:12px;color:var(--th-text-2)">${esc(segName(o.segmentId))}</td>
+          <td><span class="badge ${o.frequence==='Très fréquente'?'red':o.frequence==='Fréquente'?'orange':'gray'}" style="${o.frequence==='Fréquente'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(o.frequence)}</span></td>
+          <td style="font-size:12.5px;color:var(--th-text-2);max-width:340px">${esc(o.reponse)}</td>
+          <td><span class="badge ${o.efficacite==='Efficace'?'green':o.efficacite==='À améliorer'?'orange':'gray'}" style="${o.efficacite==='À améliorer'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(o.efficacite)}</span></td></tr>`).join('')}
+      </tbody></table>
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Ces réponses alimentent directement vos <b>scripts commerciaux</b> et vos contenus marketing.</span></div>`;
+  }
+  else if(audienceTab === 4){
+    body = `
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="add-btn">${ic('ti-plus',14)} Nouvel apprentissage</button></div>
+      ${INSIGHTS.map(i=>`<div class="insight-card" onclick="openSegment('${i.segmentId}')" style="cursor:pointer">
+        <div class="insight-icon">${ic('ti-bulb',15)}</div>
+        <div style="flex:1"><div style="font-size:13.5px;line-height:1.65;margin-bottom:7px">${esc(i.texte)}</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap"><span class="badge">${esc(segName(i.segmentId))}</span>
+        <span class="badge">${esc(i.source)}</span><span class="badge">${fmtDate(i.date)}</span>
+        <span class="badge ${i.impact==='Fort'?'green':'gray'}">Impact ${esc(i.impact)}</span></div></div>
+      </div>`).join('')}
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Chaque apprentissage vient d'une <b>source réelle</b> : entretien, appel, observation ou analyse. Rien n'est supposé.</span></div>`;
+  }
+  else {
+    body = `
+      <table class="data-table"><thead><tr><th>Segment</th><th>Campagnes</th><th>Leads</th><th>Clients</th><th>Taux</th><th>Coût / lead</th><th>Temps</th><th>Messages testés</th><th>Potentiel</th></tr></thead><tbody>
+        ${AUDIENCES.map(a=>{ const s = segAgg[a.id]||{leads:0,conversions:0,cost:0,time:0,campaigns:0};
+          return `<tr onclick="openSegment('${a.id}')" style="cursor:pointer"><td class="dt-title">${esc(a.nom)}</td>
+          <td>${s.campaigns}</td><td>${s.leads}</td><td>${s.conversions}</td>
+          <td><span class="badge ${s.leads&&s.conversions/s.leads>0.1?'green':'gray'}">${s.leads?Math.round(s.conversions/s.leads*100):0}%</span></td>
+          <td>${s.leads?Math.round(s.cost/s.leads)+' €':'—'}</td><td>${s.time} h</td>
+          <td>${segMessages(a.id).length}</td>
+          <td><span class="badge ${a.potentiel==='Élevé'?'green':'gray'}">${esc(a.potentiel)}</span></td></tr>`; }).join('')}
+      </tbody></table>
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Ces chiffres sont <b>calculés depuis les campagnes</b>, jamais saisis ici. Un segment ne « possède » pas de résultats : il en reçoit.</span></div>`;
   }
 
-  el.innerHTML = `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===audienceTab?' active':''}" onclick="switchAudienceTab(${i})">${t}</div>`).join('')}</div>${body}
-    <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Un segment est défini ici une seule fois. Une campagne le <b>sélectionne</b>, elle ne le redéfinit jamais.</span></div>`;
+  el.innerHTML = `<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===audienceTab?' active':''}" onclick="switchAudienceTab(${i})">${t}</div>`).join('')}</div>${body}`;
 }
 
 /* ---- 3. Plan de campagnes ---- */
