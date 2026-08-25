@@ -414,6 +414,13 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .lead-card.late{border-left:3px solid var(--th-red)}
 .lead-check{width:22px;height:22px;border-radius:7px;border:1.6px solid var(--th-border);background:var(--th-card);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#fff}
 .lead-check.on{background:var(--th-orange);border-color:var(--th-orange)}
+.meeting-time{width:52px;text-align:center;flex-shrink:0;background:var(--th-bg-alt);border-radius:10px;padding:8px 0}
+.meeting-rep{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.cal-meet{border-radius:8px;padding:7px 8px;margin-bottom:6px;font-size:10px;cursor:pointer;line-height:1.3}
+.cal-meet:hover{opacity:.85}
+.feat-chip{border:1.5px solid var(--th-border);border-radius:9px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s}
+.feat-chip:hover{border-color:var(--th-orange)}
+.feat-chip.sel{border-color:var(--th-orange);background:var(--th-orange-bg);color:var(--th-orange);font-weight:700}
 .pc-rep{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--th-border)}
 .pc-avatar{width:20px;height:20px;border-radius:7px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;letter-spacing:-0.02em}
 .pc-rep-name{flex:1;font-size:11px;font-weight:700;color:var(--th-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -719,6 +726,7 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 </aside>
 <div id="app"></div>
 <div class="modal-overlay" id="wizard-overlay"><div class="wiz-modal"><div id="wizard-body"></div></div></div>
+<div class="modal-overlay" id="cr-overlay"><div class="wiz-modal" style="max-width:620px"><div id="cr-body"></div></div></div>
 <div class="modal-overlay" id="imp-overlay"><div class="wiz-modal"><div id="imp-body"></div></div></div>
 <div class="modal-overlay" id="call-overlay"><div class="wiz-modal" style="max-width:560px"><div id="call-body"></div></div></div>
 <div class="modal-overlay" id="visit-overlay"><div class="wiz-modal" style="max-width:560px"><div id="visit-body"></div></div></div>
@@ -792,6 +800,7 @@ const ICONS = {
 'layout-dashboard':'<rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="5"/><rect x="13" y="10" width="8" height="11"/><rect x="3" y="13" width="8" height="8"/>',
 'layout-grid':'<rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/>',
 'layout-grid-add':'<rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/>',
+'info-circle':'<circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r=".5" fill="currentColor"/>',
 'link':'<path d="M10 14a4 4 0 005 0l3-3a4 4 0 00-5-5l-1 1"/><path d="M14 10a4 4 0 00-5 0l-3 3a4 4 0 005 5l1-1"/>',
 'list':'<line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/>',
 'list-check':'<path d="M4 6l2 2 3-3"/><line x1="11" y1="6" x2="20" y2="6"/><path d="M4 12l2 2 3-3"/><line x1="11" y1="12" x2="20" y2="12"/><path d="M4 18l2 2 3-3"/><line x1="11" y1="18" x2="20" y2="18"/>',
@@ -5868,17 +5877,63 @@ const TOURS = [
 ];
 
 /* Rendez-vous et démonstrations */
+const MEETING_TYPES = ['Appel découverte','Démonstration visio','Démonstration présentiel','RDV terrain','Suivi / relance','Autre'];
+const MEETING_MODES = ['Téléphone','Visio','Présentiel'];
+const MEETING_STATUSES = ['À planifier','Planifié','À confirmer','Confirmé','Réalisé','Reporté','Annulé','No-show'];
+const MEETING_STATUS_STYLE = {
+  'À planifier':{c:'var(--th-text-2)',bg:'var(--th-bg-alt)'}, 'Planifié':{c:'var(--th-blue)',bg:'var(--th-blue-bg)'},
+  'À confirmer':{c:'var(--th-orange)',bg:'var(--th-orange-bg)'}, 'Confirmé':{c:'var(--th-green)',bg:'var(--th-green-bg)'},
+  'Réalisé':{c:'var(--th-green)',bg:'var(--th-green-bg)'}, 'Reporté':{c:'var(--th-orange)',bg:'var(--th-orange-bg)'},
+  'Annulé':{c:'var(--th-red)',bg:'var(--th-red-bg)'}, 'No-show':{c:'var(--th-red)',bg:'var(--th-red-bg)'},
+};
+function meetStatusBadge(s){
+  const st = MEETING_STATUS_STYLE[s] || MEETING_STATUS_STYLE['Planifié'];
+  return `<span class="badge" style="color:${st.c};background:${st.bg}">${esc(s)}</span>`;
+}
+/* Compte rendu de démonstration */
+const INTEREST_LEVELS = ['Très intéressé','Intéressé','À réfléchir','Peu intéressé','Besoin d\'une autre démo'];
+const NEXT_STEPS = ['Envoyer un devis','Faire une deuxième démo','Rappeler','Envoyer documentation','Pas de suite','Autre'];
+const TF_FEATURES = ['Planning','Interventions','Comptes rendus','Facturation','Application mobile','Traçabilité réglementaire','CRM','Rapports'];
+const CANCEL_REASONS = ['Prospect indisponible','Prospect a annulé','Commercial indisponible','Mauvais timing','Autre'];
+
 const MEETINGS = [
   { id:'m1', prospectId:'p2', repId:'rep2', date:'2026-10-09', heure:'14:00', duree:45,
-    type:'Visio', objectif:'Démonstration TigerFlow', statut:'Confirmé', notes:"Insister sur la traçabilité HACCP." },
+    type:'Démonstration visio', mode:'Visio', lieu:'', lien:'', objectif:'Démonstration TigerFlow',
+    statut:'Confirmé', notes:"Insister sur la traçabilité HACCP.", rappel:'24 h avant',
+    compteRendu:null, reportDe:null,
+    historique:[{d:'2026-09-30',e:'Rendez-vous créé'},{d:'2026-10-02',e:'Confirmé par le prospect'}] },
+
   { id:'m2', prospectId:'p7', repId:'rep3', date:'2026-10-11', heure:'10:30', duree:30,
-    type:'Téléphone', objectif:'Qualification du besoin', statut:'Planifié', notes:"" },
+    type:'Appel découverte', mode:'Téléphone', lieu:'', lien:'', objectif:'Qualification du besoin',
+    statut:'À confirmer', notes:"", rappel:'2 h avant', compteRendu:null, reportDe:null,
+    historique:[{d:'2026-10-04',e:'Rendez-vous créé suite à un appel'}] },
+
   { id:'m3', prospectId:'p1', repId:'rep2', date:'2026-09-28', heure:'09:00', duree:60,
-    type:'Présentiel', objectif:'Démonstration TigerFlow', statut:'Réalisé', notes:"Démo très bien reçue. Devis à envoyer." },
+    type:'Démonstration présentiel', mode:'Présentiel', lieu:'Lyon 3e', lien:'', objectif:'Démonstration TigerFlow',
+    statut:'Réalisé', notes:"Démo très bien reçue.", rappel:'24 h avant', reportDe:null,
+    compteRendu:{ interet:'Très intéressé', besoin:"Les comptes rendus sont rédigés le soir de mémoire, avec des oublis et des litiges clients.",
+      objections:"Craint que les techniciens n'adoptent pas l'outil.", fonctionnalites:['Interventions','Comptes rendus','Application mobile'],
+      prochaineEtape:'Envoyer un devis', dateProchaine:'2026-09-30' },
+    historique:[{d:'2026-09-20',e:'Rendez-vous créé'},{d:'2026-09-24',e:'Confirmé'},{d:'2026-09-28',e:'Démonstration réalisée'},{d:'2026-09-30',e:'Devis envoyé'}] },
+
   { id:'m4', prospectId:'p9', repId:'rep2', date:'2026-09-22', heure:'16:00', duree:45,
-    type:'Visio', objectif:'Démonstration TigerFlow', statut:'Réalisé', notes:"Deux associés présents. Décision sous 15 jours." },
+    type:'Démonstration visio', mode:'Visio', lieu:'', lien:'', objectif:'Démonstration TigerFlow',
+    statut:'Réalisé', notes:"Deux associés présents.", rappel:'24 h avant', reportDe:null,
+    compteRendu:{ interet:'Intéressé', besoin:"Préparation des audits sanitaires trop longue.",
+      objections:"Doit convaincre son associé.", fonctionnalites:['Traçabilité réglementaire','Rapports'],
+      prochaineEtape:'Envoyer un devis', dateProchaine:'2026-09-25' },
+    historique:[{d:'2026-09-15',e:'Rendez-vous créé'},{d:'2026-09-22',e:'Démonstration réalisée'}] },
+
   { id:'m5', prospectId:'p3', repId:'rep3', date:'2026-10-15', heure:'11:00', duree:45,
-    type:'Visio', objectif:'Démonstration TigerFlow', statut:'Planifié', notes:"" },
+    type:'Démonstration visio', mode:'Visio', lieu:'', lien:'', objectif:'Démonstration TigerFlow',
+    statut:'Planifié', notes:"", rappel:'24 h avant', compteRendu:null, reportDe:null,
+    historique:[{d:'2026-10-01',e:'Rendez-vous créé suite à un appel'}] },
+
+  { id:'m6', prospectId:'p5', repId:'rep3', date:'2026-10-06', heure:'15:00', duree:30,
+    type:'Appel découverte', mode:'Téléphone', lieu:'', lien:'', objectif:'Qualification',
+    statut:'No-show', notes:"Le gérant n'a pas répondu à l'heure prévue.", rappel:'2 h avant',
+    compteRendu:null, reportDe:null,
+    historique:[{d:'2026-10-03',e:'Rendez-vous créé'},{d:'2026-10-06',e:'Absent — no-show'}] },
 ];
 
 /* Devis */
@@ -7587,40 +7642,466 @@ function renderSalesPipeline(){
       </div>` : ''}`;
 }
 
-/* ---------- 5. RENDEZ-VOUS ---------- */
+/* ---------- 5. RENDEZ-VOUS & DÉMONSTRATIONS ----------
+   Centre de pilotage, pas un calendrier. Le rendez-vous est rattaché à un
+   prospect existant et fait avancer le pipeline sans double saisie. */
+
+let meetView = 'pilotage';
+let meetFilterRep = 'Tous';
+let meetFilterType = 'Tous';
+let meetFilterStatut = 'Tous';
+let meetFilterOrigine = 'Toutes';
+let meetCalOffset = 0;
+let openMeetId = null;
+let crDraft = null;
+
+function setMeet(kind, v){
+  if(kind==='view') meetView = v;
+  else if(kind==='rep') meetFilterRep = v;
+  else if(kind==='type') meetFilterType = v;
+  else if(kind==='statut') meetFilterStatut = v;
+  else if(kind==='origine') meetFilterOrigine = v;
+  renderSalesMeetings();
+}
+function shiftMeetCal(d){ meetCalOffset += d; renderSalesMeetings(); }
+function openMeeting(id){ openMeetId = id; renderSalesMeetings(); }
+function closeMeeting(){ openMeetId = null; renderSalesMeetings(); }
+
+function meetProspect(m){ return prospectById(m.prospectId); }
+function isDemo(m){ return m.type && m.type.includes('Démonstration'); }
+function meetScope(){
+  let list = MEETINGS.filter(m=>{ const p = meetProspect(m); return p && matchSector(p.sectorId); });
+  if(!canSeeAllReps()) list = list.filter(m=>m.repId===CURRENT_USER.id);
+  else if(meetFilterRep!=='Tous') list = list.filter(m=>m.repId===meetFilterRep);
+  if(meetFilterType!=='Tous') list = list.filter(m=>m.type===meetFilterType);
+  if(meetFilterStatut!=='Tous') list = list.filter(m=>m.statut===meetFilterStatut);
+  if(meetFilterOrigine!=='Toutes') list = list.filter(m=>{ const p=meetProspect(m); return p && p.origine===meetFilterOrigine; });
+  return list;
+}
+
+/* --- Actions : chacune met à jour le prospect et le pipeline --- */
+function confirmMeeting(id){
+  const m = MEETINGS.find(x=>x.id===id); if(!m) return;
+  m.statut = 'Confirmé';
+  m.historique.push({ d:todayISO(), e:'Confirmé par le prospect' });
+  logAudit(`RDV confirmé — ${meetProspect(m).entreprise}`, m.prospectId, 'rdv');
+  renderSalesAll();
+}
+function postponeMeeting(id){
+  const m = MEETINGS.find(x=>x.id===id); if(!m) return;
+  const d = prompt(`Reporter le rendez-vous du ${fmtDate(m.date)}\n\nNouvelle date (AAAA-MM-JJ) :`, m.date);
+  if(!d) return;
+  const h = prompt('Nouvelle heure :', m.heure) || m.heure;
+  m.statut = 'Reporté';
+  m.historique.push({ d:todayISO(), e:`Reporté au ${fmtDate(d)}` });
+  MEETINGS.unshift({ ...m, id:'m_'+Date.now(), date:d, heure:h, statut:'À confirmer',
+    reportDe:m.id, compteRendu:null, historique:[{ d:todayISO(), e:`Créé suite au report du ${fmtDate(m.date)}` }] });
+  logAudit(`RDV reporté au ${fmtDate(d)} — ${meetProspect(m).entreprise}`, m.prospectId, 'rdv');
+  renderSalesAll();
+}
+function cancelMeeting(id){
+  const m = MEETINGS.find(x=>x.id===id); if(!m) return;
+  const choix = prompt(`Annuler le rendez-vous.\n\nRaison :\n${CANCEL_REASONS.map((r,i)=>`${i+1}. ${r}`).join('\n')}\n\nNuméro :`);
+  const i = parseInt(choix,10)-1;
+  if(isNaN(i) || !CANCEL_REASONS[i]) return;
+  m.statut = 'Annulé'; m.motifAnnulation = CANCEL_REASONS[i];
+  m.historique.push({ d:todayISO(), e:`Annulé — ${CANCEL_REASONS[i]}` });
+  logAudit(`RDV annulé — ${meetProspect(m).entreprise} (${CANCEL_REASONS[i]})`, m.prospectId, 'rdv');
+  renderSalesAll();
+}
+function noShowMeeting(id){
+  const m = MEETINGS.find(x=>x.id===id); if(!m) return;
+  m.statut = 'No-show';
+  m.historique.push({ d:todayISO(), e:'Absent — no-show' });
+  logAudit(`No-show — ${meetProspect(m).entreprise}`, m.prospectId, 'rdv');
+  if(confirm('Reprogrammer ce rendez-vous ?')) postponeMeeting(id);
+  else renderSalesAll();
+}
+
+/* --- Compte rendu de démonstration --- */
+function openCR(id){
+  const m = MEETINGS.find(x=>x.id===id); if(!m) return;
+  openMeetId = id;
+  crDraft = m.compteRendu ? { ...m.compteRendu, fonctionnalites:[...m.compteRendu.fonctionnalites] }
+    : { interet:null, besoin:'', objections:'', fonctionnalites:[], prochaineEtape:null, dateProchaine:'' };
+  document.getElementById('cr-overlay').classList.add('open');
+  renderCR();
+}
+function closeCR(){ document.getElementById('cr-overlay').classList.remove('open'); }
+function setCR(f,v){ crDraft[f]=v; renderCR(); }
+function toggleCRFeature(f){
+  const i = crDraft.fonctionnalites.indexOf(f);
+  if(i>=0) crDraft.fonctionnalites.splice(i,1); else crDraft.fonctionnalites.push(f);
+  renderCR();
+}
+const NEXT_STEP_DELAY = { 'Envoyer un devis':2, 'Faire une deuxième démo':7, 'Rappeler':3, 'Envoyer documentation':1, 'Pas de suite':null, 'Autre':3 };
+function renderCR(){
+  const el = document.getElementById('cr-body'); if(!el) return;
+  const m = MEETINGS.find(x=>x.id===openMeetId); if(!m) return;
+  const p = meetProspect(m);
+  const suggDate = crDraft.prochaineEtape && NEXT_STEP_DELAY[crDraft.prochaineEtape]
+    ? new Date(Date.now()+NEXT_STEP_DELAY[crDraft.prochaineEtape]*86400000).toISOString().slice(0,10) : '';
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div class="hist-icon" style="width:38px;height:38px;background:var(--th-orange-bg);color:var(--th-orange)">${ic('ti-presentation',18)}</div>
+      <div><div style="font-size:16px;font-weight:800">${esc(p.entreprise)}</div>
+        <div style="font-size:12.5px;color:var(--th-text-2)">${esc(m.type)} du ${fmtDate(m.date)} · ${m.duree} min</div></div>
+    </div>
+    <div class="wiz-lab" style="margin-top:0">1 · Niveau d'intérêt</div>
+    <div class="call-results">
+      ${INTEREST_LEVELS.map(l=>`<div class="call-res ${crDraft.interet===l?'sel':''}" onclick="setCR('interet',${JSON.stringify(l).replace(/"/g,'&quot;')})">${esc(l)}</div>`).join('')}
+    </div>
+    ${crDraft.interet ? `
+      <div class="wiz-lab">2 · Besoin principal identifié</div>
+      <textarea class="param-textarea" placeholder="Ce que le prospect cherche vraiment à résoudre..." oninput="crDraft.besoin=this.value">${esc(crDraft.besoin)}</textarea>
+      <div class="wiz-lab">Objections rencontrées</div>
+      <textarea class="param-textarea" placeholder="Ce qui freine..." oninput="crDraft.objections=this.value">${esc(crDraft.objections)}</textarea>
+      <div class="wiz-lab">3 · Fonctionnalités qui ont intéressé</div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        ${TF_FEATURES.map(f=>`<div class="feat-chip ${crDraft.fonctionnalites.includes(f)?'sel':''}" onclick="toggleCRFeature('${f}')">${esc(f)}</div>`).join('')}
+      </div>
+      <div class="wiz-lab">4 · Prochaine étape</div>
+      <div class="call-results">
+        ${NEXT_STEPS.map(s=>`<div class="call-res ${crDraft.prochaineEtape===s?'sel':''}" onclick="setCR('prochaineEtape','${s}')">${esc(s)}</div>`).join('')}
+      </div>
+      ${crDraft.prochaineEtape && suggDate ? `<div style="margin-top:12px">
+        <label class="wiz-lab" style="margin-top:0">Date</label>
+        <input type="date" class="wiz-input" value="${crDraft.dateProchaine || suggDate}" oninput="crDraft.dateProchaine=this.value"></div>` : ''}
+      ${crDraft.prochaineEtape==='Envoyer un devis'?`<div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>Le prospect passera à l'étape <b>Démonstration</b> et vous serez redirigée vers la création du devis.</span></div>`:''}
+    ` : `<div style="font-size:12.5px;color:var(--th-text-3);padding:24px 0;text-align:center">Choisissez un niveau d'intérêt pour continuer.</div>`}
+    <div class="wiz-foot">
+      <button class="btn-ghost" onclick="closeCR()">Annuler</button>
+      ${crDraft.interet?`<button class="add-btn" onclick="saveCR()">Enregistrer le compte rendu</button>`:''}
+    </div>`;
+}
+function saveCR(){
+  const m = MEETINGS.find(x=>x.id===openMeetId); if(!m || !crDraft.interet) return;
+  const p = meetProspect(m);
+  const sugg = NEXT_STEP_DELAY[crDraft.prochaineEtape];
+  crDraft.dateProchaine = crDraft.dateProchaine || (sugg ? new Date(Date.now()+sugg*86400000).toISOString().slice(0,10) : '');
+  m.compteRendu = { ...crDraft };
+  m.statut = 'Réalisé';
+  m.historique.push({ d:todayISO(), e:`Compte rendu — ${crDraft.interet}` });
+  /* Le pipeline avance seul */
+  if(p){
+    p.dernierContact = todayISO();
+    if(isDemo(m) && ['Qualifié','RDV obtenu'].includes(p.stage)){
+      p.stage = 'Démonstration'; p.stageDepuis = todayISO();
+      if(!p.stageHistory) p.stageHistory = [];
+      p.stageHistory.push({ stage:'Démonstration', date:todayISO(), par:CURRENT_USER.nom });
+    }
+    if(crDraft.prochaineEtape && crDraft.prochaineEtape!=='Pas de suite'){
+      p.prochaineAction = crDraft.prochaineEtape;
+      p.prochainContact = crDraft.dateProchaine;
+    }
+  }
+  logAudit(`Compte rendu — ${p.entreprise} : ${crDraft.interet}, ${crDraft.prochaineEtape||'aucune suite'}`, m.prospectId, 'rdv');
+  closeCR();
+  const versDevis = crDraft.prochaineEtape === 'Envoyer un devis';
+  renderSalesAll();
+  if(versDevis && confirm(`Compte rendu enregistré.\n\nCréer le devis pour ${p.entreprise} maintenant ?`)) gotoSales('quotes');
+}
+
 function renderSalesMeetings(){
   const el = document.getElementById('sales-meetingsContent'); if(!el) return;
   const today = todayISO();
-  const aVenir = MEETINGS.filter(m=>m.date>=today).sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const passes = MEETINGS.filter(m=>m.date<today).sort((a,b)=>new Date(b.date)-new Date(a.date));
-  const row = m => { const p = prospectById(m.prospectId);
-    const sc = m.statut==='Réalisé'?'green':m.statut==='Annulé'||m.statut==='No-show'?'red':m.statut==='Confirmé'?'blue':'gray';
-    return `<div class="meeting-row" onclick="openProspect('${m.prospectId}')">
-      <div class="meeting-date"><div style="font-size:15px;font-weight:800;line-height:1">${new Date(m.date).getDate()}</div>
-        <div style="font-size:10px;color:var(--th-text-3);text-transform:uppercase;font-weight:700">${new Date(m.date).toLocaleDateString('fr-FR',{month:'short'}).replace('.','')}</div></div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13.5px;font-weight:700;margin-bottom:3px">${esc(p?p.entreprise:'—')}</div>
-        <div style="font-size:12px;color:var(--th-text-2)">${esc(m.objectif)} · ${m.heure} · ${m.duree} min · ${esc(m.type)}</div>
-        ${m.notes?`<div style="font-size:11.5px;color:var(--th-text-3);margin-top:3px">${esc(m.notes)}</div>`:''}
+  const all = meetScope();
+
+  /* ===== FICHE RENDEZ-VOUS ===== */
+  if(openMeetId && meetView==='fiche'){
+    const m = MEETINGS.find(x=>x.id===openMeetId);
+    if(!m){ openMeetId=null; meetView='pilotage'; return renderSalesMeetings(); }
+    const p = meetProspect(m);
+    const os = ORIGINE_STYLE[p.origine] || ORIGINE_STYLE['Autre'];
+    const cr = m.compteRendu;
+    const camp = p.campaignId ? campaigns.find(c=>c.id===p.campaignId) : null;
+    el.innerHTML = `
+      <div class="btn-back" onclick="meetView='pilotage';openMeetId=null;renderSalesMeetings()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour</div>
+      <div class="page-head">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+            <h1 style="margin-bottom:0">${esc(m.type)}</h1>${meetStatusBadge(m.statut)}</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
+            <span style="cursor:pointer" onclick="openProspect('${p.id}')">${ic('ti-building',13)} ${esc(p.entreprise)} →</span>
+            <span>${ic('ti-user-check',13)} ${esc(p.contact)}</span>
+            <span>${ic('ti-calendar',13)} ${fmtDate(m.date)} · ${m.heure} · ${m.duree} min</span>
+            <span class="badge" style="background:${os.bg};color:${os.c}">${ic(os.icon,11)} ${esc(p.source)}</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span class="pc-avatar" style="background:${repColor(m.repId)};width:30px;height:30px;font-size:11px">${esc(repInitials(m.repId))}</span>
+          <div><div style="font-size:13px;font-weight:700">${esc(repName(m.repId))}</div>
+            <div style="font-size:10.5px;color:var(--th-text-3)">Commercial</div></div>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-        <span style="font-size:11.5px;color:var(--th-text-2)">${esc(repName(m.repId))}</span>
-        <span class="badge ${sc}">${esc(m.statut)}</span>
-        ${m.statut==='Réalisé'?`<button class="qa-btn" style="padding:6px 11px" onclick="event.stopPropagation();gotoSales('quotes')">Créer devis →</button>`:''}
-      </div></div>`; };
+
+      <div class="quick-actions">
+        <button class="qa-btn" onclick="comingSoon('Appeler ${esc(p.contact)}')">${ic('ti-phone',15)} Appeler</button>
+        <button class="qa-btn" onclick="comingSoon('Envoyer un email')">${ic('ti-mail',15)} Email</button>
+        ${m.statut==='À confirmer'?`<button class="qa-btn" onclick="confirmMeeting('${m.id}')">${ic('ti-circle-check',15)} Confirmer</button>`:''}
+        ${!['Réalisé','Annulé'].includes(m.statut)?`<button class="qa-btn" onclick="postponeMeeting('${m.id}')">${ic('ti-repeat',15)} Reporter</button>`:''}
+        ${!['Réalisé','Annulé'].includes(m.statut)?`<button class="qa-btn" onclick="noShowMeeting('${m.id}')">${ic('ti-circle-x',15)} No-show</button>`:''}
+        ${isDemo(m)?`<button class="add-btn" onclick="openCR('${m.id}')">${ic('ti-notebook',15)} ${cr?'Modifier le':'Ajouter un'} compte rendu</button>`:''}
+        ${cr?`<button class="qa-btn" onclick="gotoSales('quotes')">${ic('ti-file-invoice',15)} Créer devis</button>`:''}
+        ${!['Annulé'].includes(m.statut)&&can('attribuer')?`<button class="qa-btn" onclick="cancelMeeting('${m.id}')">Annuler</button>`:''}
+      </div>
+
+      <div class="grid-2">
+        <div>
+          ${cr ? `<div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-notebook',17)}<span>Compte rendu</span></div>
+              <span class="badge ${cr.interet==='Très intéressé'?'green':cr.interet==='Peu intéressé'?'red':'orange'}" style="${cr.interet==='Intéressé'||cr.interet==='À réfléchir'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(cr.interet)}</span></div>
+            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Besoin principal</div>
+            <p style="font-size:13px;line-height:1.7;margin-bottom:14px">${esc(cr.besoin||'—')}</p>
+            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Objections</div>
+            <p style="font-size:13px;line-height:1.7;color:var(--th-text-2);margin-bottom:14px">${esc(cr.objections||'Aucune')}</p>
+            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:7px">Fonctionnalités qui ont intéressé</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+              ${cr.fonctionnalites.map(f=>`<span class="badge">${esc(f)}</span>`).join('') || '<span style="font-size:12px;color:var(--th-text-3)">—</span>'}</div>
+            <div class="next-action" style="margin-top:0">
+              <div class="next-action-icon">${ic('ti-flag',15)}</div>
+              <div style="flex:1"><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase">Prochaine étape</div>
+                <div style="font-size:13.5px;font-weight:700;margin-top:2px">${esc(cr.prochaineEtape||'—')}</div>
+                ${cr.dateProchaine?`<div style="font-size:11.5px;color:var(--th-text-2)">${fmtDate(cr.dateProchaine)}</div>`:''}</div>
+            </div>
+          </div>`
+          : isDemo(m) && m.statut!=='Annulé' ? `<div class="card" style="margin-bottom:16px">
+            <div class="waiting-block">${ic('ti-notebook',22)}
+              <p><b>Compte rendu manquant.</b><br><span style="font-size:11.5px">Sans compte rendu, la démonstration ne fait pas avancer le pipeline et l'apprentissage est perdu.</span></p>
+              <button class="add-btn" style="margin-top:12px" onclick="openCR('${m.id}')">Remplir maintenant</button></div>
+          </div>` : ''}
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">${ic('ti-history',17)}<span>Historique</span></div></div>
+            ${m.historique.map(h=>`<div class="hist-row">
+              <div class="hist-icon">${ic('ti-circle-check',13)}</div>
+              <div style="flex:1;font-size:12.5px;font-weight:600">${esc(h.e)}</div>
+              <span style="font-size:11.5px;color:var(--th-text-3)">${fmtDate(h.d)}</span></div>`).join('')}
+            ${m.reportDe?`<div class="hint-bar" style="margin-top:12px">${ic('ti-repeat',15)}<span>Ce rendez-vous remplace un précédent, conservé dans l'historique.</span></div>`:''}
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-info-circle',17)}<span>Détails</span></div></div>
+            <div style="font-size:12.5px;line-height:2.1">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Objectif</span><b>${esc(m.objectif)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Mode</span><b>${esc(m.mode)}</b></div>
+              ${m.lieu?`<div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Lieu</span><b>${esc(m.lieu)}</b></div>`:''}
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Durée</span><b>${m.duree} min</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Rappel</span><b>${esc(m.rappel||'Aucun')}</b></div>
+            </div>
+            ${m.notes?`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border)">
+              <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Notes</div>
+              <p style="font-size:12.5px;line-height:1.7;color:var(--th-text-2)">${esc(m.notes)}</p></div>`:''}
+            <div class="hint-bar" style="margin-top:14px">${ic('ti-alert-triangle',15)}<span>Google Calendar, Zoom, Meet et Teams — <b>à connecter</b>. Aucune synchronisation n'est active.</span></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">${ic('ti-link',17)}<span>Chaîne d'origine</span></div></div>
+            <div class="origin-chain">
+              ${(camp?['Campagne','Lead','Prospect','RDV']:['Prospect','RDV']).map((x,i,arr)=>`
+                <div class="oc-step done">${esc(x)}</div>
+                ${i<arr.length-1?`<div class="oc-arrow">${ic('ti-arrow-left',11)}</div>`:''}`).join('')}
+              ${cr?`<div class="oc-arrow">${ic('ti-arrow-left',11)}</div><div class="oc-step done">Démo</div>`:''}
+            </div>
+            ${camp?`<div style="margin-top:14px;font-size:12.5px"><b>${esc(camp.title)}</b>
+              <div style="font-size:11.5px;color:var(--th-text-2);margin-top:3px">${esc(p.source)} · ${esc(segName(p.segmentId))}</div>
+              <button class="btn-ghost" style="margin-top:10px;width:100%" onclick="selectModule('marketing');setTimeout(()=>goToCampaign('${camp.id}'),80)">Voir la campagne →</button></div>`
+              : `<div style="margin-top:12px;font-size:12.5px;color:var(--th-text-2)">Prospect généré par <b>${esc(p.origine)}</b> — ${esc(p.source)}.</div>`}
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  /* ===== CALCULS ===== */
+  const auj = all.filter(m=>m.date===today && !['Annulé'].includes(m.statut));
+  const lundi = new Date(); lundi.setDate(lundi.getDate() - (lundi.getDay()||7) + 1);
+  const dimanche = new Date(lundi); dimanche.setDate(lundi.getDate()+6);
+  const semaine = all.filter(m=>{ const d=new Date(m.date); return d>=lundi && d<=dimanche && m.statut!=='Annulé'; });
+  const aConfirmer = all.filter(m=>m.statut==='À confirmer' && m.date>=today);
+  const demos = all.filter(m=>isDemo(m) && ['Planifié','À confirmer','Confirmé'].includes(m.statut));
+  const noShow = all.filter(m=>m.statut==='No-show');
+  const demosRealisees = all.filter(m=>isDemo(m) && m.statut==='Réalisé');
+
+  /* --- À traiter : le bloc le plus utile --- */
+  const aTraiter = [];
+  all.filter(m=>isDemo(m) && m.date<today && m.statut!=='Annulé' && !m.compteRendu).forEach(m=>{
+    const p = meetProspect(m);
+    aTraiter.push({ k:'red', icon:'ti-notebook', titre:p.entreprise, txt:`Compte rendu manquant — démo du ${fmtDate(m.date)}`,
+      action:'Remplir', fn:`openCR('${m.id}')`, qui:repName(m.repId) });
+  });
+  aConfirmer.filter(m=>daysFromToday(m.date)<=2).forEach(m=>{
+    const p = meetProspect(m);
+    aTraiter.push({ k:'orange', icon:'ti-calendar', titre:p.entreprise, txt:`RDV à confirmer — ${fmtDate(m.date)} à ${m.heure}`,
+      action:'Confirmer', fn:`confirmMeeting('${m.id}')`, qui:repName(m.repId) });
+  });
+  demosRealisees.filter(m=>m.compteRendu && m.compteRendu.prochaineEtape==='Envoyer un devis' && !prospectQuotes(m.prospectId).length).forEach(m=>{
+    const p = meetProspect(m);
+    aTraiter.push({ k:'orange', icon:'ti-file-invoice', titre:p.entreprise, txt:`Devis à envoyer — démo du ${fmtDate(m.date)}`,
+      action:'Créer', fn:`gotoSales('quotes')`, qui:repName(m.repId) });
+  });
+  noShow.forEach(m=>{
+    const p = meetProspect(m);
+    aTraiter.push({ k:'orange', icon:'ti-repeat', titre:p.entreprise, txt:`No-show du ${fmtDate(m.date)} — à reprogrammer`,
+      action:'Reprogrammer', fn:`postponeMeeting('${m.id}')`, qui:repName(m.repId) });
+  });
+
+  /* --- Ligne de rendez-vous --- */
+  const row = m => {
+    const p = meetProspect(m);
+    const os = ORIGINE_STYLE[p.origine] || ORIGINE_STYLE['Autre'];
+    const modeIcon = m.mode==='Visio'?'ti-presentation':m.mode==='Téléphone'?'ti-phone':'ti-map';
+    return `<div class="meeting-row" onclick="meetView='fiche';openMeeting('${m.id}')">
+      <div class="meeting-time">
+        <div style="font-size:15px;font-weight:800;line-height:1">${m.heure}</div>
+        <div style="font-size:10px;color:var(--th-text-3);font-weight:700">${m.duree} min</div></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">
+          <span style="font-size:13.5px;font-weight:700">${esc(p.entreprise)}</span>
+          <span class="badge" style="background:${os.bg};color:${os.c};font-size:9.5px">${ic(os.icon,10)} ${esc(p.source)}</span></div>
+        <div style="font-size:12px;color:var(--th-text-2)">${ic(modeIcon,12)} ${esc(m.type)} · ${esc(p.contact)}</div>
+      </div>
+      <div class="meeting-rep">
+        <span class="pc-avatar" style="background:${repColor(m.repId)}">${esc(repInitials(m.repId))}</span>
+        <span style="font-size:11.5px;font-weight:600">${esc(repName(m.repId))}</span></div>
+      ${meetStatusBadge(m.statut)}
+      ${m.statut==='À confirmer'?`<button class="qa-btn" style="padding:6px 11px" onclick="event.stopPropagation();confirmMeeting('${m.id}')">Confirmer</button>`:''}
+      ${isDemo(m)&&m.date<=today&&!m.compteRendu&&m.statut!=='Annulé'?`<button class="add-btn" style="padding:6px 11px" onclick="event.stopPropagation();openCR('${m.id}')">Compte rendu</button>`:''}
+    </div>`;
+  };
+
+  /* ===== VUES ===== */
+  let body = '';
+  if(meetView==='calendrier'){
+    const base = new Date(); const mon = new Date(base);
+    mon.setDate(mon.getDate() - (mon.getDay()||7) + 1 + meetCalOffset*7);
+    let cols = '';
+    for(let i=0;i<7;i++){
+      const d = new Date(mon); d.setDate(mon.getDate()+i);
+      const key = d.toISOString().slice(0,10);
+      const items = all.filter(m=>m.date===key && m.statut!=='Annulé').sort((a,b)=>a.heure.localeCompare(b.heure));
+      const isToday = key===today;
+      cols += `<div style="background:var(--th-card);border:1px solid ${isToday?'var(--th-orange)':'var(--th-border)'};border-radius:12px;padding:11px;min-height:240px">
+        <div style="font-size:11px;color:var(--th-text-3);font-weight:800;text-transform:uppercase">${d.toLocaleDateString('fr-FR',{weekday:'short'})}</div>
+        <div style="font-size:17px;font-weight:800;color:${isToday?'var(--th-orange)':'var(--th-text)'};margin-bottom:10px">${d.getDate()}</div>
+        ${items.map(m=>{ const p=meetProspect(m); const st=MEETING_STATUS_STYLE[m.statut];
+          return `<div class="cal-meet" style="background:${st.bg};color:${st.c}" onclick="meetView='fiche';openMeeting('${m.id}')">
+            <div style="font-weight:800;font-size:10px">${m.heure}</div>
+            <div style="font-weight:700;margin:2px 0">${esc(p.entreprise)}</div>
+            <div style="font-size:9px;opacity:.85">${esc(repName(m.repId).split(' ')[0])}</div></div>`; }).join('')
+          || '<div style="font-size:11px;color:var(--th-text-3)">—</div>'}
+      </div>`;
+    }
+    body = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="shiftMeetCal(-1)">${ic('ti-arrow-left',15)}</button>
+          <button class="btn-ghost" onclick="meetCalOffset=0;renderSalesMeetings()">Cette semaine</button>
+          <button class="cal-nav-btn" onclick="shiftMeetCal(1)" style="transform:rotate(180deg)">${ic('ti-arrow-left',15)}</button>
+        </div>
+        <div style="font-size:15px;font-weight:800">Semaine du ${mon.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
+        <div></div></div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:9px">${cols}</div>`;
+  }
+  else if(meetView==='liste'){
+    body = `<table class="data-table"><thead><tr><th>Rendez-vous</th><th>Entreprise</th><th>Type</th><th>Commercial</th><th>Date</th><th>Origine</th><th>Statut</th></tr></thead><tbody>
+      ${all.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(m=>{ const p=meetProspect(m);
+        const os = ORIGINE_STYLE[p.origine]||ORIGINE_STYLE['Autre'];
+        return `<tr onclick="meetView='fiche';openMeeting('${m.id}')" style="cursor:pointer">
+          <td><div class="dt-title">${esc(m.objectif)}</div><div class="dt-sub">${esc(m.mode)} · ${m.duree} min</div></td>
+          <td style="font-size:12.5px">${esc(p.entreprise)}<div class="dt-sub">${esc(p.contact)}</div></td>
+          <td><span class="badge">${esc(m.type)}</span></td>
+          <td><div style="display:flex;align-items:center;gap:7px">
+            <span class="pc-avatar" style="background:${repColor(m.repId)};width:22px;height:22px;font-size:9.5px">${esc(repInitials(m.repId))}</span>
+            <span style="font-size:12px">${esc(repName(m.repId))}</span></div></td>
+          <td style="font-size:12px;white-space:nowrap">${fmtDate(m.date)}<div class="dt-sub">${m.heure}</div></td>
+          <td><span class="badge" style="background:${os.bg};color:${os.c}">${esc(p.source)}</span></td>
+          <td>${meetStatusBadge(m.statut)}</td></tr>`; }).join('')}
+    </tbody></table>`;
+  }
+  else {
+    const prochains = all.filter(m=>m.date>today && !['Annulé','Réalisé'].includes(m.statut))
+      .sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,6);
+    body = `
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-calendar',17)}<span>Aujourd'hui</span></div>
+            ${auj.length?`<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">${auj.length}</span>`:''}</div>
+          ${auj.length ? auj.sort((a,b)=>a.heure.localeCompare(b.heure)).map(row).join('')
+            : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div>
+                <div class="alert-text">Aucun rendez-vous aujourd'hui.${prochains.length?` Prochain : <b>${esc(meetProspect(prochains[0]).entreprise)}</b> le ${fmtDate(prochains[0].date)}.`:''}</div></div>`}
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">${ic('ti-bolt',17)}<span>À traiter</span></div>
+            ${aTraiter.length?`<span class="badge ${aTraiter.some(a=>a.k==='red')?'red':'orange'}" style="${aTraiter.some(a=>a.k==='red')?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${aTraiter.length}</span>`:''}</div>
+          ${aTraiter.length ? aTraiter.slice(0,6).map(a=>`
+            <div class="todo-row" onclick="${a.fn}">
+              <span class="todo-dot" style="background:${a.k==='red'?'var(--th-red)':'var(--th-orange)'}"></span>
+              <div class="hist-icon" style="width:26px;height:26px">${ic(a.icon,13)}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13.5px;font-weight:700;margin-bottom:2px">${esc(a.titre)}</div>
+                <div style="font-size:12px;color:var(--th-text-2)">${esc(a.txt)}</div>
+                <div style="font-size:11px;color:var(--th-text-3);margin-top:2px">${esc(a.qui)}</div></div>
+              <span class="todo-action">${a.action} →</span></div>`).join('')
+            : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div>
+                <div class="alert-text">Rien à traiter. Tous les comptes rendus sont remplis et les rendez-vous confirmés.</div></div>`}
+        </div>
+      </div>
+      <p class="section-label">Prochains rendez-vous</p>
+      ${prochains.length ? prochains.map(m=>`<div style="margin-bottom:10px">
+        <div style="font-size:11px;color:var(--th-text-3);font-weight:700;margin-bottom:4px">${fmtDate(m.date)}</div>${row(m)}</div>`).join('')
+        : `<div class="empty">${ic('ti-calendar',24)}Aucun rendez-vous à venir.</div>`}`;
+  }
 
   el.innerHTML = sectorSelector() + `
-    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-      <div class="stat-card blue"><div class="val">${MEETINGS.filter(m=>['Planifié','Confirmé'].includes(m.statut)).length}</div><div class="label">À venir</div></div>
-      <div class="stat-card green"><div class="val">${MEETINGS.filter(m=>m.statut==='Réalisé').length}</div><div class="label">Réalisés</div></div>
-      <div class="stat-card"><div class="val">${MEETINGS.filter(m=>m.objectif.includes('Démonstration')).length}</div><div class="label">Démonstrations</div></div>
-      <div class="stat-card red"><div class="val">${MEETINGS.filter(m=>['Annulé','No-show'].includes(m.statut)).length}</div><div class="label">Annulés / no-show</div></div>
+    <div class="ana-filters" style="margin-bottom:16px">
+      ${canSeeAllReps()?`<div class="ana-filter-group"><span class="ana-filter-lab">Commercial</span>
+        <select class="status-select" onchange="setMeet('rep',this.value)">
+          <option value="Tous" ${meetFilterRep==='Tous'?'selected':''}>Tous</option>
+          ${SALES_REPS.map(r=>`<option value="${r.id}" ${meetFilterRep===r.id?'selected':''}>${esc(r.nom)}</option>`).join('')}</select></div>`
+        :`<div class="ana-filter-group"><span class="ana-filter-lab">Portefeuille</span>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 0">
+            <span class="pc-avatar" style="background:${repColor(CURRENT_USER.id)};width:22px;height:22px;font-size:9.5px">${esc(repInitials(CURRENT_USER.id))}</span>
+            <span style="font-size:12.5px;font-weight:600">Mes rendez-vous</span></div></div>`}
+      <div class="ana-filter-group"><span class="ana-filter-lab">Type</span>
+        <select class="status-select" onchange="setMeet('type',this.value)">
+          <option value="Tous" ${meetFilterType==='Tous'?'selected':''}>Tous</option>
+          ${MEETING_TYPES.map(t=>`<option ${meetFilterType===t?'selected':''}>${esc(t)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Origine</span>
+        <select class="status-select" onchange="setMeet('origine',this.value)">
+          <option value="Toutes" ${meetFilterOrigine==='Toutes'?'selected':''}>Toutes</option>
+          ${ORIGINES.map(o=>`<option ${meetFilterOrigine===o?'selected':''}>${esc(o)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Statut</span>
+        <select class="status-select" onchange="setMeet('statut',this.value)">
+          <option value="Tous" ${meetFilterStatut==='Tous'?'selected':''}>Tous</option>
+          ${MEETING_STATUSES.map(s=>`<option ${meetFilterStatut===s?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Vue</span>
+        <div style="display:flex;gap:5px">
+          ${[['pilotage','Pilotage'],['calendrier','Calendrier'],['liste','Liste']].map(v=>`
+            <button class="filter-chip${meetView===v[0]?' active':''}" onclick="setMeet('view','${v[0]}')">${v[1]}</button>`).join('')}</div></div>
+      <div style="margin-left:auto;align-self:flex-end;padding-bottom:6px">
+        <button class="add-btn" onclick="comingSoon('Créer un rendez-vous')">${ic('ti-plus',14)} Nouveau rendez-vous</button></div>
     </div>
-    <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="add-btn">${ic('ti-plus',14)} Nouveau rendez-vous</button></div>
-    <p class="section-label">À venir</p>
-    ${aVenir.length ? aVenir.map(row).join('') : `<div class="empty">${ic('ti-calendar',24)}Aucun rendez-vous à venir.</div>`}
-    <p class="section-label" style="margin-top:24px">Historique</p>
-    ${passes.length ? passes.map(row).join('') : `<div class="empty">${ic('ti-history',24)}Aucun rendez-vous passé.</div>`}`;
+
+    <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-card ${auj.length?'orange':''}"><div class="stat-card-icon">${ic('ti-calendar')}</div>
+        <div class="val">${auj.length}</div><div class="label">Aujourd'hui</div></div>
+      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-timeline')}</div>
+        <div class="val">${semaine.length}</div><div class="label">Cette semaine</div></div>
+      <div class="stat-card ${aConfirmer.length?'orange':''}"><div class="stat-card-icon">${ic('ti-alert-triangle')}</div>
+        <div class="val">${aConfirmer.length}</div><div class="label">À confirmer</div></div>
+      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-presentation')}</div>
+        <div class="val">${demos.length}</div><div class="label">Démos prévues</div></div>
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div>
+        <div class="val">${demosRealisees.length}</div><div class="label">Démos réalisées</div></div>
+      <div class="stat-card ${noShow.length?'red':''}"><div class="stat-card-icon">${ic('ti-circle-x')}</div>
+        <div class="val">${noShow.length}</div><div class="label">No-show</div></div>
+    </div>
+
+    ${body}
+
+    <div class="hint-bar" style="margin-top:20px">${ic('ti-bulb',16)}<span>Un compte rendu de démonstration <b>fait avancer le pipeline automatiquement</b> et crée la prochaine action sur la fiche prospect. Aucune double saisie.</span></div>`;
 }
 
 /* ---------- 6. DEVIS ---------- */
