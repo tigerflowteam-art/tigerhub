@@ -414,6 +414,53 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .lead-card.late{border-left:3px solid var(--th-red)}
 .lead-check{width:22px;height:22px;border-radius:7px;border:1.6px solid var(--th-border);background:var(--th-card);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#fff}
 .lead-check.on{background:var(--th-orange);border-color:var(--th-orange)}
+.ag-toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.ag-week{display:grid;grid-template-columns:52px repeat(7,1fr);gap:0;border:1px solid var(--th-border);border-radius:14px;overflow:hidden;background:var(--th-card)}
+.ag-day{display:grid;grid-template-columns:52px 1fr;border:1px solid var(--th-border);border-radius:14px;overflow:hidden;background:var(--th-card)}
+.ag-hours{border-right:1px solid var(--th-border);background:var(--th-bg-alt)}
+.ag-hour{height:34px;font-size:10px;color:var(--th-text-3);font-weight:700;text-align:right;padding-right:7px;line-height:1}
+.ag-col{border-right:1px solid var(--th-border);min-width:0}
+.ag-col:last-child{border-right:none}
+.ag-daylabel{height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-bottom:1px solid var(--th-border);background:var(--th-bg-alt)}
+.ag-daylabel.today{background:var(--th-orange-bg)}
+.ag-colbody,.ag-daycol{position:relative}
+.ag-slot{height:34px;border-bottom:1px solid var(--th-border);transition:background .1s}
+.ag-slot:nth-child(2n){border-bottom-style:dashed}
+.ag-slot.drop{background:var(--th-orange-bg)}
+.ag-slot:hover{background:var(--th-bg-alt)}
+.ag-meet{border-radius:8px;padding:5px 7px;cursor:grab;overflow:hidden;z-index:2;box-shadow:var(--th-shadow-sm);transition:box-shadow .12s}
+.ag-meet:hover{box-shadow:var(--th-shadow);z-index:3}
+.ag-meet:active{cursor:grabbing}
+.ag-meet.conflict{outline:2px solid var(--th-red);outline-offset:-2px}
+.ag-meet-top{display:flex;align-items:center;gap:4px;margin-bottom:2px}
+.ag-meet-name{font-size:10.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--th-text)}
+.ag-meet-sub{font-size:9px;color:var(--th-text-2);display:flex;align-items:center;gap:3px;margin-top:1px;overflow:hidden;white-space:nowrap}
+.ag-month{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.ag-mh{font-size:10px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;text-align:center;padding-bottom:5px}
+.ag-mday{background:var(--th-card);border:1px solid var(--th-border);border-radius:11px;min-height:104px;padding:7px;transition:background .1s}
+.ag-mday.today{border-color:var(--th-orange)}
+.ag-mday.drop{background:var(--th-orange-bg)}
+.ag-mnum{font-size:11.5px;font-weight:800;color:var(--th-text-3);margin-bottom:5px}
+.ag-mday.today .ag-mnum{color:var(--th-orange)}
+.ag-mmeet{font-size:9.5px;border-radius:6px;padding:3px 5px;margin-bottom:3px;cursor:grab;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.atraiter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.atraiter-item{display:flex;align-items:center;gap:10px;background:var(--th-bg-alt);border-radius:11px;padding:11px 13px;cursor:pointer;transition:background .12s}
+.atraiter-item:hover{background:var(--th-orange-bg)}
+.side-panel{position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);background:var(--th-card);border-left:1px solid var(--th-border);box-shadow:-8px 0 32px rgba(0,0,0,.1);transform:translateX(100%);transition:transform .22s cubic-bezier(.4,0,.2,1);z-index:120;overflow-y:auto}
+.side-panel.open{transform:translateX(0)}
+.side-panel-inner{padding:24px}
+.mp-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+.mp-close{background:none;border:none;color:var(--th-text-3);cursor:pointer;padding:0;flex-shrink:0}
+.mp-close:hover{color:var(--th-text)}
+.mp-when{display:flex;align-items:center;gap:14px;background:var(--th-bg-alt);border-radius:13px;padding:14px 16px;margin-bottom:14px;flex-wrap:wrap}
+.mp-when-date{width:46px;text-align:center;background:var(--th-card);border-radius:10px;padding:7px 0;flex-shrink:0}
+.mp-actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.mp-links{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.mp-link{display:flex;align-items:center;gap:11px;border:1px solid var(--th-border);border-radius:12px;padding:11px 13px;cursor:pointer;transition:all .12s;color:var(--th-text-2)}
+.mp-link:hover{border-color:var(--th-orange);color:var(--th-orange)}
+.mp-block{border-top:1px solid var(--th-border);padding-top:14px;margin-top:14px}
+.mp-lab{font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.nm-recap{display:flex;align-items:center;gap:14px;background:var(--th-bg-alt);border-radius:12px;padding:13px 15px;margin-top:12px;flex-wrap:wrap}
 .meeting-time{width:52px;text-align:center;flex-shrink:0;background:var(--th-bg-alt);border-radius:10px;padding:8px 0}
 .meeting-rep{display:flex;align-items:center;gap:7px;flex-shrink:0}
 .cal-meet{border-radius:8px;padding:7px 8px;margin-bottom:6px;font-size:10px;cursor:pointer;line-height:1.3}
@@ -726,6 +773,8 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 </aside>
 <div id="app"></div>
 <div class="modal-overlay" id="wizard-overlay"><div class="wiz-modal"><div id="wizard-body"></div></div></div>
+<div class="modal-overlay" id="nm-overlay"><div class="wiz-modal" style="max-width:640px"><div id="nm-body"></div></div></div>
+<div class="side-panel" id="meet-panel"><div class="side-panel-inner" id="meet-panel-body"></div></div>
 <div class="modal-overlay" id="cr-overlay"><div class="wiz-modal" style="max-width:620px"><div id="cr-body"></div></div></div>
 <div class="modal-overlay" id="imp-overlay"><div class="wiz-modal"><div id="imp-body"></div></div></div>
 <div class="modal-overlay" id="call-overlay"><div class="wiz-modal" style="max-width:560px"><div id="call-body"></div></div></div>
@@ -7802,214 +7851,437 @@ function saveCR(){
   if(versDevis && confirm(`Compte rendu enregistré.\n\nCréer le devis pour ${p.entreprise} maintenant ?`)) gotoSales('quotes');
 }
 
+/* ---------- AGENDA COMMERCIAL ----------
+   Vue principale du sous-module. Jour / Semaine / Mois, glisser-déposer,
+   détection de conflits. Chaque créneau est relié à un prospect existant. */
+
+let agendaView = 'semaine';
+let agendaOffset = 0;
+let agendaDragId = null;
+let detailMeetId = null;
+let newMeetDraft = null;
+
+const AGENDA_START = 8;   // heure de début affichée
+const AGENDA_END = 20;    // heure de fin
+const SLOT_MIN = 30;      // granularité
+
+function setAgendaView(v){ agendaView = v; agendaOffset = 0; renderSalesMeetings(); }
+function shiftAgenda(d){ agendaOffset += d; renderSalesMeetings(); }
+function todayAgenda(){ agendaOffset = 0; renderSalesMeetings(); }
+
+function meetStart(m){ const [h,mi] = m.heure.split(':').map(Number); return h*60+mi; }
+function meetEnd(m){ return meetStart(m) + (m.duree||30); }
+/* Conflit : même commercial, même jour, créneaux qui se chevauchent */
+function meetConflicts(m){
+  return MEETINGS.filter(x=>x.id!==m.id && x.repId===m.repId && x.date===m.date
+    && !['Annulé','Reporté'].includes(x.statut) && !['Annulé','Reporté'].includes(m.statut)
+    && meetStart(x) < meetEnd(m) && meetEnd(x) > meetStart(m));
+}
+function hasConflict(m){ return meetConflicts(m).length > 0; }
+
+/* --- Glisser-déposer : déplace le rendez-vous et trace l'action --- */
+function agendaDragStart(ev, id){ agendaDragId = id; ev.dataTransfer.effectAllowed='move'; }
+function agendaDragOver(ev, key){ ev.preventDefault(); const el=document.getElementById('slot-'+key); if(el) el.classList.add('drop'); }
+function agendaDragLeave(key){ const el=document.getElementById('slot-'+key); if(el) el.classList.remove('drop'); }
+function agendaDrop(ev, date, minutes){
+  ev.preventDefault();
+  document.querySelectorAll('.ag-slot.drop').forEach(e=>e.classList.remove('drop'));
+  const m = MEETINGS.find(x=>x.id===agendaDragId);
+  agendaDragId = null;
+  if(!m) return;
+  const h = String(Math.floor(minutes/60)).padStart(2,'0');
+  const mi = String(minutes%60).padStart(2,'0');
+  const nouvelleHeure = `${h}:${mi}`;
+  if(m.date===date && m.heure===nouvelleHeure) return renderSalesMeetings();
+  const ancien = `${fmtDate(m.date)} à ${m.heure}`;
+  m.date = date; m.heure = nouvelleHeure;
+  if(m.statut==='Confirmé'){ m.statut = 'À confirmer';
+    m.historique.push({ d:todayISO(), e:'Déplacé — confirmation à renouveler' }); }
+  m.historique.push({ d:todayISO(), e:`Déplacé de ${ancien} vers ${fmtDate(date)} à ${nouvelleHeure}` });
+  const p = meetProspect(m);
+  logAudit(`RDV déplacé — ${p?p.entreprise:'—'} : ${ancien} → ${fmtDate(date)} ${nouvelleHeure}`, m.prospectId, 'rdv');
+  const conflits = meetConflicts(m);
+  renderSalesAll();
+  if(conflits.length) alert(`Conflit d'agenda\n\n${repName(m.repId)} a déjà ${conflits.length} rendez-vous sur ce créneau :\n${conflits.map(c=>`• ${c.heure} — ${(meetProspect(c)||{}).entreprise}`).join('\n')}\n\nLe déplacement est enregistré, à vous d'arbitrer.`);
+}
+
+/* --- Panneau de détail --- */
+function openMeetDetail(id){ detailMeetId = id; renderMeetDetail(); document.getElementById('meet-panel').classList.add('open'); }
+function closeMeetDetail(){ detailMeetId = null; document.getElementById('meet-panel').classList.remove('open'); }
+function renderMeetDetail(){
+  const el = document.getElementById('meet-panel-body'); if(!el) return;
+  const m = MEETINGS.find(x=>x.id===detailMeetId); if(!m) return;
+  const p = meetProspect(m); if(!p) return;
+  const os = ORIGINE_STYLE[p.origine] || ORIGINE_STYLE['Autre'];
+  const cr = m.compteRendu;
+  const camp = p.campaignId ? campaigns.find(c=>c.id===p.campaignId) : null;
+  const conflits = meetConflicts(m);
+  const devis = prospectQuotes(p.id);
+  const modeIcon = m.mode==='Visio'?'ti-presentation':m.mode==='Téléphone'?'ti-phone':'ti-map';
+
+  el.innerHTML = `
+    <div class="mp-head">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px">
+          ${meetStatusBadge(m.statut)}
+          <span class="badge" style="background:${os.bg};color:${os.c}">${ic(os.icon,11)} ${esc(p.source)}</span>
+          ${sectorBadge(p.sectorId)}
+        </div>
+        <div style="font-size:19px;font-weight:800;letter-spacing:-0.02em;line-height:1.25">${esc(p.entreprise)}</div>
+        <div style="font-size:13px;color:var(--th-text-2);margin-top:3px">${esc(m.type)}</div>
+      </div>
+      <button class="mp-close" onclick="closeMeetDetail()">${ic('ti-circle-x',20)}</button>
+    </div>
+
+    ${conflits.length?`<div class="alert warn" style="margin-bottom:14px">
+      <div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+      <div class="alert-text"><b>Conflit d'agenda.</b> ${esc(repName(m.repId))} a ${conflits.length} autre${conflits.length>1?'s':''} rendez-vous sur ce créneau : ${conflits.map(c=>esc((meetProspect(c)||{}).entreprise||'—')).join(', ')}.</div></div>`:''}
+
+    <div class="mp-when">
+      <div class="mp-when-date">
+        <div style="font-size:22px;font-weight:800;line-height:1">${new Date(m.date).getDate()}</div>
+        <div style="font-size:11px;color:var(--th-text-3);text-transform:uppercase;font-weight:800">${new Date(m.date).toLocaleDateString('fr-FR',{month:'short'}).replace('.','')}</div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:800">${m.heure} — ${String(Math.floor(meetEnd(m)/60)).padStart(2,'0')}:${String(meetEnd(m)%60).padStart(2,'0')}</div>
+        <div style="font-size:12.5px;color:var(--th-text-2);margin-top:2px">${ic(modeIcon,12)} ${esc(m.mode)}${m.lieu?` · ${esc(m.lieu)}`:''} · ${m.duree} min</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="pc-avatar" style="background:${repColor(m.repId)};width:30px;height:30px;font-size:11px">${esc(repInitials(m.repId))}</span>
+        <div><div style="font-size:12.5px;font-weight:700">${esc(repName(m.repId))}</div>
+          <div style="font-size:10px;color:var(--th-text-3)">Commercial</div></div>
+      </div>
+    </div>
+
+    <div class="mp-actions">
+      ${m.statut==='À confirmer'?`<button class="add-btn" onclick="confirmMeeting('${m.id}');renderMeetDetail()">${ic('ti-circle-check',14)} Confirmer</button>`:''}
+      ${isDemo(m)&&!cr&&m.statut!=='Annulé'?`<button class="add-btn" onclick="closeMeetDetail();openCR('${m.id}')">${ic('ti-notebook',14)} Compte rendu</button>`:''}
+      ${cr&&cr.prochaineEtape==='Envoyer un devis'&&!devis.length?`<button class="add-btn" onclick="closeMeetDetail();gotoSales('quotes')">${ic('ti-file-invoice',14)} Créer le devis</button>`:''}
+      <button class="qa-btn" onclick="editMeeting('${m.id}')">${ic('ti-tools',14)} Modifier</button>
+      ${!['Réalisé','Annulé'].includes(m.statut)?`<button class="qa-btn" onclick="postponeMeeting('${m.id}');closeMeetDetail()">${ic('ti-repeat',14)} Reporter</button>`:''}
+      ${!['Réalisé','Annulé'].includes(m.statut)?`<button class="qa-btn" onclick="noShowMeeting('${m.id}');closeMeetDetail()">${ic('ti-circle-x',14)} No-show</button>`:''}
+      ${m.statut!=='Annulé'&&can('attribuer')?`<button class="qa-btn" onclick="cancelMeeting('${m.id}');closeMeetDetail()">Annuler</button>`:''}
+    </div>
+
+    <div class="mp-links">
+      <div class="mp-link" onclick="closeMeetDetail();openProspect('${p.id}')">
+        ${ic('ti-user-plus',15)}<div style="flex:1"><div style="font-size:12.5px;font-weight:700">${esc(p.contact)}</div>
+          <div style="font-size:11px;color:var(--th-text-2)">${esc(p.fonction)} · ${esc(p.tel)}</div></div>${ic('ti-arrow-left',13)}</div>
+      <div class="mp-link" onclick="closeMeetDetail();gotoSales('pipeline')">
+        ${ic('ti-timeline',15)}<div style="flex:1"><div style="font-size:12.5px;font-weight:700">Pipeline · ${esc(p.stage)}</div>
+          <div style="font-size:11px;color:var(--th-text-2)">${p.valeur?`${prospectMRR(p)} € MRR · ${probaOf(p)}%`:'Valeur non estimée'}</div></div>${ic('ti-arrow-left',13)}</div>
+      ${devis.length?`<div class="mp-link" onclick="closeMeetDetail();gotoSales('quotes')">
+        ${ic('ti-file-invoice',15)}<div style="flex:1"><div style="font-size:12.5px;font-weight:700">${devis.length} devis</div>
+          <div style="font-size:11px;color:var(--th-text-2)">${devis[0].montantAnnuel} € / an · ${esc(devis[0].statut)}</div></div>${ic('ti-arrow-left',13)}</div>`:''}
+      ${camp?`<div class="mp-link" onclick="closeMeetDetail();selectModule('marketing');setTimeout(()=>goToCampaign('${camp.id}'),80)">
+        ${ic('ti-target-arrow',15)}<div style="flex:1"><div style="font-size:12.5px;font-weight:700">${esc(camp.title)}</div>
+          <div style="font-size:11px;color:var(--th-text-2)">Campagne d'origine</div></div>${ic('ti-arrow-left',13)}</div>`:''}
+    </div>
+
+    ${m.objectif?`<div class="mp-block"><div class="mp-lab">Objectif</div><div style="font-size:13px">${esc(m.objectif)}</div></div>`:''}
+    ${m.notes?`<div class="mp-block"><div class="mp-lab">Notes</div><div style="font-size:12.5px;color:var(--th-text-2);line-height:1.7">${esc(m.notes)}</div></div>`:''}
+
+    ${cr?`<div class="mp-block">
+      <div class="mp-lab">Compte rendu</div>
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+        <span class="badge ${cr.interet==='Très intéressé'?'green':cr.interet==='Peu intéressé'?'red':'orange'}" style="${cr.interet==='Intéressé'||cr.interet==='À réfléchir'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(cr.interet)}</span>
+        ${cr.prochaineEtape?`<span style="font-size:12px;color:var(--th-text-2)">→ ${esc(cr.prochaineEtape)}</span>`:''}
+      </div>
+      ${cr.besoin?`<div style="font-size:12.5px;line-height:1.7;margin-bottom:8px">${esc(cr.besoin)}</div>`:''}
+      ${cr.fonctionnalites.length?`<div style="display:flex;flex-wrap:wrap;gap:5px">${cr.fonctionnalites.map(f=>`<span class="badge">${esc(f)}</span>`).join('')}</div>`:''}
+      <button class="btn-ghost" style="margin-top:10px;width:100%" onclick="closeMeetDetail();openCR('${m.id}')">Modifier le compte rendu</button>
+    </div>`:''}
+
+    <div class="mp-block">
+      <div class="mp-lab">Historique</div>
+      ${m.historique.map(h=>`<div style="display:flex;gap:9px;padding:7px 0;font-size:12px">
+        <span style="color:var(--th-text-3);white-space:nowrap;min-width:52px">${fmtDate(h.d)}</span>
+        <span style="flex:1">${esc(h.e)}</span></div>`).join('')}
+    </div>`;
+}
+
+/* --- Modal de création / modification --- */
+function openNewMeeting(prospectId, date, heure){
+  const p = prospectId ? prospectById(prospectId) : null;
+  newMeetDraft = {
+    id:null, prospectId: prospectId || '', repId: p ? p.repId : CURRENT_USER.id,
+    type:'Appel découverte', mode:'Téléphone', date: date || todayISO(), heure: heure || '09:00',
+    duree:30, lieu:'', lien:'', objectif:'', notes:'', rappel:'24 h avant',
+  };
+  document.getElementById('nm-overlay').classList.add('open');
+  renderNewMeeting();
+}
+function editMeeting(id){
+  const m = MEETINGS.find(x=>x.id===id); if(!m) return;
+  newMeetDraft = { ...m };
+  closeMeetDetail();
+  document.getElementById('nm-overlay').classList.add('open');
+  renderNewMeeting();
+}
+function closeNewMeeting(){ document.getElementById('nm-overlay').classList.remove('open'); }
+function setNM(f,v){
+  newMeetDraft[f] = (f==='duree') ? Number(v)||30 : v;
+  /* Le commercial suit le prospect : pas de saisie indépendante */
+  if(f==='prospectId'){ const p = prospectById(v); if(p) newMeetDraft.repId = p.repId; }
+  if(f==='type'){
+    if(v.includes('visio')) newMeetDraft.mode='Visio';
+    else if(v.includes('présentiel')||v.includes('terrain')) newMeetDraft.mode='Présentiel';
+    else newMeetDraft.mode='Téléphone';
+    if(!newMeetDraft.objectif) newMeetDraft.objectif = v.includes('Démonstration') ? 'Démonstration TigerFlow' : v;
+  }
+  renderNewMeeting();
+}
+function renderNewMeeting(){
+  const el = document.getElementById('nm-body'); if(!el) return;
+  const d = newMeetDraft;
+  const p = d.prospectId ? prospectById(d.prospectId) : null;
+  const dispo = scopedProspects().filter(x=>!['Perdu'].includes(x.stage));
+  /* Conflit détecté en direct */
+  const fake = { id:d.id||'__new', repId:d.repId, date:d.date, heure:d.heure, duree:d.duree, statut:'Planifié' };
+  const conflits = MEETINGS.filter(x=>x.id!==d.id && x.repId===d.repId && x.date===d.date
+    && !['Annulé','Reporté'].includes(x.statut)
+    && meetStart(x) < meetEnd(fake) && meetEnd(x) > meetStart(fake));
+
+  el.innerHTML = `
+    <p class="wiz-q">${d.id?'Modifier le rendez-vous':'Nouveau rendez-vous'}</p>
+
+    <label class="wiz-lab" style="margin-top:0">Prospect</label>
+    <select class="wiz-input" onchange="setNM('prospectId',this.value)">
+      <option value="">— Sélectionner un prospect —</option>
+      ${dispo.map(x=>`<option value="${x.id}" ${d.prospectId===x.id?'selected':''}>${esc(x.entreprise)} · ${esc(x.ville)}</option>`).join('')}
+    </select>
+
+    ${p?`<div class="nm-recap">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:5px">
+          ${origineBadge(p.origine||'Autre')}<span class="badge">${esc(p.source)}</span>${stageBadge(p.stage)}${sectorBadge(p.sectorId)}</div>
+        <div style="font-size:12.5px;color:var(--th-text-2)">${esc(p.contact)} · ${esc(p.fonction)} · ${esc(p.tel)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span class="pc-avatar" style="background:${repColor(p.repId)};width:26px;height:26px;font-size:10px">${esc(repInitials(p.repId))}</span>
+        <div><div style="font-size:11.5px;font-weight:700">${esc(repName(p.repId))}</div>
+          <div style="font-size:10px;color:var(--th-text-3)">Récupéré du prospect</div></div>
+      </div>
+    </div>`:`<div class="hint-bar" style="margin-top:12px">${ic('ti-bulb',15)}<span>Contact, commercial, secteur et origine sont <b>récupérés du prospect</b> — jamais ressaisis.</span></div>`}
+
+    <label class="wiz-lab">Type de rendez-vous</label>
+    <div class="call-results">
+      ${MEETING_TYPES.map(t=>`<div class="call-res ${d.type===t?'sel':''}" onclick="setNM('type','${t}')">${esc(t)}</div>`).join('')}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div><label class="wiz-lab">Date</label>
+        <input type="date" class="wiz-input" value="${d.date}" onchange="setNM('date',this.value)"></div>
+      <div><label class="wiz-lab">Heure</label>
+        <input type="time" class="wiz-input" value="${d.heure}" onchange="setNM('heure',this.value)"></div>
+      <div><label class="wiz-lab">Durée</label>
+        <select class="wiz-input" onchange="setNM('duree',this.value)">
+          ${[15,30,45,60,90].map(x=>`<option value="${x}" ${d.duree===x?'selected':''}>${x} min</option>`).join('')}</select></div>
+    </div>
+
+    ${conflits.length?`<div class="alert warn" style="margin-top:12px">
+      <div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+      <div class="alert-text"><b>Conflit d'agenda.</b> ${esc(repName(d.repId))} a déjà : ${conflits.map(c=>`${c.heure} — ${esc((meetProspect(c)||{}).entreprise||'—')}`).join(', ')}.</div></div>`:''}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><label class="wiz-lab">Mode</label>
+        <select class="wiz-input" onchange="setNM('mode',this.value)">
+          ${MEETING_MODES.map(x=>`<option ${d.mode===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div><label class="wiz-lab">Rappel</label>
+        <select class="wiz-input" onchange="setNM('rappel',this.value)">
+          ${['24 h avant','2 h avant','Aucun'].map(x=>`<option ${d.rappel===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    </div>
+
+    ${d.mode==='Présentiel'?`<label class="wiz-lab">Lieu</label>
+      <input type="text" class="wiz-input" placeholder="Adresse..." value="${esc(d.lieu)}" oninput="newMeetDraft.lieu=this.value">`:''}
+    ${d.mode==='Visio'?`<label class="wiz-lab">Lien visio <span style="text-transform:none;font-weight:600;color:var(--th-text-3)">— Zoom, Meet et Teams à connecter</span></label>
+      <input type="text" class="wiz-input" placeholder="https://..." value="${esc(d.lien)}" oninput="newMeetDraft.lien=this.value">`:''}
+
+    <label class="wiz-lab">Objectif</label>
+    <input type="text" class="wiz-input" placeholder="Ex : Démonstration TigerFlow" value="${esc(d.objectif)}" oninput="newMeetDraft.objectif=this.value">
+    <label class="wiz-lab">Notes</label>
+    <textarea class="param-textarea" placeholder="Points à aborder..." oninput="newMeetDraft.notes=this.value">${esc(d.notes)}</textarea>
+
+    <div class="wiz-foot">
+      <button class="btn-ghost" onclick="closeNewMeeting()">Annuler</button>
+      <button class="add-btn" onclick="saveNewMeeting()" ${!d.prospectId?'disabled style="opacity:.4;cursor:not-allowed"':''}>
+        ${d.id?'Enregistrer':'Créer le rendez-vous'}</button>
+    </div>`;
+}
+function saveNewMeeting(){
+  const d = newMeetDraft;
+  if(!d.prospectId){ alert('Sélectionnez un prospect.'); return; }
+  const p = prospectById(d.prospectId);
+  if(d.id){
+    const m = MEETINGS.find(x=>x.id===d.id);
+    Object.assign(m, { type:d.type, mode:d.mode, date:d.date, heure:d.heure, duree:d.duree,
+      lieu:d.lieu, lien:d.lien, objectif:d.objectif, notes:d.notes, rappel:d.rappel });
+    m.historique.push({ d:todayISO(), e:'Rendez-vous modifié' });
+    logAudit(`RDV modifié — ${p.entreprise}`, p.id, 'rdv');
+  } else {
+    MEETINGS.unshift({ id:'m_'+Date.now(), prospectId:d.prospectId, repId:d.repId,
+      date:d.date, heure:d.heure, duree:d.duree, type:d.type, mode:d.mode, lieu:d.lieu, lien:d.lien,
+      objectif:d.objectif || d.type, statut:'À confirmer', notes:d.notes, rappel:d.rappel,
+      compteRendu:null, reportDe:null,
+      historique:[{ d:todayISO(), e:'Rendez-vous créé' }] });
+    /* Le pipeline avance seul si le prospect était en amont */
+    if(['À contacter','Contacté','À rappeler','Qualifié'].includes(p.stage)){
+      p.stage = 'RDV obtenu'; p.stageDepuis = todayISO();
+      if(!p.stageHistory) p.stageHistory = [];
+      p.stageHistory.push({ stage:'RDV obtenu', date:todayISO(), par:CURRENT_USER.nom });
+    }
+    p.prochaineAction = `Préparer le ${d.type.toLowerCase()}`;
+    p.prochainContact = d.date;
+    logAudit(`RDV créé — ${p.entreprise} le ${fmtDate(d.date)} à ${d.heure}`, p.id, 'rdv');
+  }
+  closeNewMeeting();
+  renderSalesAll();
+}
+
+/* --- Bloc rendez-vous dans l'agenda --- */
+function agendaBlock(m, style){
+  const p = meetProspect(m); if(!p) return '';
+  const st = MEETING_STATUS_STYLE[m.statut] || MEETING_STATUS_STYLE['Planifié'];
+  const conflit = hasConflict(m);
+  const modeIcon = m.mode==='Visio'?'ti-presentation':m.mode==='Téléphone'?'ti-phone':'ti-map';
+  return `<div class="ag-meet ${conflit?'conflict':''}" style="${style};background:${st.bg};border-left:3px solid ${st.c}"
+      draggable="true" ondragstart="agendaDragStart(event,'${m.id}')" onclick="event.stopPropagation();openMeetDetail('${m.id}')"
+      title="${esc(p.entreprise)} · ${esc(m.type)} · ${esc(repName(m.repId))}">
+    <div class="ag-meet-top">
+      <span class="pc-avatar" style="background:${repColor(m.repId)};width:16px;height:16px;font-size:7.5px">${esc(repInitials(m.repId))}</span>
+      <span style="font-size:9.5px;font-weight:800;color:${st.c}">${m.heure}</span>
+      ${conflit?`<span style="color:var(--th-red);margin-left:auto">${ic('ti-alert-triangle',10)}</span>`:''}
+    </div>
+    <div class="ag-meet-name">${esc(p.entreprise)}</div>
+    <div class="ag-meet-sub">${ic(modeIcon,9)} ${esc(m.type)}</div>
+  </div>`;
+}
+
+/* --- Rendu de l'agenda selon la vue --- */
+function renderAgenda(list){
+  const today = todayISO();
+  const slots = [];
+  for(let h=AGENDA_START; h<AGENDA_END; h++){ slots.push(h*60); slots.push(h*60+30); }
+
+  if(agendaView==='jour'){
+    const d = new Date(); d.setDate(d.getDate()+agendaOffset);
+    const key = d.toISOString().slice(0,10);
+    const items = list.filter(m=>m.date===key && m.statut!=='Annulé');
+    return `<div class="ag-day">
+      <div class="ag-hours">${slots.map(s=>`<div class="ag-hour">${s%60===0?String(Math.floor(s/60)).padStart(2,'0')+':00':''}</div>`).join('')}</div>
+      <div class="ag-daycol">
+        ${slots.map(s=>`<div class="ag-slot" id="slot-${key}-${s}"
+          ondragover="agendaDragOver(event,'${key}-${s}')" ondragleave="agendaDragLeave('${key}-${s}')"
+          ondrop="agendaDrop(event,'${key}',${s})"
+          ondblclick="openNewMeeting('', '${key}', '${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}')"></div>`).join('')}
+        ${items.map(m=>{
+          const top = (meetStart(m)-AGENDA_START*60)/SLOT_MIN*34;
+          const h = Math.max(30, (m.duree||30)/SLOT_MIN*34-3);
+          return agendaBlock(m, `position:absolute;top:${top}px;height:${h}px;left:6px;right:6px`);
+        }).join('')}
+      </div></div>`;
+  }
+
+  if(agendaView==='mois'){
+    const base = new Date(); base.setMonth(base.getMonth()+agendaOffset);
+    const first = new Date(base.getFullYear(), base.getMonth(), 1);
+    const dim = new Date(base.getFullYear(), base.getMonth()+1, 0).getDate();
+    let fd = first.getDay(); fd = fd===0?6:fd-1;
+    let cells = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(x=>`<div class="ag-mh">${x}</div>`).join('');
+    for(let i=0;i<fd;i++) cells += '<div></div>';
+    for(let n=1;n<=dim;n++){
+      const key = `${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}-${String(n).padStart(2,'0')}`;
+      const items = list.filter(m=>m.date===key && m.statut!=='Annulé').sort((a,b)=>a.heure.localeCompare(b.heure));
+      cells += `<div class="ag-mday ${key===today?'today':''}" id="slot-${key}-540"
+        ondragover="agendaDragOver(event,'${key}-540')" ondragleave="agendaDragLeave('${key}-540')"
+        ondrop="agendaDrop(event,'${key}',540)"
+        ondblclick="openNewMeeting('','${key}','09:00')">
+        <div class="ag-mnum">${n}</div>
+        ${items.slice(0,3).map(m=>{ const p=meetProspect(m); const st=MEETING_STATUS_STYLE[m.statut];
+          return `<div class="ag-mmeet" style="background:${st.bg};color:${st.c}" draggable="true"
+            ondragstart="agendaDragStart(event,'${m.id}')" onclick="event.stopPropagation();openMeetDetail('${m.id}')">
+            <b>${m.heure}</b> ${esc(p.entreprise)}</div>`; }).join('')}
+        ${items.length>3?`<div style="font-size:9.5px;color:var(--th-text-3);font-weight:700;padding:2px 5px">+${items.length-3}</div>`:''}
+      </div>`;
+    }
+    return `<div class="ag-month">${cells}</div>`;
+  }
+
+  /* Semaine par défaut */
+  const mon = new Date(); mon.setDate(mon.getDate() - (mon.getDay()||7) + 1 + agendaOffset*7);
+  const days = Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return d; });
+  return `<div class="ag-week">
+    <div class="ag-hours"><div class="ag-daylabel"></div>
+      ${slots.map(s=>`<div class="ag-hour">${s%60===0?String(Math.floor(s/60)).padStart(2,'0')+':00':''}</div>`).join('')}</div>
+    ${days.map(d=>{
+      const key = d.toISOString().slice(0,10);
+      const items = list.filter(m=>m.date===key && m.statut!=='Annulé');
+      const isToday = key===today;
+      return `<div class="ag-col">
+        <div class="ag-daylabel ${isToday?'today':''}">
+          <div style="font-size:10px;text-transform:uppercase;font-weight:800;color:var(--th-text-3)">${d.toLocaleDateString('fr-FR',{weekday:'short'})}</div>
+          <div style="font-size:15px;font-weight:800;color:${isToday?'var(--th-orange)':'var(--th-text)'}">${d.getDate()}</div></div>
+        <div class="ag-colbody">
+          ${slots.map(s=>`<div class="ag-slot" id="slot-${key}-${s}"
+            ondragover="agendaDragOver(event,'${key}-${s}')" ondragleave="agendaDragLeave('${key}-${s}')"
+            ondrop="agendaDrop(event,'${key}',${s})"
+            ondblclick="openNewMeeting('','${key}','${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}')"></div>`).join('')}
+          ${items.map(m=>{
+            const top = (meetStart(m)-AGENDA_START*60)/SLOT_MIN*34;
+            const h = Math.max(28, (m.duree||30)/SLOT_MIN*34-3);
+            return agendaBlock(m, `position:absolute;top:${top}px;height:${h}px;left:3px;right:3px`);
+          }).join('')}
+        </div></div>`;
+    }).join('')}
+  </div>`;
+}
+
 function renderSalesMeetings(){
   const el = document.getElementById('sales-meetingsContent'); if(!el) return;
   const today = todayISO();
   const all = meetScope();
 
-  /* ===== FICHE RENDEZ-VOUS ===== */
-  if(openMeetId && meetView==='fiche'){
-    const m = MEETINGS.find(x=>x.id===openMeetId);
-    if(!m){ openMeetId=null; meetView='pilotage'; return renderSalesMeetings(); }
-    const p = meetProspect(m);
-    const os = ORIGINE_STYLE[p.origine] || ORIGINE_STYLE['Autre'];
-    const cr = m.compteRendu;
-    const camp = p.campaignId ? campaigns.find(c=>c.id===p.campaignId) : null;
-    el.innerHTML = `
-      <div class="btn-back" onclick="meetView='pilotage';openMeetId=null;renderSalesMeetings()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour</div>
-      <div class="page-head">
-        <div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
-            <h1 style="margin-bottom:0">${esc(m.type)}</h1>${meetStatusBadge(m.statut)}</div>
-          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
-            <span style="cursor:pointer" onclick="openProspect('${p.id}')">${ic('ti-building',13)} ${esc(p.entreprise)} →</span>
-            <span>${ic('ti-user-check',13)} ${esc(p.contact)}</span>
-            <span>${ic('ti-calendar',13)} ${fmtDate(m.date)} · ${m.heure} · ${m.duree} min</span>
-            <span class="badge" style="background:${os.bg};color:${os.c}">${ic(os.icon,11)} ${esc(p.source)}</span>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:9px">
-          <span class="pc-avatar" style="background:${repColor(m.repId)};width:30px;height:30px;font-size:11px">${esc(repInitials(m.repId))}</span>
-          <div><div style="font-size:13px;font-weight:700">${esc(repName(m.repId))}</div>
-            <div style="font-size:10.5px;color:var(--th-text-3)">Commercial</div></div>
-        </div>
-      </div>
-
-      <div class="quick-actions">
-        <button class="qa-btn" onclick="comingSoon('Appeler ${esc(p.contact)}')">${ic('ti-phone',15)} Appeler</button>
-        <button class="qa-btn" onclick="comingSoon('Envoyer un email')">${ic('ti-mail',15)} Email</button>
-        ${m.statut==='À confirmer'?`<button class="qa-btn" onclick="confirmMeeting('${m.id}')">${ic('ti-circle-check',15)} Confirmer</button>`:''}
-        ${!['Réalisé','Annulé'].includes(m.statut)?`<button class="qa-btn" onclick="postponeMeeting('${m.id}')">${ic('ti-repeat',15)} Reporter</button>`:''}
-        ${!['Réalisé','Annulé'].includes(m.statut)?`<button class="qa-btn" onclick="noShowMeeting('${m.id}')">${ic('ti-circle-x',15)} No-show</button>`:''}
-        ${isDemo(m)?`<button class="add-btn" onclick="openCR('${m.id}')">${ic('ti-notebook',15)} ${cr?'Modifier le':'Ajouter un'} compte rendu</button>`:''}
-        ${cr?`<button class="qa-btn" onclick="gotoSales('quotes')">${ic('ti-file-invoice',15)} Créer devis</button>`:''}
-        ${!['Annulé'].includes(m.statut)&&can('attribuer')?`<button class="qa-btn" onclick="cancelMeeting('${m.id}')">Annuler</button>`:''}
-      </div>
-
-      <div class="grid-2">
-        <div>
-          ${cr ? `<div class="card" style="margin-bottom:16px">
-            <div class="card-header"><div class="card-title">${ic('ti-notebook',17)}<span>Compte rendu</span></div>
-              <span class="badge ${cr.interet==='Très intéressé'?'green':cr.interet==='Peu intéressé'?'red':'orange'}" style="${cr.interet==='Intéressé'||cr.interet==='À réfléchir'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(cr.interet)}</span></div>
-            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Besoin principal</div>
-            <p style="font-size:13px;line-height:1.7;margin-bottom:14px">${esc(cr.besoin||'—')}</p>
-            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Objections</div>
-            <p style="font-size:13px;line-height:1.7;color:var(--th-text-2);margin-bottom:14px">${esc(cr.objections||'Aucune')}</p>
-            <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:7px">Fonctionnalités qui ont intéressé</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
-              ${cr.fonctionnalites.map(f=>`<span class="badge">${esc(f)}</span>`).join('') || '<span style="font-size:12px;color:var(--th-text-3)">—</span>'}</div>
-            <div class="next-action" style="margin-top:0">
-              <div class="next-action-icon">${ic('ti-flag',15)}</div>
-              <div style="flex:1"><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase">Prochaine étape</div>
-                <div style="font-size:13.5px;font-weight:700;margin-top:2px">${esc(cr.prochaineEtape||'—')}</div>
-                ${cr.dateProchaine?`<div style="font-size:11.5px;color:var(--th-text-2)">${fmtDate(cr.dateProchaine)}</div>`:''}</div>
-            </div>
-          </div>`
-          : isDemo(m) && m.statut!=='Annulé' ? `<div class="card" style="margin-bottom:16px">
-            <div class="waiting-block">${ic('ti-notebook',22)}
-              <p><b>Compte rendu manquant.</b><br><span style="font-size:11.5px">Sans compte rendu, la démonstration ne fait pas avancer le pipeline et l'apprentissage est perdu.</span></p>
-              <button class="add-btn" style="margin-top:12px" onclick="openCR('${m.id}')">Remplir maintenant</button></div>
-          </div>` : ''}
-
-          <div class="card">
-            <div class="card-header"><div class="card-title">${ic('ti-history',17)}<span>Historique</span></div></div>
-            ${m.historique.map(h=>`<div class="hist-row">
-              <div class="hist-icon">${ic('ti-circle-check',13)}</div>
-              <div style="flex:1;font-size:12.5px;font-weight:600">${esc(h.e)}</div>
-              <span style="font-size:11.5px;color:var(--th-text-3)">${fmtDate(h.d)}</span></div>`).join('')}
-            ${m.reportDe?`<div class="hint-bar" style="margin-top:12px">${ic('ti-repeat',15)}<span>Ce rendez-vous remplace un précédent, conservé dans l'historique.</span></div>`:''}
-          </div>
-        </div>
-
-        <div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-header"><div class="card-title">${ic('ti-info-circle',17)}<span>Détails</span></div></div>
-            <div style="font-size:12.5px;line-height:2.1">
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Objectif</span><b>${esc(m.objectif)}</b></div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Mode</span><b>${esc(m.mode)}</b></div>
-              ${m.lieu?`<div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Lieu</span><b>${esc(m.lieu)}</b></div>`:''}
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Durée</span><b>${m.duree} min</b></div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Rappel</span><b>${esc(m.rappel||'Aucun')}</b></div>
-            </div>
-            ${m.notes?`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border)">
-              <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:5px">Notes</div>
-              <p style="font-size:12.5px;line-height:1.7;color:var(--th-text-2)">${esc(m.notes)}</p></div>`:''}
-            <div class="hint-bar" style="margin-top:14px">${ic('ti-alert-triangle',15)}<span>Google Calendar, Zoom, Meet et Teams — <b>à connecter</b>. Aucune synchronisation n'est active.</span></div>
-          </div>
-
-          <div class="card">
-            <div class="card-header"><div class="card-title">${ic('ti-link',17)}<span>Chaîne d'origine</span></div></div>
-            <div class="origin-chain">
-              ${(camp?['Campagne','Lead','Prospect','RDV']:['Prospect','RDV']).map((x,i,arr)=>`
-                <div class="oc-step done">${esc(x)}</div>
-                ${i<arr.length-1?`<div class="oc-arrow">${ic('ti-arrow-left',11)}</div>`:''}`).join('')}
-              ${cr?`<div class="oc-arrow">${ic('ti-arrow-left',11)}</div><div class="oc-step done">Démo</div>`:''}
-            </div>
-            ${camp?`<div style="margin-top:14px;font-size:12.5px"><b>${esc(camp.title)}</b>
-              <div style="font-size:11.5px;color:var(--th-text-2);margin-top:3px">${esc(p.source)} · ${esc(segName(p.segmentId))}</div>
-              <button class="btn-ghost" style="margin-top:10px;width:100%" onclick="selectModule('marketing');setTimeout(()=>goToCampaign('${camp.id}'),80)">Voir la campagne →</button></div>`
-              : `<div style="margin-top:12px;font-size:12.5px;color:var(--th-text-2)">Prospect généré par <b>${esc(p.origine)}</b> — ${esc(p.source)}.</div>`}
-          </div>
-        </div>
-      </div>`;
-    return;
-  }
-
-  /* ===== CALCULS ===== */
-  const auj = all.filter(m=>m.date===today && !['Annulé'].includes(m.statut));
-  const lundi = new Date(); lundi.setDate(lundi.getDate() - (lundi.getDay()||7) + 1);
+  /* KPI communs aux deux vues */
+  const auj = all.filter(m=>m.date===today && m.statut!=='Annulé');
+  const lundi = new Date(); lundi.setDate(lundi.getDate()-(lundi.getDay()||7)+1);
   const dimanche = new Date(lundi); dimanche.setDate(lundi.getDate()+6);
-  const semaine = all.filter(m=>{ const d=new Date(m.date); return d>=lundi && d<=dimanche && m.statut!=='Annulé'; });
-  const aConfirmer = all.filter(m=>m.statut==='À confirmer' && m.date>=today);
-  const demos = all.filter(m=>isDemo(m) && ['Planifié','À confirmer','Confirmé'].includes(m.statut));
+  const semaine = all.filter(m=>{ const d=new Date(m.date); return d>=lundi&&d<=dimanche&&m.statut!=='Annulé'; });
+  const aConfirmer = all.filter(m=>m.statut==='À confirmer'&&m.date>=today);
+  const demos = all.filter(m=>isDemo(m)&&['Planifié','À confirmer','Confirmé'].includes(m.statut));
   const noShow = all.filter(m=>m.statut==='No-show');
-  const demosRealisees = all.filter(m=>isDemo(m) && m.statut==='Réalisé');
+  const conflits = all.filter(m=>m.statut!=='Annulé'&&hasConflict(m));
 
-  /* --- À traiter : le bloc le plus utile --- */
+  /* À traiter */
   const aTraiter = [];
-  all.filter(m=>isDemo(m) && m.date<today && m.statut!=='Annulé' && !m.compteRendu).forEach(m=>{
-    const p = meetProspect(m);
-    aTraiter.push({ k:'red', icon:'ti-notebook', titre:p.entreprise, txt:`Compte rendu manquant — démo du ${fmtDate(m.date)}`,
-      action:'Remplir', fn:`openCR('${m.id}')`, qui:repName(m.repId) });
-  });
+  all.filter(m=>isDemo(m)&&m.date<today&&m.statut!=='Annulé'&&!m.compteRendu).forEach(m=>{
+    const p=meetProspect(m);
+    aTraiter.push({k:'red',icon:'ti-notebook',titre:p.entreprise,txt:`Compte rendu manquant — démo du ${fmtDate(m.date)}`,action:'Remplir',fn:`openCR('${m.id}')`,qui:repName(m.repId)});});
   aConfirmer.filter(m=>daysFromToday(m.date)<=2).forEach(m=>{
-    const p = meetProspect(m);
-    aTraiter.push({ k:'orange', icon:'ti-calendar', titre:p.entreprise, txt:`RDV à confirmer — ${fmtDate(m.date)} à ${m.heure}`,
-      action:'Confirmer', fn:`confirmMeeting('${m.id}')`, qui:repName(m.repId) });
-  });
-  demosRealisees.filter(m=>m.compteRendu && m.compteRendu.prochaineEtape==='Envoyer un devis' && !prospectQuotes(m.prospectId).length).forEach(m=>{
-    const p = meetProspect(m);
-    aTraiter.push({ k:'orange', icon:'ti-file-invoice', titre:p.entreprise, txt:`Devis à envoyer — démo du ${fmtDate(m.date)}`,
-      action:'Créer', fn:`gotoSales('quotes')`, qui:repName(m.repId) });
-  });
+    const p=meetProspect(m);
+    aTraiter.push({k:'orange',icon:'ti-calendar',titre:p.entreprise,txt:`À confirmer — ${fmtDate(m.date)} à ${m.heure}`,action:'Confirmer',fn:`confirmMeeting('${m.id}')`,qui:repName(m.repId)});});
+  all.filter(m=>isDemo(m)&&m.statut==='Réalisé'&&m.compteRendu&&m.compteRendu.prochaineEtape==='Envoyer un devis'&&!prospectQuotes(m.prospectId).length).forEach(m=>{
+    const p=meetProspect(m);
+    aTraiter.push({k:'orange',icon:'ti-file-invoice',titre:p.entreprise,txt:`Devis à envoyer — démo du ${fmtDate(m.date)}`,action:'Créer',fn:`gotoSales('quotes')`,qui:repName(m.repId)});});
   noShow.forEach(m=>{
-    const p = meetProspect(m);
-    aTraiter.push({ k:'orange', icon:'ti-repeat', titre:p.entreprise, txt:`No-show du ${fmtDate(m.date)} — à reprogrammer`,
-      action:'Reprogrammer', fn:`postponeMeeting('${m.id}')`, qui:repName(m.repId) });
-  });
+    const p=meetProspect(m);
+    aTraiter.push({k:'orange',icon:'ti-repeat',titre:p.entreprise,txt:`No-show du ${fmtDate(m.date)}`,action:'Reprogrammer',fn:`postponeMeeting('${m.id}')`,qui:repName(m.repId)});});
 
-  /* --- Ligne de rendez-vous --- */
-  const row = m => {
-    const p = meetProspect(m);
-    const os = ORIGINE_STYLE[p.origine] || ORIGINE_STYLE['Autre'];
-    const modeIcon = m.mode==='Visio'?'ti-presentation':m.mode==='Téléphone'?'ti-phone':'ti-map';
-    return `<div class="meeting-row" onclick="meetView='fiche';openMeeting('${m.id}')">
-      <div class="meeting-time">
-        <div style="font-size:15px;font-weight:800;line-height:1">${m.heure}</div>
-        <div style="font-size:10px;color:var(--th-text-3);font-weight:700">${m.duree} min</div></div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">
-          <span style="font-size:13.5px;font-weight:700">${esc(p.entreprise)}</span>
-          <span class="badge" style="background:${os.bg};color:${os.c};font-size:9.5px">${ic(os.icon,10)} ${esc(p.source)}</span></div>
-        <div style="font-size:12px;color:var(--th-text-2)">${ic(modeIcon,12)} ${esc(m.type)} · ${esc(p.contact)}</div>
-      </div>
-      <div class="meeting-rep">
-        <span class="pc-avatar" style="background:${repColor(m.repId)}">${esc(repInitials(m.repId))}</span>
-        <span style="font-size:11.5px;font-weight:600">${esc(repName(m.repId))}</span></div>
-      ${meetStatusBadge(m.statut)}
-      ${m.statut==='À confirmer'?`<button class="qa-btn" style="padding:6px 11px" onclick="event.stopPropagation();confirmMeeting('${m.id}')">Confirmer</button>`:''}
-      ${isDemo(m)&&m.date<=today&&!m.compteRendu&&m.statut!=='Annulé'?`<button class="add-btn" style="padding:6px 11px" onclick="event.stopPropagation();openCR('${m.id}')">Compte rendu</button>`:''}
-    </div>`;
-  };
+  /* Étiquette de période */
+  let periode = '';
+  if(agendaView==='jour'){ const d=new Date(); d.setDate(d.getDate()+agendaOffset);
+    periode = d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}); }
+  else if(agendaView==='mois'){ const d=new Date(); d.setMonth(d.getMonth()+agendaOffset);
+    periode = d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'}); }
+  else { const m=new Date(); m.setDate(m.getDate()-(m.getDay()||7)+1+agendaOffset*7);
+    const f=new Date(m); f.setDate(m.getDate()+6);
+    periode = `${m.getDate()} — ${f.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}`; }
 
-  /* ===== VUES ===== */
-  let body = '';
-  if(meetView==='calendrier'){
-    const base = new Date(); const mon = new Date(base);
-    mon.setDate(mon.getDate() - (mon.getDay()||7) + 1 + meetCalOffset*7);
-    let cols = '';
-    for(let i=0;i<7;i++){
-      const d = new Date(mon); d.setDate(mon.getDate()+i);
-      const key = d.toISOString().slice(0,10);
-      const items = all.filter(m=>m.date===key && m.statut!=='Annulé').sort((a,b)=>a.heure.localeCompare(b.heure));
-      const isToday = key===today;
-      cols += `<div style="background:var(--th-card);border:1px solid ${isToday?'var(--th-orange)':'var(--th-border)'};border-radius:12px;padding:11px;min-height:240px">
-        <div style="font-size:11px;color:var(--th-text-3);font-weight:800;text-transform:uppercase">${d.toLocaleDateString('fr-FR',{weekday:'short'})}</div>
-        <div style="font-size:17px;font-weight:800;color:${isToday?'var(--th-orange)':'var(--th-text)'};margin-bottom:10px">${d.getDate()}</div>
-        ${items.map(m=>{ const p=meetProspect(m); const st=MEETING_STATUS_STYLE[m.statut];
-          return `<div class="cal-meet" style="background:${st.bg};color:${st.c}" onclick="meetView='fiche';openMeeting('${m.id}')">
-            <div style="font-weight:800;font-size:10px">${m.heure}</div>
-            <div style="font-weight:700;margin:2px 0">${esc(p.entreprise)}</div>
-            <div style="font-size:9px;opacity:.85">${esc(repName(m.repId).split(' ')[0])}</div></div>`; }).join('')
-          || '<div style="font-size:11px;color:var(--th-text-3)">—</div>'}
-      </div>`;
-    }
-    body = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
-        <div class="cal-nav">
-          <button class="cal-nav-btn" onclick="shiftMeetCal(-1)">${ic('ti-arrow-left',15)}</button>
-          <button class="btn-ghost" onclick="meetCalOffset=0;renderSalesMeetings()">Cette semaine</button>
-          <button class="cal-nav-btn" onclick="shiftMeetCal(1)" style="transform:rotate(180deg)">${ic('ti-arrow-left',15)}</button>
-        </div>
-        <div style="font-size:15px;font-weight:800">Semaine du ${mon.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
-        <div></div></div>
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:9px">${cols}</div>`;
-  }
-  else if(meetView==='liste'){
-    body = `<table class="data-table"><thead><tr><th>Rendez-vous</th><th>Entreprise</th><th>Type</th><th>Commercial</th><th>Date</th><th>Origine</th><th>Statut</th></tr></thead><tbody>
+  const body = meetView==='liste' ? `
+    <table class="data-table"><thead><tr><th>Rendez-vous</th><th>Entreprise</th><th>Type</th><th>Commercial</th><th>Date</th><th>Origine</th><th>Statut</th></tr></thead><tbody>
       ${all.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(m=>{ const p=meetProspect(m);
-        const os = ORIGINE_STYLE[p.origine]||ORIGINE_STYLE['Autre'];
-        return `<tr onclick="meetView='fiche';openMeeting('${m.id}')" style="cursor:pointer">
-          <td><div class="dt-title">${esc(m.objectif)}</div><div class="dt-sub">${esc(m.mode)} · ${m.duree} min</div></td>
+        const os=ORIGINE_STYLE[p.origine]||ORIGINE_STYLE['Autre'];
+        return `<tr onclick="openMeetDetail('${m.id}')" style="cursor:pointer">
+          <td><div class="dt-title">${esc(m.objectif||m.type)}</div><div class="dt-sub">${esc(m.mode)} · ${m.duree} min${m.compteRendu?' · compte rendu ✓':''}</div></td>
           <td style="font-size:12.5px">${esc(p.entreprise)}<div class="dt-sub">${esc(p.contact)}</div></td>
           <td><span class="badge">${esc(m.type)}</span></td>
           <td><div style="display:flex;align-items:center;gap:7px">
@@ -8017,42 +8289,26 @@ function renderSalesMeetings(){
             <span style="font-size:12px">${esc(repName(m.repId))}</span></div></td>
           <td style="font-size:12px;white-space:nowrap">${fmtDate(m.date)}<div class="dt-sub">${m.heure}</div></td>
           <td><span class="badge" style="background:${os.bg};color:${os.c}">${esc(p.source)}</span></td>
-          <td>${meetStatusBadge(m.statut)}</td></tr>`; }).join('')}
-    </tbody></table>`;
-  }
-  else {
-    const prochains = all.filter(m=>m.date>today && !['Annulé','Réalisé'].includes(m.statut))
-      .sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,6);
-    body = `
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-header"><div class="card-title">${ic('ti-calendar',17)}<span>Aujourd'hui</span></div>
-            ${auj.length?`<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">${auj.length}</span>`:''}</div>
-          ${auj.length ? auj.sort((a,b)=>a.heure.localeCompare(b.heure)).map(row).join('')
-            : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div>
-                <div class="alert-text">Aucun rendez-vous aujourd'hui.${prochains.length?` Prochain : <b>${esc(meetProspect(prochains[0]).entreprise)}</b> le ${fmtDate(prochains[0].date)}.`:''}</div></div>`}
-        </div>
-        <div class="card">
-          <div class="card-header"><div class="card-title">${ic('ti-bolt',17)}<span>À traiter</span></div>
-            ${aTraiter.length?`<span class="badge ${aTraiter.some(a=>a.k==='red')?'red':'orange'}" style="${aTraiter.some(a=>a.k==='red')?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${aTraiter.length}</span>`:''}</div>
-          ${aTraiter.length ? aTraiter.slice(0,6).map(a=>`
-            <div class="todo-row" onclick="${a.fn}">
-              <span class="todo-dot" style="background:${a.k==='red'?'var(--th-red)':'var(--th-orange)'}"></span>
-              <div class="hist-icon" style="width:26px;height:26px">${ic(a.icon,13)}</div>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:13.5px;font-weight:700;margin-bottom:2px">${esc(a.titre)}</div>
-                <div style="font-size:12px;color:var(--th-text-2)">${esc(a.txt)}</div>
-                <div style="font-size:11px;color:var(--th-text-3);margin-top:2px">${esc(a.qui)}</div></div>
-              <span class="todo-action">${a.action} →</span></div>`).join('')
-            : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div>
-                <div class="alert-text">Rien à traiter. Tous les comptes rendus sont remplis et les rendez-vous confirmés.</div></div>`}
-        </div>
+          <td>${meetStatusBadge(m.statut)}${hasConflict(m)?` <span style="color:var(--th-red)" title="Conflit d'agenda">${ic('ti-alert-triangle',11)}</span>`:''}</td></tr>`;
+      }).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun rendez-vous pour ces filtres.</td></tr>`}
+    </tbody></table>`
+  : `
+    <div class="ag-toolbar">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="shiftAgenda(-1)">${ic('ti-arrow-left',15)}</button>
+        <button class="btn-ghost" onclick="todayAgenda()">Aujourd'hui</button>
+        <button class="cal-nav-btn" onclick="shiftAgenda(1)" style="transform:rotate(180deg)">${ic('ti-arrow-left',15)}</button>
       </div>
-      <p class="section-label">Prochains rendez-vous</p>
-      ${prochains.length ? prochains.map(m=>`<div style="margin-bottom:10px">
-        <div style="font-size:11px;color:var(--th-text-3);font-weight:700;margin-bottom:4px">${fmtDate(m.date)}</div>${row(m)}</div>`).join('')
-        : `<div class="empty">${ic('ti-calendar',24)}Aucun rendez-vous à venir.</div>`}`;
-  }
+      <div style="font-size:15px;font-weight:800;text-transform:capitalize">${periode}</div>
+      <div style="display:flex;gap:5px;margin-left:auto">
+        ${[['jour','Jour'],['semaine','Semaine'],['mois','Mois']].map(v=>`
+          <button class="filter-chip${agendaView===v[0]?' active':''}" onclick="setAgendaView('${v[0]}')">${v[1]}</button>`).join('')}
+      </div>
+    </div>
+    ${conflits.length?`<div class="alert warn" style="margin-bottom:12px"><div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+      <div class="alert-text"><b>${conflits.length} conflit${conflits.length>1?'s':''} d'agenda.</b> Des rendez-vous se chevauchent pour un même commercial — repérables en rouge dans l'agenda.</div></div>`:''}
+    ${renderAgenda(all)}
+    <div class="hint-bar" style="margin-top:12px">${ic('ti-bulb',16)}<span>Glissez un rendez-vous pour le déplacer · double-cliquez sur un créneau vide pour en créer un · cliquez pour ouvrir le détail.</span></div>`;
 
   el.innerHTML = sectorSelector() + `
     <div class="ana-filters" style="margin-bottom:16px">
@@ -8063,7 +8319,7 @@ function renderSalesMeetings(){
         :`<div class="ana-filter-group"><span class="ana-filter-lab">Portefeuille</span>
           <div style="display:flex;align-items:center;gap:8px;padding:7px 0">
             <span class="pc-avatar" style="background:${repColor(CURRENT_USER.id)};width:22px;height:22px;font-size:9.5px">${esc(repInitials(CURRENT_USER.id))}</span>
-            <span style="font-size:12.5px;font-weight:600">Mes rendez-vous</span></div></div>`}
+            <span style="font-size:12.5px;font-weight:600">Mon agenda</span></div></div>`}
       <div class="ana-filter-group"><span class="ana-filter-lab">Type</span>
         <select class="status-select" onchange="setMeet('type',this.value)">
           <option value="Tous" ${meetFilterType==='Tous'?'selected':''}>Tous</option>
@@ -8078,10 +8334,10 @@ function renderSalesMeetings(){
           ${MEETING_STATUSES.map(s=>`<option ${meetFilterStatut===s?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
       <div class="ana-filter-group"><span class="ana-filter-lab">Vue</span>
         <div style="display:flex;gap:5px">
-          ${[['pilotage','Pilotage'],['calendrier','Calendrier'],['liste','Liste']].map(v=>`
-            <button class="filter-chip${meetView===v[0]?' active':''}" onclick="setMeet('view','${v[0]}')">${v[1]}</button>`).join('')}</div></div>
+          <button class="filter-chip${meetView!=='liste'?' active':''}" onclick="setMeet('view','agenda')">${ic('ti-calendar',12)} Agenda</button>
+          <button class="filter-chip${meetView==='liste'?' active':''}" onclick="setMeet('view','liste')">Liste</button></div></div>
       <div style="margin-left:auto;align-self:flex-end;padding-bottom:6px">
-        <button class="add-btn" onclick="comingSoon('Créer un rendez-vous')">${ic('ti-plus',14)} Nouveau rendez-vous</button></div>
+        <button class="add-btn" onclick="openNewMeeting()">${ic('ti-plus',14)} Nouveau rendez-vous</button></div>
     </div>
 
     <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
@@ -8093,15 +8349,27 @@ function renderSalesMeetings(){
         <div class="val">${aConfirmer.length}</div><div class="label">À confirmer</div></div>
       <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-presentation')}</div>
         <div class="val">${demos.length}</div><div class="label">Démos prévues</div></div>
-      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div>
-        <div class="val">${demosRealisees.length}</div><div class="label">Démos réalisées</div></div>
+      <div class="stat-card ${aTraiter.length?'red':''}"><div class="stat-card-icon">${ic('ti-bolt')}</div>
+        <div class="val">${aTraiter.length}</div><div class="label">À traiter</div></div>
       <div class="stat-card ${noShow.length?'red':''}"><div class="stat-card-icon">${ic('ti-circle-x')}</div>
         <div class="val">${noShow.length}</div><div class="label">No-show</div></div>
     </div>
 
-    ${body}
+    ${aTraiter.length?`<div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">${ic('ti-bolt',17)}<span>À traiter</span></div>
+        <span class="badge ${aTraiter.some(a=>a.k==='red')?'red':'orange'}" style="${aTraiter.some(a=>a.k==='red')?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${aTraiter.length}</span></div>
+      <div class="atraiter-grid">
+        ${aTraiter.slice(0,6).map(a=>`<div class="atraiter-item" onclick="${a.fn}">
+          <span class="todo-dot" style="background:${a.k==='red'?'var(--th-red)':'var(--th-orange)'}"></span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:700">${esc(a.titre)}</div>
+            <div style="font-size:11.5px;color:var(--th-text-2)">${esc(a.txt)}</div></div>
+          <span class="todo-action">${a.action} →</span></div>`).join('')}
+      </div></div>`:''}
 
-    <div class="hint-bar" style="margin-top:20px">${ic('ti-bulb',16)}<span>Un compte rendu de démonstration <b>fait avancer le pipeline automatiquement</b> et crée la prochaine action sur la fiche prospect. Aucune double saisie.</span></div>`;
+    ${body}`;
+
+  if(detailMeetId) renderMeetDetail();
 }
 
 /* ---------- 6. DEVIS ---------- */
