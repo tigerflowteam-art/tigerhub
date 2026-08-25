@@ -6109,10 +6109,56 @@ const CONTRACTS = [
 ];
 
 /* Clients gagnés — créés depuis un contrat signé, jamais saisis à la main */
+/* Un client signé n'est pas un client actif : ces deux états sont distincts */
+const CLIENT_STATUSES = ['Contrat signé','À onboarder','Onboarding en cours','Activé','Client actif','À surveiller','Résilié'];
+const CLIENT_STATUS_STYLE = {
+  'Contrat signé':{c:'var(--th-blue)',bg:'var(--th-blue-bg)'}, 'À onboarder':{c:'var(--th-orange)',bg:'var(--th-orange-bg)'},
+  'Onboarding en cours':{c:'var(--th-orange)',bg:'var(--th-orange-bg)'}, 'Activé':{c:'var(--th-green)',bg:'var(--th-green-bg)'},
+  'Client actif':{c:'var(--th-green)',bg:'var(--th-green-bg)'}, 'À surveiller':{c:'var(--th-red)',bg:'var(--th-red-bg)'},
+  'Résilié':{c:'var(--th-red)',bg:'var(--th-red-bg)'},
+};
+function clientStatusBadge(s){
+  const st = CLIENT_STATUS_STYLE[s] || CLIENT_STATUS_STYLE['Contrat signé'];
+  return `<span class="badge" style="color:${st.c};background:${st.bg}">${esc(s)}</span>`;
+}
+/* Étapes d'onboarding — celles marquées activation définissent le client actif */
+const ONBOARDING_STEPS = [
+  { id:'compte', lab:'Compte TigerFlow créé' },
+  { id:'admin', lab:'Administrateur configuré', activation:true },
+  { id:'users', lab:'Utilisateurs ajoutés', activation:true },
+  { id:'params', lab:'Paramètres entreprise configurés' },
+  { id:'import', lab:'Données importées', optionnel:true },
+  { id:'form_plan', lab:'Formation planifiée' },
+  { id:'form_faite', lab:'Formation réalisée' },
+  { id:'connexion', lab:'Première connexion', activation:true },
+  { id:'usage', lab:'Première utilisation' },
+  { id:'intervention', lab:'Première intervention créée', activation:true },
+];
+/* Critères d'activation, modifiables dans les paramètres */
+const ACTIVATION_SETTINGS = {
+  criteres:['admin','users','connexion','intervention'],
+  alerteOnboardingNonCommence:5,   // jours après signature
+  alerteSansConnexion:7,           // jours
+  alerteSansUsage:14,              // jours
+};
+const TIGERFLOW_STATES = ['Non créé','À configurer','Actif','Erreur'];
+
 const WON_CLIENTS = [
-  { id:'cl1', prospectId:'p4', contractId:'ct_2', repId:'rep2',
-    signature:'2026-09-14', debutAbo:'2026-10-01', montantAnnuel:1180, mrr:98,
-    moisPayes:1, statutAbo:'Actif' },
+  { id:'cl1', prospectId:'p4', contractId:'ct_2', quoteId:'q3', repId:'rep2',
+    signature:'2026-09-14', debutAbo:'2026-10-01', montantAnnuel:1180, mrr:98, users:3, offerId:'pro',
+    moisPayes:1, statutAbo:'Actif', statut:'Onboarding en cours', tigerflow:'Actif',
+    onboarding:{ compte:true, admin:true, users:true, params:true, import:false,
+                 form_plan:true, form_faite:false, connexion:true, usage:true, intervention:false },
+    derniereConnexion:'2026-10-05', dernierUsage:'2026-10-05',
+    prochaineAction:'Planifier la formation', prochaineActionDate:'2026-10-12',
+    historique:[
+      {d:'2026-09-14',e:'Contrat signé',qui:'Thomas Rivière'},
+      {d:'2026-09-14',e:'Client créé depuis le contrat',qui:'Système'},
+      {d:'2026-09-14',e:'Commission de 177 € créée — en attente',qui:'Système'},
+      {d:'2026-10-01',e:'Abonnement activé · premier paiement reçu',qui:'Système'},
+      {d:'2026-10-02',e:'Compte TigerFlow créé',qui:'Sophie'},
+      {d:'2026-10-03',e:'Administrateur configuré · 3 utilisateurs ajoutés',qui:'Sophie'},
+      {d:'2026-10-05',e:'Première connexion du client',qui:'Système'}] },
 ];
 
 /* Commissions — dérivées des clients, avec période d'acquisition */
@@ -9642,31 +9688,435 @@ function renderSalesContracts(){
     <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>La <b>signature</b> est le seul événement qui crée le client, l'abonnement et la commission. Aucune de ces trois fiches ne se saisit à la main.</span></div>`;
 }
 
-/* ---------- 8. CLIENTS GAGNÉS ---------- */
+/* ---------- 8. CLIENTS GAGNÉS ----------
+   Pont entre la vente et la vie du client. Un contrat signé ne fait pas
+   un client actif : l'onboarding le fait. Aucune fiche recréée ici. */
+
+let openClientId = null;
+let clFilterRep = 'Tous';
+let clFilterStatut = 'Tous';
+let clFilterOrigine = 'Toutes';
+let clFilterOffre = 'Toutes';
+let clFilterRisque = false;
+
+function setCl(kind, v){
+  if(kind==='rep') clFilterRep = v;
+  else if(kind==='statut') clFilterStatut = v;
+  else if(kind==='origine') clFilterOrigine = v;
+  else if(kind==='offre') clFilterOffre = v;
+  renderSalesClients();
+}
+function toggleClRisque(){ clFilterRisque = !clFilterRisque; renderSalesClients(); }
+function openClient(id){ openClientId = id; renderSalesClients(); }
+function closeClient(){ openClientId = null; renderSalesClients(); }
+
+function clientById(id){ return WON_CLIENTS.find(c=>c.id===id); }
+function clientProspect(c){ return prospectById(c.prospectId); }
+function clientContract(c){ return c.contractId ? contractById(c.contractId) : null; }
+function clientQuote(c){ return c.quoteId ? quoteById(c.quoteId) : null; }
+function clientCommission(c){ return COMMISSIONS.find(x=>x.clientId===c.id); }
+
+/* Progression d'onboarding, hors étapes optionnelles non cochées */
+function onboardingPct(c){
+  const ob = c.onboarding || {};
+  const req = ONBOARDING_STEPS.filter(s=>!s.optionnel);
+  const done = req.filter(s=>ob[s.id]).length;
+  return Math.round(done / req.length * 100);
+}
+function onboardingRestantes(c){
+  const ob = c.onboarding || {};
+  return ONBOARDING_STEPS.filter(s=>!s.optionnel && !ob[s.id]);
+}
+/* Activé = tous les critères définis dans les paramètres sont remplis */
+function isActivated(c){
+  const ob = c.onboarding || {};
+  return ACTIVATION_SETTINGS.criteres.every(id => ob[id]);
+}
+function criteresManquants(c){
+  const ob = c.onboarding || {};
+  return ACTIVATION_SETTINGS.criteres.filter(id=>!ob[id])
+    .map(id=>(ONBOARDING_STEPS.find(s=>s.id===id)||{}).lab).filter(Boolean);
+}
+/* Statut recalculé : jamais saisi, toujours déduit de l'état réel */
+function clientStatut(c){
+  if(c.statutAbo === 'Résilié') return 'Résilié';
+  if(clientRisks(c).some(r=>r.k==='red')) return 'À surveiller';
+  if(isActivated(c)) return onboardingPct(c)===100 ? 'Client actif' : 'Activé';
+  const pct = onboardingPct(c);
+  if(pct === 0) return 'À onboarder';
+  return 'Onboarding en cours';
+}
+/* Alertes, seuils configurables */
+function clientRisks(c){
+  const r = [];
+  const A = ACTIVATION_SETTINGS;
+  if(onboardingPct(c) === 0 && c.signature && daysSince(c.signature) >= A.alerteOnboardingNonCommence)
+    r.push({ k:'red', txt:`Onboarding non commencé depuis ${daysSince(c.signature)} jours` });
+  if(!c.derniereConnexion && c.signature && daysSince(c.signature) >= A.alerteSansConnexion)
+    r.push({ k:'orange', txt:`Aucune connexion depuis la signature (${daysSince(c.signature)} j)` });
+  if(c.derniereConnexion && daysSince(c.derniereConnexion) >= A.alerteSansConnexion)
+    r.push({ k:'orange', txt:`Aucune connexion depuis ${daysSince(c.derniereConnexion)} jours` });
+  if(isActivated(c) && c.dernierUsage && daysSince(c.dernierUsage) >= A.alerteSansUsage)
+    r.push({ k:'red', txt:`Activé mais aucune utilisation depuis ${daysSince(c.dernierUsage)} jours` });
+  const ob = c.onboarding || {};
+  if(ob.form_plan && !ob.form_faite) r.push({ k:'orange', txt:'Formation planifiée mais non réalisée' });
+  if(c.moisPayes === 0 && c.debutAbo && daysSince(c.debutAbo) > 5)
+    r.push({ k:'orange', txt:'Paiement initial manquant' });
+  if(c.tigerflow === 'Erreur') r.push({ k:'red', txt:'Erreur de création dans TigerFlow' });
+  return r;
+}
+
+function toggleOnboardingStep(clientId, stepId){
+  const c = clientById(clientId); if(!c) return;
+  if(!c.onboarding) c.onboarding = {};
+  const etaitActive = isActivated(c);
+  c.onboarding[stepId] = !c.onboarding[stepId];
+  const step = ONBOARDING_STEPS.find(s=>s.id===stepId);
+  c.historique.push({ d:todayISO(), e:`${step.lab} — ${c.onboarding[stepId]?'fait':'annulé'}`, qui:CURRENT_USER.nom });
+  logAudit(`Onboarding — ${clientProspect(c).entreprise} : ${step.lab} ${c.onboarding[stepId]?'validé':'annulé'}`, c.prospectId, 'client');
+  /* Passage à activé : événement notable, tracé une seule fois */
+  if(!etaitActive && isActivated(c)){
+    c.historique.push({ d:todayISO(), e:'Client activé — tous les critères remplis', qui:'Système' });
+    logAudit(`Client activé — ${clientProspect(c).entreprise}`, c.prospectId, 'client');
+  }
+  renderSalesAll();
+}
+function setTigerflowState(clientId, state){
+  const c = clientById(clientId); if(!c) return;
+  c.tigerflow = state;
+  c.historique.push({ d:todayISO(), e:`TigerFlow : ${state}`, qui:CURRENT_USER.nom });
+  renderSalesAll();
+}
+function addClientAction(clientId){
+  const c = clientById(clientId); if(!c) return;
+  const action = prompt(`Prochaine action pour ${clientProspect(c).entreprise} :`, c.prochaineAction||'');
+  if(action === null) return;
+  const date = prompt('Date (AAAA-MM-JJ) :', c.prochaineActionDate || todayISO());
+  c.prochaineAction = action.trim() || null;
+  c.prochaineActionDate = date || null;
+  c.historique.push({ d:todayISO(), e:`Action planifiée : ${action.trim()}`, qui:CURRENT_USER.nom });
+  renderSalesAll();
+}
+
 function renderSalesClients(){
   const el = document.getElementById('sales-clientsContent'); if(!el) return;
-  const mrr = WON_CLIENTS.reduce((s,c)=>s+c.mrr,0);
+
+  /* ===== FICHE CLIENT ===== */
+  if(openClientId){
+    const c = clientById(openClientId);
+    if(!c){ openClientId=null; return renderSalesClients(); }
+    const p = clientProspect(c); const ct = clientContract(c); const q = clientQuote(c);
+    const o = offerById(c.offerId); const com = clientCommission(c);
+    const risks = clientRisks(c); const pct = onboardingPct(c);
+    const statut = clientStatut(c); const active = isActivated(c);
+    const os = ORIGINE_STYLE[p.origine] || ORIGINE_STYLE['Autre'];
+    const camp = p.campaignId ? campaigns.find(x=>x.id===p.campaignId) : null;
+    const meets = prospectMeetings(p.id);
+    const manquants = criteresManquants(c);
+
+    el.innerHTML = `
+      <div class="btn-back" onclick="closeClient()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux clients</div>
+      <div class="pros-hero">
+        <div style="flex:1;min-width:260px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+            <h1 style="margin-bottom:0">${esc(p.entreprise)}</h1>${clientStatusBadge(statut)}
+            <span class="badge" style="background:${os.bg};color:${os.c}">${ic(os.icon,11)} ${esc(p.source)}</span>${sectorBadge(p.sectorId)}</div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
+            <span>${ic('ti-user-check',13)} ${esc(p.contact)} · ${esc(p.fonction)}</span>
+            <span>${ic('ti-file-invoice',13)} ${esc(o?o.nom:'—')} · ${c.users} utilisateurs</span>
+            <span>${ic('ti-calendar',13)} Signé le ${fmtDate(c.signature)}</span>
+          </div>
+        </div>
+        <div class="pros-hero-metrics">
+          <div class="phm-item"><div class="phm-val">${c.mrr} €</div><div class="phm-lab">MRR</div>
+            <div class="phm-sub">${c.montantAnnuel} € ARR</div></div>
+          <div class="phm-sep"></div>
+          <div class="phm-item" style="text-align:left">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span class="pc-avatar" style="background:${repColor(c.repId)};width:30px;height:30px;font-size:11px">${esc(repInitials(c.repId))}</span>
+              <div><div style="font-size:13px;font-weight:800">${esc(repName(c.repId))}</div>
+                <div class="phm-lab" style="text-align:left">Commercial</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      ${risks.length ? risks.map(r=>`<div class="alert warn" style="margin-bottom:12px">
+        <div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+        <div class="alert-text"><b>${esc(r.txt)}.</b></div></div>`).join('')
+      : active ? `<div class="alert opp" style="margin-bottom:16px">
+        <div class="alert-icon">${ic('ti-circle-check',14)}</div>
+        <div class="alert-text"><b>Client activé.</b> Tous les critères d'activation sont remplis.${pct<100?` Onboarding à ${pct}% — ${onboardingRestantes(c).length} étape${onboardingRestantes(c).length>1?'s':''} restante${onboardingRestantes(c).length>1?'s':''}.`:''}</div></div>`
+      : `<div class="alert warn" style="margin-bottom:16px">
+        <div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+        <div class="alert-text"><b>Client pas encore activé.</b> Il manque : ${manquants.map(x=>esc(x)).join(', ')}.</div></div>`}
+
+      ${c.prochaineAction?`<div class="next-action-hero ${c.prochaineActionDate && c.prochaineActionDate < todayISO() ? 'late':''}">
+        <div class="nah-icon">${ic('ti-flag',18)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em">Prochaine action</div>
+          <div style="font-size:15px;font-weight:800;margin:3px 0">${esc(c.prochaineAction)}</div>
+          <div style="font-size:12px;color:var(--th-text-2)">${c.prochaineActionDate?fmtDate(c.prochaineActionDate):'Non planifiée'}</div></div>
+        <button class="btn-ghost" onclick="addClientAction('${c.id}')">Modifier</button>
+      </div>`:''}
+
+      <!-- PARCOURS COMMERCIAL -->
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-header"><div class="card-title">${ic('ti-timeline',17)}<span>Parcours commercial</span></div></div>
+        <div class="pros-pipe">
+          ${[
+            {lab:'Prospect', icon:'ti-user-plus', fn:`openProspect('${p.id}')`, date:p.cree},
+            {lab:'Pipeline', icon:'ti-timeline', fn:`gotoSales('pipeline')`, date:null},
+            {lab:'RDV', icon:'ti-calendar', fn:`gotoSales('meetings')`, date:meets.length?meets[0].date:null},
+            {lab:'Démo', icon:'ti-presentation', fn:`gotoSales('meetings')`, date:(meets.find(m=>m.compteRendu)||{}).date},
+            {lab:'Devis', icon:'ti-file-invoice', fn:q?`gotoSales('quotes');setTimeout(()=>openQuote('${q.id}'),60)`:`gotoSales('quotes')`, date:q?q.date:null},
+            {lab:'Contrat', icon:'ti-file-certificate', fn:ct?`gotoSales('contracts');setTimeout(()=>openContract('${ct.id}'),60)`:`gotoSales('contracts')`, date:ct?ct.envoye:null},
+            {lab:'Client', icon:'ti-trophy', fn:'', date:c.signature},
+          ].map((s,i,arr)=>`
+            <div class="pp-step done" ${s.fn?`onclick="${s.fn}" style="cursor:pointer"`:''}>
+              <div class="pp-icon">${ic(s.icon,15)}</div>
+              <div class="pp-lab">${s.lab}</div>
+              <div style="font-size:9.5px;color:var(--th-text-3)">${s.date?fmtDate(s.date):''}</div>
+            </div>${i<arr.length-1?`<div class="pp-line done"></div>`:''}`).join('')}
+        </div>
+        ${camp?`<div class="hint-bar" style="margin-top:14px">${ic('ti-target-arrow',15)}<span>Origine marketing conservée : <b>${esc(camp.title)}</b> · ${esc(p.source)}.
+          <span class="obj-link" onclick="selectModule('marketing');setTimeout(()=>goToCampaign('${camp.id}'),80)">Voir la campagne →</span></span></div>`:''}
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <!-- ONBOARDING -->
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-checklist',17)}<span>Onboarding</span></div>
+              <span class="badge ${pct===100?'green':'orange'}" style="${pct===100?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${pct}%</span></div>
+            <div style="background:var(--th-bg-alt);border-radius:8px;height:8px;overflow:hidden;margin-bottom:16px">
+              <div style="height:100%;width:${pct}%;border-radius:8px;background:${pct===100?'var(--th-green)':'var(--th-orange)'};transition:width .2s"></div></div>
+            ${ONBOARDING_STEPS.map(s=>{
+              const done = (c.onboarding||{})[s.id];
+              const critere = ACTIVATION_SETTINGS.criteres.includes(s.id);
+              return `<div class="check-row ${done?'done':'todo'}" onclick="toggleOnboardingStep('${c.id}','${s.id}')" style="cursor:pointer">
+                <div class="check-dot">${done?ic('ti-circle-check',11):''}</div>
+                <span style="flex:1">${esc(s.lab)}</span>
+                ${critere?`<span class="badge" style="font-size:9.5px" title="Critère d'activation">${ic('ti-flag',9)} activation</span>`:''}
+                ${s.optionnel?'<span class="badge gray" style="font-size:9.5px">optionnel</span>':''}</div>`;
+            }).join('')}
+            ${!active?`<div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>Le client sera <b>activé</b> quand les ${ACTIVATION_SETTINGS.criteres.length} critères marqués seront remplis. Ces critères sont réglables dans Paramètres.</span></div>`:''}
+          </div>
+
+          <!-- HISTORIQUE -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">${ic('ti-history',17)}<span>Historique</span></div></div>
+            ${c.historique.map(h=>`<div class="hist-row">
+              <div class="hist-icon">${ic('ti-circle-check',13)}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600">${esc(h.e)}</div>
+                <div style="font-size:11px;color:var(--th-text-3)">${esc(h.qui||'—')}</div></div>
+              <span style="font-size:11.5px;color:var(--th-text-3);white-space:nowrap">${fmtDate(h.d)}</span></div>`).join('')}
+          </div>
+        </div>
+
+        <div>
+          <!-- ABONNEMENT -->
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-repeat',17)}<span>Abonnement</span></div>
+              <span class="badge ${c.statutAbo==='Actif'?'green':'orange'}" style="${c.statutAbo!=='Actif'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(c.statutAbo)}</span></div>
+            <div style="font-size:12.5px;line-height:2.1">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Offre</span><b>${esc(o?o.nom:'—')}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Utilisateurs</span><b>${c.users}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Début</span><b>${fmtDate(c.debutAbo)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Mois payés</span><b>${c.moisPayes}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Dernière connexion</span>
+                <b style="${!c.derniereConnexion?'color:var(--th-red)':''}">${c.derniereConnexion?fmtDate(c.derniereConnexion):'Jamais'}</b></div>
+            </div>
+          </div>
+
+          <!-- TIGERFLOW -->
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-share',17)}<span>Compte TigerFlow</span></div></div>
+            <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px">
+              ${TIGERFLOW_STATES.map(s=>`<button class="filter-chip${c.tigerflow===s?' active':''}" onclick="setTigerflowState('${c.id}','${s}')">${s}</button>`).join('')}
+            </div>
+            <div style="font-size:12.5px;color:var(--th-text-2);line-height:1.75">Les informations du contrat — entreprise, contacts, secteur, offre, utilisateurs, abonnement — sont <b>disponibles pour la création du compte</b>. Rien n'est à ressaisir.</div>
+            <div class="hint-bar" style="margin-top:12px">${ic('ti-alert-triangle',15)}<span>Création automatique dans TigerFlow — <b>à connecter</b>. Le statut se règle à la main pour l'instant.</span></div>
+          </div>
+
+          <!-- COMMISSION -->
+          ${com?`<div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-coin',17)}<span>Commission</span></div>
+              <span class="badge ${com.statut==='Acquise'||com.statut==='Payée'?'green':com.statut==='En attente'?'orange':'red'}" style="${com.statut==='En attente'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(com.statut)}</span></div>
+            <div style="font-size:24px;font-weight:800;margin-bottom:3px">${com.montant} €</div>
+            <div style="font-size:12px;color:var(--th-text-2);margin-bottom:14px">${esc(com.typeAcq)} · ${esc(repName(com.repId))}</div>
+            ${com.statut==='En attente'?`
+              ${Array.from({length:com.moisRequis},(_,i)=>`
+                <div style="display:flex;align-items:center;gap:9px;padding:5px 0;font-size:12.5px">
+                  <div class="check-dot" style="${i<com.moisPayes?'background:var(--th-green);border-color:var(--th-green);color:#fff':''}">${i<com.moisPayes?ic('ti-circle-check',10):''}</div>
+                  <span style="flex:1">Mois ${i+1}</span>
+                  <span style="color:${i<com.moisPayes?'var(--th-green)':'var(--th-text-3)'};font-weight:600">${i<com.moisPayes?'payé':'en attente'}</span></div>`).join('')}
+              <div class="hint-bar" style="margin-top:12px">${ic('ti-alert-triangle',15)}<span>Acquise après <b>${com.moisRequis} mois payés</b>. Une résiliation avant ce seuil l'annule.</span></div>`:''}
+            <button class="btn-ghost" style="margin-top:12px;width:100%" onclick="gotoSales('commissions')">Voir les commissions →</button>
+          </div>`:''}
+
+          <!-- ACTIONS -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">${ic('ti-link',17)}<span>Accès rapides</span></div></div>
+            <div class="mp-links">
+              <div class="mp-link" onclick="openProspect('${p.id}')">${ic('ti-user-plus',15)}
+                <div style="flex:1"><div style="font-size:12.5px;font-weight:700">Prospect d'origine</div>
+                  <div style="font-size:11px;color:var(--th-text-2)">${esc(p.contact)} · ${esc(p.tel)}</div></div>${ic('ti-arrow-left',13)}</div>
+              ${ct?`<div class="mp-link" onclick="gotoSales('contracts');setTimeout(()=>openContract('${ct.id}'),60)">${ic('ti-file-certificate',15)}
+                <div style="flex:1"><div style="font-size:12.5px;font-weight:700">${esc(ct.numero)}</div>
+                  <div style="font-size:11px;color:var(--th-text-2)">Signé le ${fmtDate(ct.signe)}</div></div>${ic('ti-arrow-left',13)}</div>`:''}
+              ${q?`<div class="mp-link" onclick="gotoSales('quotes');setTimeout(()=>openQuote('${q.id}'),60)">${ic('ti-file-invoice',15)}
+                <div style="flex:1"><div style="font-size:12.5px;font-weight:700">Devis d'origine</div>
+                  <div style="font-size:11px;color:var(--th-text-2)">${q.montantAnnuel} € / an</div></div>${ic('ti-arrow-left',13)}</div>`:''}
+              <div class="mp-link" onclick="gotoSales('reps')">${ic('ti-briefcase',15)}
+                <div style="flex:1"><div style="font-size:12.5px;font-weight:700">${esc(repName(c.repId))}</div>
+                  <div style="font-size:11px;color:var(--th-text-2)">Fiche commercial</div></div>${ic('ti-arrow-left',13)}</div>
+              <div class="mp-link" onclick="addClientAction('${c.id}')">${ic('ti-flag',15)}
+                <div style="flex:1"><div style="font-size:12.5px;font-weight:700">Planifier une action</div>
+                  <div style="font-size:11px;color:var(--th-text-2)">Relance, formation, point d'étape</div></div>${ic('ti-arrow-left',13)}</div>
+            </div>
+            <div class="hint-bar" style="margin-top:12px">${ic('ti-bulb',15)}<span>Ce client <b>est</b> le prospect d'origine — une seule fiche, enrichie à chaque étape.</span></div>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  /* ===== LISTE ===== */
+  let list = WON_CLIENTS.filter(c=>{ const p = clientProspect(c); return p && matchSector(p.sectorId); });
+  if(!canSeeAllReps()) list = list.filter(c=>c.repId===CURRENT_USER.id);
+  else if(clFilterRep!=='Tous') list = list.filter(c=>c.repId===clFilterRep);
+  if(clFilterStatut!=='Tous') list = list.filter(c=>clientStatut(c)===clFilterStatut);
+  if(clFilterOrigine!=='Toutes') list = list.filter(c=>{ const p=clientProspect(c); return p.origine===clFilterOrigine; });
+  if(clFilterOffre!=='Toutes') list = list.filter(c=>c.offerId===clFilterOffre);
+  if(clFilterRisque) list = list.filter(c=>clientRisks(c).length);
+
+  const tous = WON_CLIENTS.filter(c=>{ const p = clientProspect(c); return p && matchSector(p.sectorId); });
+  const mrr = tous.reduce((s,c)=>s+c.mrr,0);
+  const arr = tous.reduce((s,c)=>s+c.montantAnnuel,0);
+  const aOnboarder = tous.filter(c=>['À onboarder','Onboarding en cours'].includes(clientStatut(c)));
+  const actives = tous.filter(c=>isActivated(c));
+  const aRisque = tous.filter(c=>clientRisks(c).length);
+  /* Taux de transformation depuis les prospects du périmètre */
+  const prospects = scopedProspects();
+  const decides = prospects.filter(p=>['Gagné','Perdu'].includes(p.stage)).length;
+  const tauxTransfo = decides ? Math.round(prospects.filter(p=>p.stage==='Gagné').length / decides * 100) : 0;
+
+  /* À surveiller */
+  const alertes = [];
+  tous.forEach(c=>{ const p = clientProspect(c);
+    clientRisks(c).forEach(r=>alertes.push({ ...r, titre:p.entreprise, id:c.id, qui:repName(c.repId) })); });
+
   el.innerHTML = sectorSelector() + `
-    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-      <div class="stat-card green"><div class="val">${WON_CLIENTS.length}</div><div class="label">Clients gagnés</div></div>
-      <div class="stat-card"><div class="val">${mrr} €</div><div class="label">MRR généré</div></div>
-      <div class="stat-card purple"><div class="val">${WON_CLIENTS.reduce((s,c)=>s+c.montantAnnuel,0)} €</div><div class="label">Valeur annuelle</div></div>
-      <div class="stat-card blue"><div class="val">${WON_CLIENTS.filter(c=>c.statutAbo==='Actif').length}</div><div class="label">Abonnements actifs</div></div>
+    <div class="ana-filters" style="margin-bottom:16px">
+      ${canSeeAllReps()?`<div class="ana-filter-group"><span class="ana-filter-lab">Commercial</span>
+        <select class="status-select" onchange="setCl('rep',this.value)">
+          <option value="Tous" ${clFilterRep==='Tous'?'selected':''}>Tous</option>
+          ${SALES_REPS.map(r=>`<option value="${r.id}" ${clFilterRep===r.id?'selected':''}>${esc(r.nom)}</option>`).join('')}</select></div>`
+        :`<div class="ana-filter-group"><span class="ana-filter-lab">Portefeuille</span>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 0">
+            <span class="pc-avatar" style="background:${repColor(CURRENT_USER.id)};width:22px;height:22px;font-size:9.5px">${esc(repInitials(CURRENT_USER.id))}</span>
+            <span style="font-size:12.5px;font-weight:600">Mes clients</span></div></div>`}
+      <div class="ana-filter-group"><span class="ana-filter-lab">Statut</span>
+        <select class="status-select" onchange="setCl('statut',this.value)">
+          <option value="Tous" ${clFilterStatut==='Tous'?'selected':''}>Tous</option>
+          ${CLIENT_STATUSES.map(s=>`<option ${clFilterStatut===s?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Origine</span>
+        <select class="status-select" onchange="setCl('origine',this.value)">
+          <option value="Toutes" ${clFilterOrigine==='Toutes'?'selected':''}>Toutes</option>
+          ${ORIGINES.map(o=>`<option ${clFilterOrigine===o?'selected':''}>${esc(o)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Offre</span>
+        <select class="status-select" onchange="setCl('offre',this.value)">
+          <option value="Toutes" ${clFilterOffre==='Toutes'?'selected':''}>Toutes</option>
+          ${TF_OFFERS.map(o=>`<option value="${o.id}" ${clFilterOffre===o.id?'selected':''}>${esc(o.nom)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Risque</span>
+        <button class="filter-chip${clFilterRisque?' active':''}" onclick="toggleClRisque()" style="${aRisque.length&&!clFilterRisque?'border-color:var(--th-red);color:var(--th-red)':''}">
+          ${ic('ti-alert-triangle',12)} À surveiller${aRisque.length?` · ${aRisque.length}`:''}</button></div>
     </div>
-    <table class="data-table"><thead><tr><th>Client</th><th>Commercial</th><th>Signature</th><th>Début abonnement</th><th>Montant annuel</th><th>MRR</th><th>Mois payés</th><th>Statut</th></tr></thead><tbody>
-      ${WON_CLIENTS.map(c=>{ const p = prospectById(c.prospectId);
-        return `<tr onclick="openProspect('${c.prospectId}')" style="cursor:pointer">
-          <td class="dt-title">${esc(p?p.entreprise:'—')}</td>
-          <td style="font-size:12.5px">${esc(repName(c.repId))}</td>
-          <td style="font-size:12px">${fmtDate(c.signature)}</td>
-          <td style="font-size:12px">${fmtDate(c.debutAbo)}</td>
-          <td style="font-weight:700">${c.montantAnnuel} €</td>
-          <td>${c.mrr} €</td>
-          <td>${c.moisPayes}</td>
-          <td><span class="badge green">${esc(c.statutAbo)}</span></td></tr>`; }).join('')
-        || `<tr><td colspan="8" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun client gagné pour l'instant.</td></tr>`}
+
+    <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-trophy')}</div>
+        <div class="val">${tous.length}</div><div class="label">Clients gagnés</div></div>
+      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-coin')}</div>
+        <div class="val">${mrr} €</div><div class="label">MRR gagné · ${arr} € ARR</div></div>
+      <div class="stat-card ${aOnboarder.length?'orange':''}"><div class="stat-card-icon">${ic('ti-checklist')}</div>
+        <div class="val">${aOnboarder.length}</div><div class="label">Onboarding en cours</div></div>
+      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-circle-check')}</div>
+        <div class="val">${actives.length}</div><div class="label">Clients activés</div></div>
+      <div class="stat-card ${aRisque.length?'red':''}"><div class="stat-card-icon">${ic('ti-alert-triangle')}</div>
+        <div class="val">${aRisque.length}</div><div class="label">À surveiller</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-chart-donut-3')}</div>
+        <div class="val">${tauxTransfo}%</div><div class="label">Taux de transformation</div></div>
+    </div>
+
+    ${alertes.length ? `<div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">${ic('ti-alert-triangle',17)}<span>À surveiller</span></div>
+        <span class="badge ${alertes.some(a=>a.k==='red')?'red':'orange'}" style="${alertes.some(a=>a.k==='red')?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${alertes.length}</span></div>
+      ${alertes.slice(0,6).map(a=>`<div class="todo-row" onclick="openClient('${a.id}')">
+        <span class="todo-dot" style="background:var(--th-${a.k})"></span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:700;margin-bottom:2px">${esc(a.titre)}</div>
+          <div style="font-size:12px;color:var(--th-${a.k});font-weight:600">${esc(a.txt)}</div>
+          <div style="font-size:11px;color:var(--th-text-3);margin-top:2px">${esc(a.qui)}</div></div>
+        <span class="todo-action">Ouvrir →</span></div>`).join('')}
+    </div>` : tous.length ? `<div class="alert opp" style="margin-bottom:16px">
+      <div class="alert-icon">${ic('ti-circle-check',14)}</div>
+      <div class="alert-text"><b>Aucun client à surveiller.</b> Onboardings et abonnements sont en ordre.</div></div>` : ''}
+
+    <table class="data-table"><thead><tr>
+      <th>Entreprise</th><th>Contact</th><th>Origine</th><th>Commercial</th><th>Offre</th>
+      <th>MRR / ARR</th><th>Signature</th><th>Onboarding</th><th>Statut</th><th>Prochaine action</th></tr></thead><tbody>
+      ${list.sort((a,b)=>new Date(b.signature)-new Date(a.signature)).map(c=>{
+        const p = clientProspect(c); const o = offerById(c.offerId);
+        const pct = onboardingPct(c); const os = ORIGINE_STYLE[p.origine]||ORIGINE_STYLE['Autre'];
+        const retard = c.prochaineActionDate && c.prochaineActionDate < todayISO();
+        return `<tr onclick="openClient('${c.id}')" style="cursor:pointer">
+          <td><div class="dt-title">${esc(p.entreprise)}</div><div class="dt-sub">${esc(p.ville)}</div></td>
+          <td style="font-size:12.5px">${esc(p.contact)}</td>
+          <td><span class="badge" style="background:${os.bg};color:${os.c};font-size:10px">${esc(p.source)}</span></td>
+          <td><div style="display:flex;align-items:center;gap:7px">
+            <span class="pc-avatar" style="background:${repColor(c.repId)};width:22px;height:22px;font-size:9.5px">${esc(repInitials(c.repId))}</span>
+            <span style="font-size:12px">${esc(repName(c.repId).split(' ')[0])}</span></div></td>
+          <td style="font-size:12px">${esc(o?o.nom.replace('TigerFlow ',''):'—')}<div class="dt-sub">${c.users} util.</div></td>
+          <td style="white-space:nowrap"><b>${c.mrr} €</b><div class="dt-sub">${c.montantAnnuel} € / an</div></td>
+          <td style="font-size:12px;white-space:nowrap">${fmtDate(c.signature)}<div class="dt-sub">Début ${fmtDate(c.debutAbo)}</div></td>
+          <td style="width:110px"><div style="display:flex;align-items:center;gap:7px">
+            <div style="flex:1;background:var(--th-bg-alt);border-radius:5px;height:5px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;border-radius:5px;background:${pct===100?'var(--th-green)':'var(--th-orange)'}"></div></div>
+            <span style="font-size:11px;font-weight:700">${pct}%</span></div></td>
+          <td>${clientStatusBadge(clientStatut(c))}</td>
+          <td style="font-size:12px">${c.prochaineAction
+            ? `${esc(c.prochaineAction)}<div class="dt-sub" style="${retard?'color:var(--th-red);font-weight:700':''}">${c.prochaineActionDate?fmtDate(c.prochaineActionDate):''}${retard?' · en retard':''}</div>`
+            : '<span style="color:var(--th-text-3)">—</span>'}</td></tr>`;
+      }).join('') || `<tr><td colspan="10" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun client pour ces filtres.</td></tr>`}
     </tbody></table>
-    <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Un client est créé <b>automatiquement</b> quand un contrat est signé. Jamais à la main — tout l'historique du prospect est conservé. L'onboarding se poursuit dans <b>Success client</b>.</span></div>`;
+
+    <div class="grid-2" style="margin-top:20px">
+      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-flag',17)}<span>Critères d'activation</span></div></div>
+        <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.7;margin-bottom:12px">Un client n'est <b>pas</b> considéré activé parce que son contrat est signé. Ces critères définissent l'activation réelle :</p>
+        ${ONBOARDING_STEPS.map(s=>{
+          const actif = ACTIVATION_SETTINGS.criteres.includes(s.id);
+          return `<div style="display:flex;align-items:center;gap:11px;padding:7px 0;border-bottom:1px solid var(--th-border)">
+            <div class="param-toggle ${actif?'on':''}" ${can('modifierRegles')?`onclick="toggleActivationCriterion('${s.id}')" style="cursor:pointer"`:''}><div class="param-knob"></div></div>
+            <span style="flex:1;font-size:12.5px;font-weight:${actif?'700':'500'}">${esc(s.lab)}</span></div>`;
+        }).join('')}
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-alert-triangle',17)}<span>Seuils d'alerte</span></div></div>
+        ${[['alerteOnboardingNonCommence','Onboarding non commencé'],['alerteSansConnexion','Aucune connexion'],['alerteSansUsage','Aucune utilisation après activation']].map(x=>`
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--th-border)">
+            <span style="flex:1;font-size:12.5px;font-weight:600">${x[1]}</span>
+            <input class="stat-input" type="number" style="width:64px" value="${ACTIVATION_SETTINGS[x[0]]}"
+              onchange="ACTIVATION_SETTINGS['${x[0]}']=Number(this.value)||0;renderSalesClients()">
+            <span style="font-size:12px;color:var(--th-text-2)">jours</span></div>`).join('')}
+        <div class="hint-bar" style="margin-top:12px">${ic('ti-bulb',15)}<span>Ces seuils valent pour <b>tous les secteurs</b>. Ils s'appliqueront à la plomberie comme à la dératisation.</span></div>
+      </div>
+    </div>
+
+    <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Un client gagné <b>est</b> le prospect d'origine, enrichi du contrat et de l'abonnement. Aucune seconde fiche n'est créée — ni ici, ni dans TigerFlow.</span></div>`;
+}
+function toggleActivationCriterion(id){
+  const i = ACTIVATION_SETTINGS.criteres.indexOf(id);
+  if(i>=0) ACTIVATION_SETTINGS.criteres.splice(i,1); else ACTIVATION_SETTINGS.criteres.push(id);
+  renderSalesAll();
 }
 
 /* ---------- 9. COMMISSIONS ----------
