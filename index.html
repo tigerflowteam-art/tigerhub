@@ -414,6 +414,10 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .lead-card.late{border-left:3px solid var(--th-red)}
 .lead-check{width:22px;height:22px;border-radius:7px;border:1.6px solid var(--th-border);background:var(--th-card);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#fff}
 .lead-check.on{background:var(--th-orange);border-color:var(--th-orange)}
+.pc-rep{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--th-border)}
+.pc-avatar{width:20px;height:20px;border-radius:7px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;letter-spacing:-0.02em}
+.pc-rep-name{flex:1;font-size:11px;font-weight:700;color:var(--th-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-age{font-size:10px;color:var(--th-text-3);font-weight:600;flex-shrink:0}
 .pc-origine{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;border-radius:5px;padding:2px 6px;margin-bottom:7px}
 .pc-value{display:flex;align-items:baseline;gap:4px;margin-bottom:7px}
 .pc-proba{display:flex;align-items:center;gap:7px;margin-bottom:7px;cursor:pointer;font-size:10px;color:var(--th-text-2);font-weight:700}
@@ -5741,6 +5745,17 @@ const SALES_REPS = [
     zone:'Île-de-France', secteurs:['derat'], modes:['Téléphone'],
     objectifMensuel:4, isOwner:false },
 ];
+/* Initiales et couleur stables — dérivées du commercial, jamais stockées */
+function repInitials(id){
+  const r = SALES_REPS.find(x=>x.id===id);
+  if(!r) return '?';
+  return r.nom.split(' ').map(w=>w.charAt(0)).slice(0,2).join('').toUpperCase();
+}
+function repColor(id){
+  const palette = ['#F97316','#0A66C2','#7C3AED','#0F766E','#EC4899','#B45309'];
+  const i = SALES_REPS.findIndex(x=>x.id===id);
+  return palette[(i<0?0:i) % palette.length];
+}
 function repName(id){ const r = SALES_REPS.find(x=>x.id===id); return r?r.nom:'—'; }
 
 /* Prospects — base commune à toute la prospection */
@@ -6616,7 +6631,6 @@ function renderProspects(){
           <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
             <span>${ic('ti-user-check',13)} ${esc(p.contact)} · ${esc(p.fonction)}</span>
             <span>${ic('ti-map',13)} ${esc(p.ville)}</span>
-            <span>${ic('ti-briefcase',13)} ${esc(repName(p.repId))}</span>
             <span>${ic('ti-share',13)} ${esc(p.source)}</span>
             <span class="badge" style="font-size:10.5px">${esc(acquisitionType(p))}</span>
           </div>
@@ -6632,8 +6646,23 @@ function renderProspects(){
             <div class="phm-val" style="font-size:15px">${p.dernierContact?fmtDate(p.dernierContact):'Jamais'}</div>
             <div class="phm-lab">Dernier contact</div>
           </div>
+          <div class="phm-sep"></div>
+          <div class="phm-item" style="text-align:left">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span class="pc-avatar" style="background:${repColor(p.repId)};width:32px;height:32px;font-size:12px">${esc(repInitials(p.repId))}</span>
+              <div><div style="font-size:13.5px;font-weight:800;line-height:1.2">${esc(repName(p.repId))}</div>
+                <div class="phm-lab" style="text-align:left">Commercial responsable</div></div>
+            </div>
+            <button class="btn-ghost" style="margin-top:8px;padding:5px 10px;font-size:11px" onclick="reassign('${p.id}')">
+              ${can('attribuer')?'Réattribuer':'Demander une réattribution'}</button>
+          </div>
         </div>
       </div>
+
+      ${p.demandeReattribution?`<div class="alert warn" style="margin-bottom:16px">
+        <div class="alert-icon">${ic('ti-repeat',14)}</div>
+        <div class="alert-text"><b>Réattribution demandée</b> par ${esc(p.demandeReattribution.par)} le ${fmtDate(p.demandeReattribution.date)} — ${esc(p.demandeReattribution.motif)}.
+        ${can('attribuer')?' À traiter.':' En attente de décision de l\'Owner.'}</div></div>`:''}
 
       <!-- PROCHAINE ACTION : le plus important, isolé -->
       ${p.prochaineAction ? `<div class="next-action-hero ${retard?'late':''}">
@@ -7306,6 +7335,27 @@ function markWon(id){
   logAudit(`Opportunité gagnée — ${p.entreprise}`, p.id, 'pipeline');
   renderSalesAll();
 }
+/* Le commercial est un attribut du prospect : réattribuer met à jour la source unique */
+function reassign(id){
+  const p = prospectById(id); if(!p) return;
+  if(!can('attribuer')){
+    const raison = prompt(`Demander la réattribution de « ${p.entreprise} »\n\nMotif (transmis à l'Owner) :`);
+    if(!raison || !raison.trim()) return;
+    p.demandeReattribution = { motif:raison.trim(), par:CURRENT_USER.nom, date:todayISO() };
+    logAudit(`Demande de réattribution — ${p.entreprise} par ${CURRENT_USER.nom} (${raison.trim()})`, p.id, 'attribution');
+    alert("Demande envoyée.\n\nVous ne pouvez pas réattribuer vous-même : l'Owner décidera. L'opportunité reste dans votre portefeuille en attendant.");
+    return renderSalesAll();
+  }
+  const autres = SALES_REPS.filter(r=>r.id!==p.repId);
+  const choix = prompt(`Réattribuer « ${p.entreprise} »\n\nActuellement : ${repName(p.repId)}\n\n${autres.map((r,i)=>`${i+1}. ${r.nom}`).join('\n')}\n\nNuméro :`);
+  const i = parseInt(choix,10)-1;
+  if(isNaN(i) || !autres[i]) return;
+  const ancien = repName(p.repId);
+  p.repId = autres[i].id;
+  p.demandeReattribution = null;
+  logAudit(`Opportunité réattribuée de ${ancien} à ${autres[i].nom} par ${CURRENT_USER.nom} — ${p.entreprise}`, p.id, 'attribution');
+  renderSalesAll();
+}
 function markLost(id){
   const p = prospectById(id); if(!p) return;
   const choix = prompt(`Marquer « ${p.entreprise} » comme perdu.\n\nRaison :\n${LOSS_REASONS.map((r,i)=>`${i+1}. ${r}`).join('\n')}\n\nNuméro :`);
@@ -7376,7 +7426,11 @@ function renderSalesPipeline(){
       ${alerts.length?`<div class="pipe-alerts">${alerts.slice(0,2).map(a=>`
         <div class="pipe-alert ${a.k}">${ic('ti-alert-triangle',10)}${esc(a.txt)}</div>`).join('')}</div>`:''}
       ${p.prochaineAction?`<div class="pipe-next" style="${retard?'color:var(--th-red)':''}">${esc(p.prochaineAction)}${p.prochainContact?` · ${fmtDate(p.prochainContact)}`:''}</div>`:''}
-      <div class="pipe-foot"><span>${esc(repName(p.repId))}</span><span>${stageDays(p)} j</span></div>
+      <div class="pc-rep" title="Commercial responsable">
+        <span class="pc-avatar" style="background:${repColor(p.repId)}">${esc(repInitials(p.repId))}</span>
+        <span class="pc-rep-name">${esc(repName(p.repId))}</span>
+        <span class="pc-age">${stageDays(p)} j</span>
+      </div>
     </div>`;
   };
 
@@ -7420,7 +7474,9 @@ function renderSalesPipeline(){
         <td><div class="dt-title">${esc(p.entreprise)}</div><div class="dt-sub">${esc(p.contact)}</div></td>
         <td>${origineBadge(p.origine||'Autre')}</td>
         <td style="font-size:12px;color:var(--th-text-2)">${esc(p.source)}</td>
-        <td style="font-size:12px;color:var(--th-text-2)">${esc(repName(p.repId))}</td>
+        <td><div style="display:flex;align-items:center;gap:7px">
+          <span class="pc-avatar" style="background:${repColor(p.repId)};width:22px;height:22px;font-size:9.5px">${esc(repInitials(p.repId))}</span>
+          <span style="font-size:12px">${esc(repName(p.repId))}</span></div></td>
         <td>${stageBadge(p.stage)}</td>
         <td style="white-space:nowrap">${p.valeur?`<b>${prospectMRR(p)} €</b><div class="dt-sub">${p.valeur} €/an</div>`:'—'}</td>
         <td>${probaOf(p)}%${isManualProba(p)?' <span title="Ajustée manuellement">✎</span>':''}</td>
@@ -7440,11 +7496,17 @@ function renderSalesPipeline(){
   el.innerHTML = sectorSelector() + `
     <div class="ana-filters" style="margin-bottom:16px">
       ${canSeeAllReps()?`<div class="ana-filter-group"><span class="ana-filter-lab">Commercial</span>
-        <select class="status-select" onchange="setPipe('rep',this.value)">
-          <option value="Tous" ${pipeRep==='Tous'?'selected':''}>Tous</option>
-          ${SALES_REPS.map(r=>`<option value="${r.id}" ${pipeRep===r.id?'selected':''}>${esc(r.nom)}</option>`).join('')}</select></div>`
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select class="status-select" onchange="setPipe('rep',this.value)">
+            <option value="Tous" ${pipeRep==='Tous'?'selected':''}>Tous les commerciaux</option>
+            ${SALES_REPS.map(r=>`<option value="${r.id}" ${pipeRep===r.id?'selected':''}>${esc(r.nom)}</option>`).join('')}</select>
+          <button class="filter-chip${pipeRep===CURRENT_USER.id?' active':''}" onclick="setPipe('rep','${CURRENT_USER.id}')">${ic('ti-user-check',12)} Mes opportunités</button>
+        </div></div>`
         :`<div class="ana-filter-group"><span class="ana-filter-lab">Portefeuille</span>
-          <div style="padding:9px 0"><span class="badge">${ic('ti-lock',11)} Mes opportunités</span></div></div>`}
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 0">
+            <span class="pc-avatar" style="background:${repColor(CURRENT_USER.id)};width:22px;height:22px;font-size:9.5px">${esc(repInitials(CURRENT_USER.id))}</span>
+            <span style="font-size:12.5px;font-weight:600">Mes opportunités</span>
+            <span style="font-size:11px;color:var(--th-text-3)">${ic('ti-lock',11)}</span></div></div>`}
       <div class="ana-filter-group"><span class="ana-filter-lab">Type d'acquisition</span>
         <select class="status-select" onchange="setPipe('acq',this.value)">
           <option value="Tous" ${pipeAcq==='Tous'?'selected':''}>Tous</option>
