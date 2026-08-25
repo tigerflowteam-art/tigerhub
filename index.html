@@ -461,6 +461,15 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .mp-link:hover{border-color:var(--th-orange);color:var(--th-orange)}
 .mp-block{border-top:1px solid var(--th-border);padding-top:14px;margin-top:14px}
 .mp-lab{font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.sign-flow{display:flex;align-items:flex-start;gap:0}
+.sf-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+.sf-dot{width:22px;height:22px;border-radius:50%;background:var(--th-bg-alt);border:2px solid var(--th-border);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+.sf-step.done .sf-dot{background:var(--th-green);border-color:var(--th-green)}
+.sf-lab{font-size:10.5px;font-weight:700;color:var(--th-text-3);text-align:center}
+.sf-step.done .sf-lab{color:var(--th-text)}
+.sf-date{font-size:9.5px;color:var(--th-text-3);text-align:center}
+.sf-line{flex:1;height:2px;background:var(--th-border);margin-top:11px;min-width:8px}
+.sf-line.done{background:var(--th-green)}
 .nq-total{display:flex;gap:26px;background:var(--th-bg-alt);border-radius:13px;padding:16px 20px;margin-top:16px;flex-wrap:wrap}
 .nm-recap{display:flex;align-items:center;gap:14px;background:var(--th-bg-alt);border-radius:12px;padding:13px 15px;margin-top:12px;flex-wrap:wrap}
 .meeting-time{width:52px;text-align:center;flex-shrink:0;background:var(--th-bg-alt);border-radius:10px;padding:8px 0}
@@ -775,6 +784,7 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 </aside>
 <div id="app"></div>
 <div class="modal-overlay" id="wizard-overlay"><div class="wiz-modal"><div id="wizard-body"></div></div></div>
+<div class="modal-overlay" id="nc-overlay"><div class="wiz-modal" style="max-width:620px"><div id="nc-body"></div></div></div>
 <div class="modal-overlay" id="nq-overlay"><div class="wiz-modal" style="max-width:640px"><div id="nq-body"></div></div></div>
 <div class="modal-overlay" id="nm-overlay"><div class="wiz-modal" style="max-width:640px"><div id="nm-body"></div></div></div>
 <div class="side-panel" id="meet-panel"><div class="side-panel-inner" id="meet-panel-body"></div></div>
@@ -836,6 +846,7 @@ const ICONS = {
 'file-certificate':'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><circle cx="9.5" cy="17" r="1.8"/>',
 'file-description':'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="16" x2="13" y2="16"/>',
 'file-invoice':'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="18" x2="12" y2="18"/>',
+'download':'<path d="M12 3v12"/><polyline points="7,11 12,16 17,11"/><path d="M4 20h16"/>',
 'file-text':'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="16" x2="15" y2="16"/>',
 'filter-off':'<path d="M4 5h16l-6 7v6l-4 2v-8z"/><line x1="3" y1="3" x2="21" y2="21"/>',
 'flag':'<line x1="5" y1="3" x2="5" y2="21"/><path d="M5 4h13l-3 4 3 4H5"/>',
@@ -5776,7 +5787,35 @@ function logAudit(quoi, objet, type){
 const CALL_RESULTS = ['Pas de réponse','Répondeur','Mauvais numéro','À rappeler','Intéressé','Pas intéressé',"Demande d'informations",'RDV obtenu','Refus définitif','Hors cible'];
 const VISIT_RESULTS = ['À visiter','Visité','Personne rencontrée','Contact obtenu','Intéressé','RDV obtenu','À rappeler','Refus','Hors cible'];
 const RDV_STATUSES = ['Planifié','Confirmé','Réalisé','Reporté','Annulé','No-show'];
-const CONTRACT_STATUSES = ['À préparer','À valider','Envoyé','Ouvert','Signature en attente','Signé','Refusé','Expiré','Résilié'];
+const CONTRACT_STATUSES = ['À préparer','À valider','Prêt à envoyer','Envoyé','Consulté','Signature en attente','Signé','Refusé','Annulé','Expiré','En renouvellement'];
+const CONTRACT_STATUS_STYLE = {
+  'À préparer':{c:'var(--th-text-2)',bg:'var(--th-bg-alt)'}, 'À valider':{c:'var(--th-purple)',bg:'var(--th-purple-bg)'},
+  'Prêt à envoyer':{c:'var(--th-orange)',bg:'var(--th-orange-bg)'}, 'Envoyé':{c:'var(--th-blue)',bg:'var(--th-blue-bg)'},
+  'Consulté':{c:'var(--th-orange)',bg:'var(--th-orange-bg)'}, 'Signature en attente':{c:'var(--th-orange)',bg:'var(--th-orange-bg)'},
+  'Signé':{c:'var(--th-green)',bg:'var(--th-green-bg)'}, 'Refusé':{c:'var(--th-red)',bg:'var(--th-red-bg)'},
+  'Annulé':{c:'var(--th-red)',bg:'var(--th-red-bg)'}, 'Expiré':{c:'var(--th-text-3)',bg:'var(--th-bg-alt)'},
+  'En renouvellement':{c:'var(--th-blue)',bg:'var(--th-blue-bg)'},
+};
+function contractStatusBadge(s){
+  const st = CONTRACT_STATUS_STYLE[s] || CONTRACT_STATUS_STYLE['À préparer'];
+  return `<span class="badge" style="color:${st.c};background:${st.bg}">${esc(s)}</span>`;
+}
+/* Modèles réutilisables — le contenu juridique ne change pas par métier */
+const CONTRACT_TEMPLATES = [
+  { id:'tpl_abo', nom:"Contrat d'abonnement TigerFlow", desc:'Modèle standard, engagement 12 mois', sectorId:null, defaut:true },
+  { id:'tpl_abo_onb', nom:'Abonnement + onboarding', desc:'Inclut la reprise de données et la formation', sectorId:null },
+  { id:'tpl_annuel', nom:'Abonnement annuel', desc:'Paiement annuel en une fois', sectorId:null },
+  { id:'tpl_mensuel', nom:'Abonnement mensuel sans engagement', desc:'Résiliable à tout moment', sectorId:null },
+  { id:'tpl_remise', nom:'Contrat avec remise commerciale', desc:'Nécessite la validation Owner', sectorId:null },
+];
+/* Règles d'envoi — l'Owner décide qui peut envoyer */
+const CONTRACT_SETTINGS = {
+  validationObligatoire: true,           // le commercial doit faire valider avant envoi
+  commercialPeutEnvoyer: false,          // même validé, l'envoi reste à l'Owner
+  relanceSignature: 7,                   // jours avant alerte
+  expirationProche: 15,                  // jours avant fin de contrat
+  preavisDefaut: 60,                     // jours
+};
 const COMMISSION_STATUSES = ['En attente','Acquise','À payer','Payée','Annulée','Clawback'];
 
 /* Offres TigerFlow — servent aux devis */
@@ -6038,12 +6077,35 @@ const QUOTES = [
 
 /* Contrats */
 const CONTRACTS = [
-  { id:'ct_1', prospectId:'p9', quoteId:'q2', repId:'rep2', statut:'Signature en attente',
-    envoye:'2026-10-05', ouvert:'2026-10-05', signe:null, debut:'2026-11-01',
-    duree:'12 mois', montantAnnuel:2110, validationRequise:true, valide:true },
-  { id:'ct_2', prospectId:'p4', quoteId:'q3', repId:'rep2', statut:'Signé',
-    envoye:'2026-09-12', ouvert:'2026-09-12', signe:'2026-09-14', debut:'2026-10-01',
-    duree:'12 mois', montantAnnuel:1180, validationRequise:true, valide:true },
+  { id:'ct_1', numero:'CTR-2026-0002', prospectId:'p9', quoteId:'q2', repId:'rep2', templateId:'tpl_abo_onb',
+    statut:'Signature en attente', offerId:'business', users:6, remise:5, engagement:12,
+    montantMensuel:176, montantAnnuel:2110,
+    cree:'2026-10-04', valide:'2026-10-05', validePar:'Sophie',
+    envoye:'2026-10-05', consulte:'2026-10-06', signe:null, refuse:null,
+    debut:'2026-11-01', fin:'2027-10-31', renouvellement:true, preavis:60,
+    signataire:'Élodie Prat', abonnementActif:false, premierPaiement:false,
+    historique:[
+      {d:'2026-10-04',e:'Contrat créé depuis le devis DEV-q2',qui:'Thomas Rivière'},
+      {d:'2026-10-05',e:'Validé par Sophie',qui:'Sophie'},
+      {d:'2026-10-05',e:'Envoyé pour signature à Élodie Prat',qui:'Sophie'},
+      {d:'2026-10-06',e:'Consulté par le prospect',qui:'—'}] },
+
+  { id:'ct_2', numero:'CTR-2026-0001', prospectId:'p4', quoteId:'q3', repId:'rep2', templateId:'tpl_abo',
+    statut:'Signé', offerId:'pro', users:3, remise:0, engagement:12,
+    montantMensuel:98, montantAnnuel:1180,
+    cree:'2026-09-11', valide:'2026-09-12', validePar:'Sophie',
+    envoye:'2026-09-12', consulte:'2026-09-12', signe:'2026-09-14', refuse:null,
+    debut:'2026-10-01', fin:'2027-09-30', renouvellement:true, preavis:60,
+    signataire:'Julie Rousseau', abonnementActif:true, premierPaiement:true,
+    historique:[
+      {d:'2026-09-11',e:'Contrat créé depuis le devis DEV-q3',qui:'Thomas Rivière'},
+      {d:'2026-09-12',e:'Validé par Sophie',qui:'Sophie'},
+      {d:'2026-09-12',e:'Envoyé pour signature',qui:'Sophie'},
+      {d:'2026-09-12',e:'Consulté par le prospect',qui:'—'},
+      {d:'2026-09-14',e:'Signé par Julie Rousseau',qui:'—'},
+      {d:'2026-09-14',e:'Client créé — abonnement à activer',qui:'Système'},
+      {d:'2026-09-14',e:'Commission créée — en attente',qui:'Système'},
+      {d:'2026-10-01',e:'Abonnement activé · premier paiement reçu',qui:'Système'}] },
 ];
 
 /* Clients gagnés — créés depuis un contrat signé, jamais saisis à la main */
@@ -8977,47 +9039,607 @@ function renderSalesQuotes(){
     <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Ce sous-module suit les devis <b>commerciaux</b>. Les devis opérationnels facturés aux clients restent dans TigerFlow — le rattachement se fera par référence, sans créer de doublon.</span></div>`;
 }
 
-/* ---------- 7. CONTRATS ---------- */
+/* ---------- 7. CONTRATS ----------
+   Dernière étape commerciale. Le contrat naît du devis accepté, et sa
+   signature déclenche seule la création du client et de la commission. */
+
+let openContractId = null;
+let cFilterRep = 'Tous';
+let cFilterStatut = 'Tous';
+let cFilterOrigine = 'Toutes';
+let cFilterOffre = 'Toutes';
+let cFilterAction = false;
+
+function setC(kind, v){
+  if(kind==='rep') cFilterRep = v;
+  else if(kind==='statut') cFilterStatut = v;
+  else if(kind==='origine') cFilterOrigine = v;
+  else if(kind==='offre') cFilterOffre = v;
+  renderSalesContracts();
+}
+function toggleCAction(){ cFilterAction = !cFilterAction; renderSalesContracts(); }
+function openContract(id){ openContractId = id; renderSalesContracts(); }
+function closeContract(){ openContractId = null; renderSalesContracts(); }
+
+function contractById(id){ return CONTRACTS.find(c=>c.id===id); }
+function contractProspect(c){ return prospectById(c.prospectId); }
+function contractQuote(c){ return c.quoteId ? quoteById(c.quoteId) : null; }
+function contractTemplate(c){ return CONTRACT_TEMPLATES.find(t=>t.id===c.templateId); }
+function nextContractNumber(){
+  const n = CONTRACTS.length + 1;
+  return `CTR-${new Date().getFullYear()}-${String(n).padStart(4,'0')}`;
+}
+/* Le commercial peut-il envoyer ? Dépend du réglage Owner */
+function canSendContract(c){
+  if(can('envoyerContrat')) return true;
+  if(CONTRACT_SETTINGS.validationObligatoire && !c.valide) return false;
+  return CONTRACT_SETTINGS.commercialPeutEnvoyer;
+}
+/* Contrats à risque — 4 règles calculées */
+function contractRisks(c){
+  const r = [];
+  if(['Envoyé','Consulté','Signature en attente'].includes(c.statut) && c.envoye){
+    const j = daysSince(c.envoye);
+    if(j >= CONTRACT_SETTINGS.relanceSignature)
+      r.push({ k:'red', txt:`Sans signature depuis ${j} jours` });
+  }
+  if(c.statut==='Signé' && !c.abonnementActif)
+    r.push({ k:'red', txt:'Signé mais abonnement non activé' });
+  if(c.statut==='Signé' && c.abonnementActif && !c.premierPaiement)
+    r.push({ k:'orange', txt:'Abonnement actif mais premier paiement manquant' });
+  if(c.statut==='Signé' && c.fin){
+    const j = daysFromToday(c.fin);
+    if(j !== null && j >= 0 && j <= CONTRACT_SETTINGS.expirationProche)
+      r.push({ k:'orange', txt:`Contrat expire dans ${j} jours` });
+  }
+  return r;
+}
+/* Commission — lue depuis les règles configurables, jamais figée ici */
+function contractCommission(c){
+  const p = contractProspect(c); if(!p) return null;
+  const type = acquisitionType(p);
+  const montant = commissionAmount(type, c.montantAnnuel, c.montantMensuel);
+  if(!montant) return null;
+  const client = clientOf(p.id);
+  const com = client ? COMMISSIONS.find(x=>x.clientId===client.id) : null;
+  return { type, montant,
+    statut: com ? com.statut : (c.statut==='Signé' ? 'En attente' : 'Potentielle'),
+    moisPayes: com ? com.moisPayes : 0, moisRequis: COMMISSION_SETTINGS.moisAcquisition };
+}
+
+/* --- Actions du cycle de vie --- */
+function askValidation(id){
+  const c = contractById(id); if(!c) return;
+  c.statut = 'À valider';
+  c.historique.push({ d:todayISO(), e:'Validation demandée', qui:CURRENT_USER.nom });
+  logAudit(`Validation de contrat demandée — ${contractProspect(c).entreprise}`, c.prospectId, 'contrat');
+  renderSalesAll();
+}
+function validateContract(id){
+  const c = contractById(id); if(!c) return;
+  if(!can('modifierRegles')){ alert("Seul l'Owner peut valider un contrat."); return; }
+  c.valide = todayISO(); c.validePar = CURRENT_USER.nom; c.statut = 'Prêt à envoyer';
+  c.historique.push({ d:todayISO(), e:`Validé par ${CURRENT_USER.nom}`, qui:CURRENT_USER.nom });
+  logAudit(`Contrat validé — ${contractProspect(c).entreprise}`, c.prospectId, 'contrat');
+  renderSalesAll();
+}
+function sendContract(id){
+  const c = contractById(id); if(!c) return;
+  const p = contractProspect(c);
+  if(!canSendContract(c)){
+    alert(`Envoi non autorisé.\n\n${!c.valide ? "Ce contrat doit d'abord être validé par l'Owner." : "Le réglage « Autoriser les commerciaux à envoyer » est désactivé."}\n\nUtilisez « Demander la validation ».`);
+    return;
+  }
+  if(!confirm(`Envoyer le contrat à ${c.signataire || p.contact} pour signature ?\n\nLa signature électronique n'est pas encore connectée : le suivi des statuts se fait à la main.`)) return;
+  c.statut = 'Envoyé'; c.envoye = todayISO();
+  c.historique.push({ d:todayISO(), e:`Envoyé pour signature à ${c.signataire || p.contact}`, qui:CURRENT_USER.nom });
+  if(p){
+    if(!['Gagné','Perdu'].includes(p.stage)){
+      p.stage = 'Contrat envoyé'; p.stageDepuis = todayISO();
+      if(!p.stageHistory) p.stageHistory = [];
+      p.stageHistory.push({ stage:'Contrat envoyé', date:todayISO(), par:CURRENT_USER.nom });
+    }
+    p.prochaineAction = 'Relancer la signature';
+    p.prochainContact = new Date(Date.now()+CONTRACT_SETTINGS.relanceSignature*86400000).toISOString().slice(0,10);
+    p.dernierContact = todayISO();
+  }
+  logAudit(`Contrat envoyé — ${p.entreprise} (${c.montantAnnuel} € / an)`, p.id, 'contrat');
+  renderSalesAll();
+}
+function relanceContract(id){
+  const c = contractById(id); if(!c) return;
+  const note = prompt(`Relancer la signature de ${contractProspect(c).entreprise}\n\nNote (facultative) :`);
+  if(note === null) return;
+  c.statut = 'Signature en attente';
+  c.historique.push({ d:todayISO(), e:`Relance de signature${note.trim()?` — ${note.trim()}`:''}`, qui:CURRENT_USER.nom });
+  const p = contractProspect(c);
+  if(p){ p.dernierContact = todayISO();
+    p.prochainContact = new Date(Date.now()+CONTRACT_SETTINGS.relanceSignature*86400000).toISOString().slice(0,10); }
+  logAudit(`Signature relancée — ${p.entreprise}`, p.id, 'contrat');
+  renderSalesAll();
+}
+/* Signature : le seul événement qui crée le client et la commission */
+function signContract(id){
+  const c = contractById(id); if(!c) return;
+  const p = contractProspect(c);
+  if(!confirm(`Confirmer la signature du contrat par ${c.signataire || p.contact} ?\n\nTigerHub va automatiquement :\n• passer le prospect en Client gagné\n• créer l'abonnement à activer\n• créer la commission au statut En attente\n\nAucune saisie supplémentaire ne vous sera demandée.`)) return;
+  c.statut = 'Signé'; c.signe = todayISO();
+  c.historique.push({ d:todayISO(), e:`Signé par ${c.signataire || p.contact}`, qui:'—' });
+
+  /* Prospect → client, sans seconde fiche */
+  p.stage = 'Gagné'; p.stageDepuis = todayISO();
+  if(!p.stageHistory) p.stageHistory = [];
+  p.stageHistory.push({ stage:'Gagné', date:todayISO(), par:CURRENT_USER.nom });
+  p.prochaineAction = null; p.prochainContact = null;
+
+  let client = clientOf(p.id);
+  if(!client){
+    client = { id:'cl_'+Date.now(), prospectId:p.id, contractId:c.id, repId:c.repId,
+      signature:todayISO(), debutAbo:c.debut, montantAnnuel:c.montantAnnuel, mrr:c.montantMensuel,
+      moisPayes:0, statutAbo:'À activer' };
+    WON_CLIENTS.unshift(client);
+    c.historique.push({ d:todayISO(), e:'Client créé — abonnement à activer', qui:'Système' });
+  }
+  /* Commission depuis les règles, jamais acquise à la signature */
+  const com = contractCommission(c);
+  if(com && !COMMISSIONS.find(x=>x.clientId===client.id)){
+    COMMISSIONS.unshift({ id:'cm_'+Date.now(), clientId:client.id, repId:c.repId, typeAcq:com.type,
+      base:c.montantAnnuel, montant:com.montant, statut:'En attente',
+      moisPayes:0, moisRequis:COMMISSION_SETTINGS.moisAcquisition,
+      acquise:null, payee:null, motifAnnulation:null });
+    c.historique.push({ d:todayISO(), e:`Commission de ${com.montant} € créée — en attente`, qui:'Système' });
+  }
+  logAudit(`Contrat signé — ${p.entreprise} · client créé · commission en attente`, p.id, 'contrat');
+  renderSalesAll();
+}
+function refuseContract(id){
+  const c = contractById(id); if(!c) return;
+  const choix = prompt(`Contrat refusé par ${contractProspect(c).entreprise}\n\nRaison :\n${LOSS_REASONS.map((r,i)=>`${i+1}. ${r}`).join('\n')}\n\nNuméro :`);
+  const i = parseInt(choix,10)-1;
+  if(isNaN(i) || !LOSS_REASONS[i]) return;
+  c.statut = 'Refusé'; c.refuse = todayISO(); c.motifRefus = LOSS_REASONS[i];
+  c.historique.push({ d:todayISO(), e:`Refusé — ${LOSS_REASONS[i]}`, qui:'—' });
+  logAudit(`Contrat refusé — ${contractProspect(c).entreprise} (${LOSS_REASONS[i]})`, c.prospectId, 'contrat');
+  renderSalesAll();
+}
+function cancelContract(id){
+  const c = contractById(id); if(!c) return;
+  if(!can('attribuer')){ alert("Seul l'Owner peut annuler un contrat."); return; }
+  const raison = prompt(`Annuler le contrat ${c.numero} ?\n\nRaison :`);
+  if(!raison || !raison.trim()) return;
+  c.statut = 'Annulé';
+  c.historique.push({ d:todayISO(), e:`Annulé — ${raison.trim()}`, qui:CURRENT_USER.nom });
+  logAudit(`Contrat annulé — ${contractProspect(c).entreprise} (${raison.trim()})`, c.prospectId, 'contrat');
+  renderSalesAll();
+}
+function activateSubscription(id){
+  const c = contractById(id); if(!c) return;
+  const p = contractProspect(c);
+  const client = clientOf(p.id);
+  if(!client) return;
+  c.abonnementActif = true; client.statutAbo = 'Actif';
+  c.historique.push({ d:todayISO(), e:'Abonnement activé', qui:CURRENT_USER.nom });
+  logAudit(`Abonnement activé — ${p.entreprise}`, p.id, 'contrat');
+  renderSalesAll();
+}
+
+/* --- Création depuis un devis accepté --- */
+let ncDraft = null;
+function openNewContract(quoteId){
+  const q = quoteId ? quoteById(quoteId) : null;
+  const p = q ? quoteProspect(q) : null;
+  ncDraft = { quoteId: quoteId||'', templateId:'tpl_abo',
+    debut: new Date(Date.now()+15*86400000).toISOString().slice(0,10),
+    renouvellement:true, preavis:CONTRACT_SETTINGS.preavisDefaut,
+    signataire: p ? p.contact : '' };
+  document.getElementById('nc-overlay').classList.add('open');
+  renderNewContract();
+}
+function closeNewContract(){ document.getElementById('nc-overlay').classList.remove('open'); }
+function setNC(f,v){
+  ncDraft[f] = (f==='preavis') ? Number(v)||0 : v;
+  if(f==='quoteId'){ const q = quoteById(v); const p = q?quoteProspect(q):null;
+    if(p) ncDraft.signataire = p.contact; }
+  renderNewContract();
+}
+function renderNewContract(){
+  const el = document.getElementById('nc-body'); if(!el) return;
+  const d = ncDraft;
+  const q = d.quoteId ? quoteById(d.quoteId) : null;
+  const p = q ? quoteProspect(q) : null;
+  const o = q ? quoteOffer(q) : null;
+  /* Seuls les devis acceptés sans contrat sont proposés */
+  const dispo = QUOTES.filter(x=>x.statut==='Accepté' && !prospectContracts(x.prospectId).length
+    && matchSector((quoteProspect(x)||{}).sectorId));
+  const fin = q ? new Date(new Date(d.debut).getTime() + q.engagement*30.44*86400000).toISOString().slice(0,10) : null;
+
+  el.innerHTML = `
+    <p class="wiz-q">Nouveau contrat</p>
+    <div class="hint-bar" style="margin-bottom:16px">${ic('ti-bulb',15)}<span>Un contrat se crée <b>depuis un devis accepté</b>. Offre, tarif, remise et engagement en sont repris — vous ne complétez que les dates et le signataire.</span></div>
+
+    <label class="wiz-lab" style="margin-top:0">Devis accepté</label>
+    <select class="wiz-input" onchange="setNC('quoteId',this.value)">
+      <option value="">— Sélectionner —</option>
+      ${dispo.map(x=>{ const px = quoteProspect(x);
+        return `<option value="${x.id}" ${d.quoteId===x.id?'selected':''}>${esc(px.entreprise)} · ${x.montantAnnuel} € / an</option>`; }).join('')}
+    </select>
+    ${!dispo.length?`<div style="font-size:12.5px;color:var(--th-text-3);padding:12px 0">Aucun devis accepté en attente de contrat.</div>`:''}
+
+    ${p?`<div class="nm-recap">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:6px">
+          ${origineBadge(p.origine||'Autre')}<span class="badge">${esc(p.source)}</span>${sectorBadge(p.sectorId)}</div>
+        <div style="font-size:13.5px;font-weight:700;margin-bottom:3px">${esc(p.entreprise)}</div>
+        <div style="font-size:12px;color:var(--th-text-2)">${esc(o?o.nom:'')} · ${q.users} utilisateurs${q.remise?` · remise ${q.remise}%`:''} · ${q.engagement} mois</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:18px;font-weight:800">${q.montantMensuel} €<span style="font-size:11px;color:var(--th-text-3);font-weight:600">/mois</span></div>
+        <div style="font-size:12.5px;color:var(--th-green);font-weight:700">${q.montantAnnuel} € / an</div>
+      </div>
+    </div>` : ''}
+
+    ${q?`
+      <label class="wiz-lab">Modèle de contrat</label>
+      <select class="wiz-input" onchange="setNC('templateId',this.value)">
+        ${CONTRACT_TEMPLATES.map(t=>`<option value="${t.id}" ${d.templateId===t.id?'selected':''}>${esc(t.nom)} — ${esc(t.desc)}</option>`).join('')}
+      </select>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="wiz-lab">Date de début</label>
+          <input type="date" class="wiz-input" value="${d.debut}" onchange="setNC('debut',this.value)"></div>
+        <div><label class="wiz-lab">Date de fin</label>
+          <div style="padding:11px 0;font-size:13px;color:var(--th-text-2)">${fin?fmtDate(fin):'—'} <span style="font-size:11px;color:var(--th-text-3)">(calculée)</span></div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="wiz-lab">Signataire</label>
+          <input type="text" class="wiz-input" value="${esc(d.signataire)}" oninput="ncDraft.signataire=this.value"></div>
+        <div><label class="wiz-lab">Préavis</label>
+          <div style="display:flex;align-items:center;gap:7px">
+            <input type="number" class="wiz-input" value="${d.preavis}" onchange="setNC('preavis',this.value)"><span>jours</span></div></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:11px;margin-top:14px">
+        <div class="param-toggle ${d.renouvellement?'on':''}" onclick="setNC('renouvellement',!ncDraft.renouvellement)" style="cursor:pointer"><div class="param-knob"></div></div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600">Renouvellement automatique</div>
+          <div style="font-size:11.5px;color:var(--th-text-2)">Reconduit à l'échéance sauf préavis</div></div>
+      </div>
+
+      ${CONTRACT_SETTINGS.validationObligatoire && !can('modifierRegles')?`<div class="alert warn" style="margin-top:14px">
+        <div class="alert-icon">${ic('ti-lock',14)}</div>
+        <div class="alert-text">Le contrat sera créé au statut <b>À valider</b>. L'Owner devra le valider avant envoi.</div></div>`:''}
+    `:''}
+
+    <div class="wiz-foot">
+      <button class="btn-ghost" onclick="closeNewContract()">Annuler</button>
+      <button class="add-btn" onclick="saveNewContract()" ${!d.quoteId?'disabled style="opacity:.4;cursor:not-allowed"':''}>Créer le contrat</button>
+    </div>`;
+}
+function saveNewContract(){
+  const d = ncDraft;
+  const q = quoteById(d.quoteId); if(!q){ alert('Sélectionnez un devis accepté.'); return; }
+  const p = quoteProspect(q);
+  const fin = new Date(new Date(d.debut).getTime() + q.engagement*30.44*86400000).toISOString().slice(0,10);
+  const besoinValidation = CONTRACT_SETTINGS.validationObligatoire && !can('modifierRegles');
+  const c = { id:'ct_'+Date.now(), numero:nextContractNumber(), prospectId:p.id, quoteId:q.id,
+    repId:q.repId, templateId:d.templateId,
+    statut: besoinValidation ? 'À valider' : 'Prêt à envoyer',
+    offerId:q.offerId, users:q.users, remise:q.remise, engagement:q.engagement,
+    montantMensuel:q.montantMensuel, montantAnnuel:q.montantAnnuel,
+    cree:todayISO(), valide: besoinValidation ? null : todayISO(), validePar: besoinValidation ? null : CURRENT_USER.nom,
+    envoye:null, consulte:null, signe:null, refuse:null,
+    debut:d.debut, fin, renouvellement:d.renouvellement, preavis:d.preavis,
+    signataire:d.signataire, abonnementActif:false, premierPaiement:false,
+    historique:[{ d:todayISO(), e:`Contrat créé depuis le devis ${q.id.toUpperCase()}`, qui:CURRENT_USER.nom }] };
+  if(besoinValidation) c.historique.push({ d:todayISO(), e:'Validation Owner requise avant envoi', qui:'Système' });
+  CONTRACTS.unshift(c);
+  if(p){ p.prochaineAction = besoinValidation ? 'Faire valider le contrat' : 'Envoyer le contrat'; p.prochainContact = todayISO(); }
+  logAudit(`Contrat créé — ${p.entreprise} (${c.numero})`, p.id, 'contrat');
+  closeNewContract();
+  openContractId = c.id;
+  renderSalesAll();
+}
+
 function renderSalesContracts(){
   const el = document.getElementById('sales-contractsContent'); if(!el) return;
+
+  /* ===== FICHE CONTRAT ===== */
+  if(openContractId){
+    const c = contractById(openContractId);
+    if(!c){ openContractId=null; return renderSalesContracts(); }
+    const p = contractProspect(c); const q = contractQuote(c); const o = offerById(c.offerId);
+    const tpl = contractTemplate(c); const com = contractCommission(c);
+    const risks = contractRisks(c); const client = clientOf(p.id);
+    const os = ORIGINE_STYLE[p.origine] || ORIGINE_STYLE['Autre'];
+    const jSansSignature = c.envoye && !c.signe ? daysSince(c.envoye) : null;
+
+    el.innerHTML = `
+      <div class="btn-back" onclick="closeContract()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux contrats</div>
+      <div class="pros-hero">
+        <div style="flex:1;min-width:260px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px">
+            <span class="badge" style="font-family:monospace;font-size:11px">${esc(c.numero)}</span>
+            ${contractStatusBadge(c.statut)}
+            <span class="badge" style="background:${os.bg};color:${os.c}">${ic(os.icon,11)} ${esc(p.source)}</span>${sectorBadge(p.sectorId)}</div>
+          <h1 style="margin-bottom:6px">${esc(p.entreprise)}</h1>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
+            <span>${ic('ti-user-check',13)} ${esc(c.signataire||p.contact)} · ${esc(p.fonction)}</span>
+            <span>${ic('ti-file-certificate',13)} ${esc(tpl?tpl.nom:'—')}</span>
+          </div>
+        </div>
+        <div class="pros-hero-metrics">
+          <div class="phm-item"><div class="phm-val">${c.montantMensuel} €</div><div class="phm-lab">MRR</div>
+            <div class="phm-sub">${c.montantAnnuel} € ARR</div></div>
+          <div class="phm-sep"></div>
+          <div class="phm-item" style="text-align:left">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span class="pc-avatar" style="background:${repColor(c.repId)};width:30px;height:30px;font-size:11px">${esc(repInitials(c.repId))}</span>
+              <div><div style="font-size:13px;font-weight:800">${esc(repName(c.repId))}</div>
+                <div class="phm-lab" style="text-align:left">Commercial</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      ${risks.length?risks.map(r=>`<div class="alert warn" style="margin-bottom:12px">
+        <div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+        <div class="alert-text"><b>${esc(r.txt)}.</b>
+        ${r.txt.includes('abonnement non activé')?` <span class="obj-link" onclick="activateSubscription('${c.id}')">Activer maintenant →</span>`:''}</div></div>`).join('')
+      : c.statut==='Signé'?`<div class="alert opp" style="margin-bottom:16px">
+        <div class="alert-icon">${ic('ti-circle-check',14)}</div>
+        <div class="alert-text"><b>Contrat signé le ${fmtDate(c.signe)}.</b> Client créé, abonnement ${c.abonnementActif?'actif':'à activer'}, commission ${com?com.statut.toLowerCase():'—'}.</div></div>`:''}
+
+      <div class="quick-actions">
+        ${c.statut==='À préparer'?`<button class="add-btn" onclick="askValidation('${c.id}')">${ic('ti-circle-check',15)} Demander la validation</button>`:''}
+        ${c.statut==='À valider'&&can('modifierRegles')?`<button class="add-btn" onclick="validateContract('${c.id}')">${ic('ti-circle-check',15)} Valider</button>`:''}
+        ${['Prêt à envoyer','À valider'].includes(c.statut)?`<button class="${canSendContract(c)?'add-btn':'qa-btn'}" onclick="sendContract('${c.id}')">${ic('ti-mail',15)} Envoyer pour signature</button>`:''}
+        ${['Envoyé','Consulté','Signature en attente'].includes(c.statut)?`<button class="add-btn" onclick="relanceContract('${c.id}')">${ic('ti-repeat',15)} Relancer</button>`:''}
+        ${['Envoyé','Consulté','Signature en attente'].includes(c.statut)?`<button class="add-btn" onclick="signContract('${c.id}')">${ic('ti-writing',15)} Marquer signé</button>`:''}
+        ${['Envoyé','Consulté','Signature en attente'].includes(c.statut)?`<button class="qa-btn" onclick="refuseContract('${c.id}')">Refusé</button>`:''}
+        ${c.statut==='Signé'&&!c.abonnementActif?`<button class="add-btn" onclick="activateSubscription('${c.id}')">${ic('ti-circle-check',15)} Activer l'abonnement</button>`:''}
+        <button class="qa-btn" onclick="comingSoon('Prévisualiser le contrat')">${ic('ti-file-text',15)} Prévisualiser</button>
+        <button class="qa-btn" onclick="comingSoon('Télécharger le contrat')">${ic('ti-download',15)} Télécharger</button>
+        ${q?`<button class="qa-btn" onclick="gotoSales('quotes');setTimeout(()=>openQuote('${q.id}'),60)">${ic('ti-file-invoice',15)} Voir le devis</button>`:''}
+        <button class="qa-btn" onclick="openProspect('${p.id}')">${ic('ti-user-plus',15)} Voir le prospect</button>
+        <button class="qa-btn" onclick="gotoSales('pipeline')">${ic('ti-timeline',15)} Pipeline</button>
+        ${!['Signé','Annulé'].includes(c.statut)&&can('attribuer')?`<button class="qa-btn" onclick="cancelContract('${c.id}')">Annuler</button>`:''}
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-file-invoice',17)}<span>Offre contractée</span></div>
+              ${q?`<span class="card-link" onclick="gotoSales('quotes');setTimeout(()=>openQuote('${q.id}'),60)">Devis d'origine →</span>`:''}</div>
+            <div style="font-size:12.5px;line-height:2.1">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Offre</span><b>${esc(o?o.nom:'—')}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Utilisateurs</span><b>${c.users}</b></div>
+              ${c.remise?`<div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Remise</span><b style="color:var(--th-orange)">${c.remise}%</b></div>`:''}
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Engagement</span><b>${c.engagement} mois</b></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:14px;margin-top:14px;border-top:2px solid var(--th-border)">
+              <span style="font-size:11px;color:var(--th-text-3);font-weight:800;text-transform:uppercase">Montant</span>
+              <div style="text-align:right"><div style="font-size:20px;font-weight:800">${c.montantMensuel} € <span style="font-size:12px;color:var(--th-text-3);font-weight:600">/mois</span></div>
+                <div style="font-size:13px;color:var(--th-green);font-weight:700">${c.montantAnnuel} € / an</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">${ic('ti-history',17)}<span>Journal du contrat</span></div></div>
+            ${c.historique.map(h=>`<div class="hist-row">
+              <div class="hist-icon">${ic('ti-circle-check',13)}</div>
+              <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600">${esc(h.e)}</div>
+                <div style="font-size:11px;color:var(--th-text-3)">${esc(h.qui||'—')}</div></div>
+              <span style="font-size:11.5px;color:var(--th-text-3);white-space:nowrap">${fmtDate(h.d)}</span></div>`).join('')}
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-writing',17)}<span>Signature</span></div></div>
+            <div class="sign-flow">
+              ${[['Créé',c.cree],['Validé',c.valide],['Envoyé',c.envoye],['Consulté',c.consulte],['Signé',c.signe]].map((x,i,arr)=>`
+                <div class="sf-step ${x[1]?'done':''}">
+                  <div class="sf-dot">${x[1]?ic('ti-circle-check',10):''}</div>
+                  <div class="sf-lab">${x[0]}</div>
+                  <div class="sf-date">${x[1]?fmtDate(x[1]):'—'}</div>
+                </div>${i<arr.length-1?`<div class="sf-line ${arr[i+1][1]?'done':''}"></div>`:''}`).join('')}
+            </div>
+            <div style="font-size:12.5px;line-height:2.1;margin-top:16px;padding-top:14px;border-top:1px solid var(--th-border)">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Signataire</span><b>${esc(c.signataire||p.contact)}</b></div>
+              ${jSansSignature!==null?`<div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">En attente depuis</span>
+                <b style="${jSansSignature>=CONTRACT_SETTINGS.relanceSignature?'color:var(--th-red)':''}">${jSansSignature} jours</b></div>`:''}
+              ${c.validePar?`<div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Validé par</span><b>${esc(c.validePar)}</b></div>`:''}
+            </div>
+            <div class="hint-bar" style="margin-top:14px">${ic('ti-alert-triangle',15)}<span>Signature électronique (Yousign, DocuSign) — <b>à connecter</b>. Le suivi se fait à la main.</span></div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-calendar',17)}<span>Durée</span></div></div>
+            <div style="font-size:12.5px;line-height:2.1">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Début</span><b>${fmtDate(c.debut)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Fin</span><b>${fmtDate(c.fin)}</b></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Renouvellement</span>
+                ${c.renouvellement?'<span class="badge green">Automatique</span>':'<span class="badge gray">Non</span>'}</div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Préavis</span><b>${c.preavis} jours</b></div>
+            </div>
+          </div>
+
+          ${com?`<div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-coin',17)}<span>Commission</span></div>
+              <span class="badge ${com.statut==='Acquise'||com.statut==='Payée'?'green':com.statut==='En attente'?'orange':'gray'}" style="${com.statut==='En attente'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(com.statut)}</span></div>
+            <div style="font-size:24px;font-weight:800;margin-bottom:4px">${com.montant} €</div>
+            <div style="font-size:12px;color:var(--th-text-2);margin-bottom:14px">${esc(com.type)}</div>
+            ${com.statut==='En attente'?`
+              ${Array.from({length:com.moisRequis},(_,i)=>`
+                <div style="display:flex;align-items:center;gap:9px;padding:5px 0;font-size:12.5px">
+                  <div class="check-dot" style="${i<com.moisPayes?'background:var(--th-green);border-color:var(--th-green);color:#fff':''}">${i<com.moisPayes?ic('ti-circle-check',10):''}</div>
+                  <span style="flex:1">Mois ${i+1}</span>
+                  <span style="color:${i<com.moisPayes?'var(--th-green)':'var(--th-text-3)'};font-weight:600">${i<com.moisPayes?'payé':'en attente'}</span></div>`).join('')}
+              <div class="hint-bar" style="margin-top:12px">${ic('ti-alert-triangle',15)}<span>Acquise après <b>${com.moisRequis} mois payés</b>. Si le client résilie avant, elle est <b>annulée</b> — aucun versement.</span></div>`
+            : `<div class="hint-bar">${ic('ti-bulb',15)}<span>Estimée selon les règles en vigueur. Elle ne sera créée qu'à la signature.</span></div>`}
+            <button class="btn-ghost" style="margin-top:12px;width:100%" onclick="gotoSales('commissions')">Voir les commissions →</button>
+          </div>`:''}
+
+          ${client?`<div class="card">
+            <div class="card-header"><div class="card-title">${ic('ti-trophy',17)}<span>Client</span></div></div>
+            <div style="font-size:12.5px;line-height:2.1">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--th-text-2)">Abonnement</span>
+                <span class="badge ${client.statutAbo==='Actif'?'green':'orange'}" style="${client.statutAbo!=='Actif'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(client.statutAbo)}</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Début</span><b>${fmtDate(client.debutAbo)}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Mois payés</span><b>${client.moisPayes}</b></div>
+            </div>
+            <button class="btn-ghost" style="margin-top:12px;width:100%" onclick="gotoSales('clients')">Voir dans Clients gagnés →</button>
+          </div>`:''}
+        </div>
+      </div>`;
+    return;
+  }
+
+  /* ===== LISTE ===== */
+  let list = CONTRACTS.filter(c=>{ const p = contractProspect(c); return p && matchSector(p.sectorId); });
+  if(!canSeeAllReps()) list = list.filter(c=>c.repId===CURRENT_USER.id);
+  else if(cFilterRep!=='Tous') list = list.filter(c=>c.repId===cFilterRep);
+  if(cFilterStatut!=='Tous') list = list.filter(c=>c.statut===cFilterStatut);
+  if(cFilterOrigine!=='Toutes') list = list.filter(c=>{ const p=contractProspect(c); return p.origine===cFilterOrigine; });
+  if(cFilterOffre!=='Toutes') list = list.filter(c=>c.offerId===cFilterOffre);
+  if(cFilterAction) list = list.filter(c=>contractRisks(c).length || ['À valider','Prêt à envoyer','À préparer'].includes(c.statut));
+
+  const tous = CONTRACTS.filter(c=>{ const p = contractProspect(c); return p && matchSector(p.sectorId); });
+  const aPreparer = tous.filter(c=>c.statut==='À préparer');
+  const aValider = tous.filter(c=>c.statut==='À valider');
+  const aEnvoyer = tous.filter(c=>c.statut==='Prêt à envoyer');
+  const envoyes = tous.filter(c=>['Envoyé','Consulté'].includes(c.statut));
+  const enAttente = tous.filter(c=>c.statut==='Signature en attente');
+  const signes = tous.filter(c=>c.statut==='Signé');
+  const expires = tous.filter(c=>c.statut==='Expiré');
+  const enCours = tous.filter(c=>['À préparer','À valider','Prêt à envoyer','Envoyé','Consulté','Signature en attente'].includes(c.statut));
+  const mrrPotentiel = enCours.reduce((s,c)=>s+c.montantMensuel,0);
+  const arrPotentiel = enCours.reduce((s,c)=>s+c.montantAnnuel,0);
+  const mrrSigne = signes.reduce((s,c)=>s+c.montantMensuel,0);
+  const devisPrets = QUOTES.filter(q=>q.statut==='Accepté' && !prospectContracts(q.prospectId).length && matchSector((quoteProspect(q)||{}).sectorId));
+
+  /* À faire maintenant */
+  const aFaire = [];
+  devisPrets.forEach(q=>{ const p = quoteProspect(q);
+    aFaire.push({ k:'red', icon:'ti-file-certificate', titre:p.entreprise, txt:`Devis accepté — contrat à créer (${q.montantAnnuel} € / an)`,
+      action:'Créer', fn:`openNewContract('${q.id}')`, qui:repName(q.repId) }); });
+  aValider.forEach(c=>{ const p = contractProspect(c);
+    aFaire.push({ k:'purple', icon:'ti-lock', titre:p.entreprise, txt:`Contrat ${c.numero} à valider`,
+      action: can('modifierRegles')?'Valider':'En attente', fn:`openContract('${c.id}')`, qui:repName(c.repId) }); });
+  aEnvoyer.forEach(c=>{ const p = contractProspect(c);
+    aFaire.push({ k:'orange', icon:'ti-mail', titre:p.entreprise, txt:`Contrat ${c.numero} prêt à envoyer`,
+      action:'Envoyer', fn:`openContract('${c.id}')`, qui:repName(c.repId) }); });
+  tous.forEach(c=>{ contractRisks(c).forEach(r=>{ const p = contractProspect(c);
+    aFaire.push({ k:r.k, icon:'ti-alert-triangle', titre:p.entreprise, txt:r.txt,
+      action:'Ouvrir', fn:`openContract('${c.id}')`, qui:repName(c.repId) }); }); });
+
   el.innerHTML = sectorSelector() + `
-    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-      <div class="stat-card"><div class="val">${CONTRACTS.length}</div><div class="label">Contrats</div></div>
-      <div class="stat-card orange" style="--x:0"><div class="val">${CONTRACTS.filter(c=>['Envoyé','Ouvert','Signature en attente'].includes(c.statut)).length}</div><div class="label">En attente de signature</div></div>
-      <div class="stat-card green"><div class="val">${CONTRACTS.filter(c=>c.statut==='Signé').length}</div><div class="label">Signés</div></div>
-      <div class="stat-card purple"><div class="val">${CONTRACTS.filter(c=>c.statut==='Signé').reduce((s,c)=>s+c.montantAnnuel,0)} €</div><div class="label">Valeur signée</div></div>
+    <div class="ana-filters" style="margin-bottom:16px">
+      ${canSeeAllReps()?`<div class="ana-filter-group"><span class="ana-filter-lab">Commercial</span>
+        <select class="status-select" onchange="setC('rep',this.value)">
+          <option value="Tous" ${cFilterRep==='Tous'?'selected':''}>Tous</option>
+          ${SALES_REPS.map(r=>`<option value="${r.id}" ${cFilterRep===r.id?'selected':''}>${esc(r.nom)}</option>`).join('')}</select></div>`
+        :`<div class="ana-filter-group"><span class="ana-filter-lab">Portefeuille</span>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 0">
+            <span class="pc-avatar" style="background:${repColor(CURRENT_USER.id)};width:22px;height:22px;font-size:9.5px">${esc(repInitials(CURRENT_USER.id))}</span>
+            <span style="font-size:12.5px;font-weight:600">Mes contrats</span></div></div>`}
+      <div class="ana-filter-group"><span class="ana-filter-lab">Statut</span>
+        <select class="status-select" onchange="setC('statut',this.value)">
+          <option value="Tous" ${cFilterStatut==='Tous'?'selected':''}>Tous</option>
+          ${CONTRACT_STATUSES.map(s=>`<option ${cFilterStatut===s?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Origine</span>
+        <select class="status-select" onchange="setC('origine',this.value)">
+          <option value="Toutes" ${cFilterOrigine==='Toutes'?'selected':''}>Toutes</option>
+          ${ORIGINES.map(o=>`<option ${cFilterOrigine===o?'selected':''}>${esc(o)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Offre</span>
+        <select class="status-select" onchange="setC('offre',this.value)">
+          <option value="Toutes" ${cFilterOffre==='Toutes'?'selected':''}>Toutes</option>
+          ${TF_OFFERS.map(o=>`<option value="${o.id}" ${cFilterOffre===o.id?'selected':''}>${esc(o.nom)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Action</span>
+        <button class="filter-chip${cFilterAction?' active':''}" onclick="toggleCAction()" style="${aFaire.length&&!cFilterAction?'border-color:var(--th-red);color:var(--th-red)':''}">
+          ${ic('ti-bolt',12)} Nécessite une action${aFaire.length?` · ${aFaire.length}`:''}</button></div>
+      <div style="margin-left:auto;align-self:flex-end;padding-bottom:6px">
+        <button class="add-btn" onclick="openNewContract()">${ic('ti-plus',14)} Nouveau contrat</button></div>
     </div>
-    <table class="data-table"><thead><tr><th>Client</th><th>Montant annuel</th><th>Début</th><th>Durée</th><th>Envoyé</th><th>Validation</th><th>Statut</th><th></th></tr></thead><tbody>
-      ${CONTRACTS.map(c=>{ const p = prospectById(c.prospectId);
-        const sc = c.statut==='Signé'?'green':c.statut==='Refusé'||c.statut==='Résilié'?'red':'orange';
-        return `<tr onclick="openProspect('${c.prospectId}')" style="cursor:pointer">
-          <td><div class="dt-title">${esc(p?p.entreprise:'—')}</div><div class="dt-sub">${esc(repName(c.repId))}</div></td>
-          <td style="font-weight:700">${c.montantAnnuel} €</td>
-          <td style="font-size:12px">${fmtDate(c.debut)}</td><td style="font-size:12px">${esc(c.duree)}</td>
-          <td style="font-size:12px">${c.envoye?fmtDate(c.envoye):'—'}</td>
-          <td>${c.validationRequise?(c.valide?'<span class="badge green">Validé</span>':'<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">À valider</span>'):'<span class="badge gray">Non requise</span>'}</td>
-          <td><span class="badge ${sc}" style="${sc==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(c.statut)}</span></td>
-          <td class="dt-actions">${c.statut==='Signature en attente'?`<button class="qa-btn" style="padding:6px 11px" onclick="event.stopPropagation();comingSoon('Relancer la signature')">Relancer</button>`:''}</td>
-        </tr>`; }).join('')}
+
+    <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-card ${aValider.length?'purple':''}"><div class="stat-card-icon">${ic('ti-lock')}</div>
+        <div class="val">${aValider.length}</div><div class="label">À valider</div></div>
+      <div class="stat-card ${aEnvoyer.length?'orange':''}"><div class="stat-card-icon">${ic('ti-mail')}</div>
+        <div class="val">${aEnvoyer.length + aPreparer.length}</div><div class="label">À préparer / envoyer</div></div>
+      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-file-certificate')}</div>
+        <div class="val">${envoyes.length}</div><div class="label">Envoyés</div></div>
+      <div class="stat-card ${enAttente.length?'orange':''}"><div class="stat-card-icon">${ic('ti-writing')}</div>
+        <div class="val">${enAttente.length}</div><div class="label">Signature en attente</div></div>
+      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-timeline')}</div>
+        <div class="val">${mrrPotentiel} €</div><div class="label">MRR potentiel · ${arrPotentiel} € ARR</div></div>
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div>
+        <div class="val">${signes.length}</div><div class="label">Signés · ${mrrSigne} € MRR</div></div>
+    </div>
+
+    ${aFaire.length ? `<div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">${ic('ti-bolt',17)}<span>À faire maintenant</span></div>
+        <span class="badge ${aFaire.some(a=>a.k==='red')?'red':'orange'}" style="${aFaire.some(a=>a.k==='red')?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${aFaire.length}</span></div>
+      ${aFaire.slice(0,7).map(a=>`<div class="todo-row" onclick="${a.fn}">
+        <span class="todo-dot" style="background:var(--th-${a.k==='purple'?'purple':a.k})"></span>
+        <div class="hist-icon" style="width:26px;height:26px">${ic(a.icon,13)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:700;margin-bottom:2px">${esc(a.titre)}</div>
+          <div style="font-size:12px;color:var(--th-text-2)">${esc(a.txt)}</div>
+          <div style="font-size:11px;color:var(--th-text-3);margin-top:2px">${esc(a.qui)}</div></div>
+        <span class="todo-action">${a.action} →</span></div>`).join('')}
+    </div>` : `<div class="alert opp" style="margin-bottom:16px">
+      <div class="alert-icon">${ic('ti-circle-check',14)}</div>
+      <div class="alert-text"><b>Aucun contrat ne nécessite d'action.</b> Tout est validé, envoyé ou signé.</div></div>`}
+
+    <table class="data-table"><thead><tr>
+      <th>Contrat</th><th>Client</th><th>Commercial</th><th>Offre</th><th>MRR / ARR</th>
+      <th>Envoi</th><th>Signature</th><th>Statut</th></tr></thead><tbody>
+      ${list.sort((a,b)=>new Date(b.cree)-new Date(a.cree)).map(c=>{
+        const p = contractProspect(c); const o = offerById(c.offerId); const risks = contractRisks(c);
+        const os = ORIGINE_STYLE[p.origine]||ORIGINE_STYLE['Autre'];
+        return `<tr onclick="openContract('${c.id}')" style="cursor:pointer">
+          <td><div class="dt-title" style="font-family:monospace;font-size:11.5px">${esc(c.numero)}</div>
+            <div class="dt-sub">${esc(p.entreprise)}</div></td>
+          <td style="font-size:12.5px">${esc(c.signataire||p.contact)}
+            <div class="dt-sub"><span class="badge" style="background:${os.bg};color:${os.c};font-size:9.5px">${esc(p.source)}</span></div></td>
+          <td><div style="display:flex;align-items:center;gap:7px">
+            <span class="pc-avatar" style="background:${repColor(c.repId)};width:22px;height:22px;font-size:9.5px">${esc(repInitials(c.repId))}</span>
+            <span style="font-size:12px">${esc(repName(c.repId).split(' ')[0])}</span></div></td>
+          <td style="font-size:12px">${esc(o?o.nom.replace('TigerFlow ',''):'—')}<div class="dt-sub">${c.users} util. · ${c.engagement} mois</div></td>
+          <td style="white-space:nowrap"><b>${c.montantMensuel} €</b><div class="dt-sub">${c.montantAnnuel} € / an</div></td>
+          <td style="font-size:12px;white-space:nowrap">${c.envoye?fmtDate(c.envoye):'—'}
+            ${c.consulte?`<div class="dt-sub" style="color:var(--th-green)">Consulté</div>`:''}</td>
+          <td style="font-size:12px;white-space:nowrap">${c.signe?`<span style="color:var(--th-green);font-weight:700">${fmtDate(c.signe)}</span>`
+            :c.envoye?`<span style="color:var(--th-${daysSince(c.envoye)>=CONTRACT_SETTINGS.relanceSignature?'red':'text-3'})">${daysSince(c.envoye)} j d'attente</span>`:'—'}</td>
+          <td>${contractStatusBadge(c.statut)}
+            ${risks.length?` <span style="color:var(--th-red)" title="${esc(risks.map(r=>r.txt).join(' · '))}">${ic('ti-alert-triangle',11)}</span>`:''}</td></tr>`;
+      }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun contrat pour ces filtres.</td></tr>`}
     </tbody></table>
+
     <div class="grid-2" style="margin-top:20px">
-      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-lock',17)}<span>Permissions</span></div></div>
-        <div style="font-size:12.5px;line-height:1.9;color:var(--th-text-2)">
-          <div style="margin-bottom:10px"><b style="color:var(--th-text)">Le commercial peut :</b><br>préparer, générer, envoyer et relancer le contrat, suivre son statut.</div>
-          <div><b style="color:var(--th-red)">Le commercial ne peut pas :</b><br>modifier les clauses juridiques. Les modèles sont administrés par l'Owner.</div>
-        </div>
-        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border);display:flex;align-items:center;gap:11px">
-          <div class="param-toggle on"><div class="param-knob"></div></div>
-          <div style="flex:1"><div style="font-size:13px;font-weight:600">Validation avant envoi</div>
-            <div style="font-size:11.5px;color:var(--th-text-2)">L'Owner valide chaque contrat avant qu'il parte</div></div>
-        </div>
+      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-file-certificate',17)}<span>Modèles de contrats</span></div>
+        ${can('modifierRegles')?"<span class=\"badge green\">Gérés par l'Owner</span>":"<span class=\"badge gray\">Lecture seule</span>"}</div>
+        ${CONTRACT_TEMPLATES.map(t=>`<div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--th-border)">
+          <div class="hist-icon" style="width:26px;height:26px">${ic('ti-file-text',13)}</div>
+          <div style="flex:1"><div style="font-size:12.5px;font-weight:700">${esc(t.nom)}</div>
+            <div style="font-size:11.5px;color:var(--th-text-2)">${esc(t.desc)}</div></div>
+          ${t.defaut?'<span class="badge">Par défaut</span>':''}</div>`).join('')}
+        <div class="hint-bar" style="margin-top:12px">${ic('ti-bulb',15)}<span>Un modèle peut être rattaché à un secteur, mais le contenu juridique reste commun tant qu'il est identique.</span></div>
       </div>
-      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-file-certificate',17)}<span>Signature électronique</span></div>
-        <span class="placeholder-badge">À venir</span></div>
-        <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.75">La signature électronique nécessite un service externe. Aujourd'hui, le suivi du statut se fait à la main.</p>
-        <div class="hint-bar" style="margin-top:14px">${ic('ti-alert-triangle',15)}<span><b>Intégration à connecter.</b> Rien n'est simulé dans ce prototype.</span></div>
+      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-lock',17)}<span>Règles d'envoi</span></div></div>
+        <div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--th-border)">
+          <div class="param-toggle ${CONTRACT_SETTINGS.validationObligatoire?'on':''}" ${can('modifierRegles')?`onclick="CONTRACT_SETTINGS.validationObligatoire=!CONTRACT_SETTINGS.validationObligatoire;renderSalesContracts()" style="cursor:pointer"`:''}><div class="param-knob"></div></div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Validation Owner obligatoire</div>
+            <div style="font-size:11.5px;color:var(--th-text-2)">Le commercial prépare, l'Owner valide avant envoi</div></div></div>
+        <div style="display:flex;align-items:center;gap:11px;padding:10px 0">
+          <div class="param-toggle ${CONTRACT_SETTINGS.commercialPeutEnvoyer?'on':''}" ${can('modifierRegles')?`onclick="CONTRACT_SETTINGS.commercialPeutEnvoyer=!CONTRACT_SETTINGS.commercialPeutEnvoyer;renderSalesContracts()" style="cursor:pointer"`:''}><div class="param-knob"></div></div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Autoriser les commerciaux à envoyer</div>
+            <div style="font-size:11.5px;color:var(--th-text-2)">Une fois le contrat validé, le commercial peut l'envoyer lui-même</div></div></div>
+        <div class="hint-bar" style="margin-top:12px">${ic('ti-bulb',15)}<span>Aujourd'hui : <b>${CONTRACT_SETTINGS.validationObligatoire?'le commercial prépare, vous validez':'le commercial prépare et envoie'}${CONTRACT_SETTINGS.commercialPeutEnvoyer?', puis il envoie':', vous envoyez'}</b>.</span></div>
       </div>
-    </div>`;
+    </div>
+
+    <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>La <b>signature</b> est le seul événement qui crée le client, l'abonnement et la commission. Aucune de ces trois fiches ne se saisit à la main.</span></div>`;
 }
 
 /* ---------- 8. CLIENTS GAGNÉS ---------- */
