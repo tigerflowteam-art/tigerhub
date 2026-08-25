@@ -461,6 +461,7 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .mp-link:hover{border-color:var(--th-orange);color:var(--th-orange)}
 .mp-block{border-top:1px solid var(--th-border);padding-top:14px;margin-top:14px}
 .mp-lab{font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.nq-total{display:flex;gap:26px;background:var(--th-bg-alt);border-radius:13px;padding:16px 20px;margin-top:16px;flex-wrap:wrap}
 .nm-recap{display:flex;align-items:center;gap:14px;background:var(--th-bg-alt);border-radius:12px;padding:13px 15px;margin-top:12px;flex-wrap:wrap}
 .meeting-time{width:52px;text-align:center;flex-shrink:0;background:var(--th-bg-alt);border-radius:10px;padding:8px 0}
 .meeting-rep{display:flex;align-items:center;gap:7px;flex-shrink:0}
@@ -774,6 +775,7 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 </aside>
 <div id="app"></div>
 <div class="modal-overlay" id="wizard-overlay"><div class="wiz-modal"><div id="wizard-body"></div></div></div>
+<div class="modal-overlay" id="nq-overlay"><div class="wiz-modal" style="max-width:640px"><div id="nq-body"></div></div></div>
 <div class="modal-overlay" id="nm-overlay"><div class="wiz-modal" style="max-width:640px"><div id="nm-body"></div></div></div>
 <div class="side-panel" id="meet-panel"><div class="side-panel-inner" id="meet-panel-body"></div></div>
 <div class="modal-overlay" id="cr-overlay"><div class="wiz-modal" style="max-width:620px"><div id="cr-body"></div></div></div>
@@ -5774,7 +5776,6 @@ function logAudit(quoi, objet, type){
 const CALL_RESULTS = ['Pas de réponse','Répondeur','Mauvais numéro','À rappeler','Intéressé','Pas intéressé',"Demande d'informations",'RDV obtenu','Refus définitif','Hors cible'];
 const VISIT_RESULTS = ['À visiter','Visité','Personne rencontrée','Contact obtenu','Intéressé','RDV obtenu','À rappeler','Refus','Hors cible'];
 const RDV_STATUSES = ['Planifié','Confirmé','Réalisé','Reporté','Annulé','No-show'];
-const QUOTE_STATUSES = ['Brouillon','Envoyé','Vu','Accepté','Refusé','Expiré'];
 const CONTRACT_STATUSES = ['À préparer','À valider','Envoyé','Ouvert','Signature en attente','Signé','Refusé','Expiré','Résilié'];
 const COMMISSION_STATUSES = ['En attente','Acquise','À payer','Payée','Annulée','Clawback'];
 
@@ -5987,16 +5988,52 @@ const MEETINGS = [
 ];
 
 /* Devis */
+/* Statuts commerciaux du devis — distincts d'un devis opérationnel TigerFlow */
+const QUOTE_STATUSES = ['Brouillon','À valider','Validé','Envoyé','Consulté','Relance nécessaire','Accepté','Refusé','Expiré'];
+const QUOTE_STATUS_STYLE = {
+  'Brouillon':{c:'var(--th-text-2)',bg:'var(--th-bg-alt)'}, 'À valider':{c:'var(--th-purple)',bg:'var(--th-purple-bg)'},
+  'Validé':{c:'var(--th-blue)',bg:'var(--th-blue-bg)'}, 'Envoyé':{c:'var(--th-blue)',bg:'var(--th-blue-bg)'},
+  'Consulté':{c:'var(--th-orange)',bg:'var(--th-orange-bg)'}, 'Relance nécessaire':{c:'var(--th-red)',bg:'var(--th-red-bg)'},
+  'Accepté':{c:'var(--th-green)',bg:'var(--th-green-bg)'}, 'Refusé':{c:'var(--th-red)',bg:'var(--th-red-bg)'},
+  'Expiré':{c:'var(--th-text-3)',bg:'var(--th-bg-alt)'},
+};
+function quoteStatusBadge(s){
+  const st = QUOTE_STATUS_STYLE[s] || QUOTE_STATUS_STYLE['Brouillon'];
+  return `<span class="badge" style="color:${st.c};background:${st.bg}">${esc(s)}</span>`;
+}
+/* Seuils de relance, réglables */
+const QUOTE_RELANCE = { premier:7, second:14, dernier:21 };
+
 const QUOTES = [
-  { id:'q1', prospectId:'p1', repId:'rep2', offerId:'pro', users:4, options:['opt_form'],
-    date:'2026-09-30', validite:'2026-10-30', statut:'Envoyé', montantAnnuel:1490,
-    vu:'2026-10-01' },
-  { id:'q2', prospectId:'p9', repId:'rep2', offerId:'business', users:6, options:['opt_import','opt_form'],
-    date:'2026-09-25', validite:'2026-10-25', statut:'Accepté', montantAnnuel:2110, vu:'2026-09-26' },
-  { id:'q3', prospectId:'p4', repId:'rep2', offerId:'pro', users:3, options:[],
-    date:'2026-09-10', validite:'2026-10-10', statut:'Accepté', montantAnnuel:1180, vu:'2026-09-11' },
-  { id:'q4', prospectId:'p2', repId:'rep2', offerId:'business', users:8, options:['opt_import'],
-    date:'2026-10-05', validite:'2026-11-05', statut:'Brouillon', montantAnnuel:2340, vu:null },
+  { id:'q1', prospectId:'p1', repId:'rep2', meetingId:'m3', offerId:'pro', users:4, options:['opt_form'],
+    remise:0, engagement:12, date:'2026-09-30', validite:'2026-10-30', statut:'Consulté',
+    montantMensuel:124, montantAnnuel:1490, vu:'2026-10-01', derniereActivite:'2026-10-01',
+    relances:1, derniereRelance:'2026-10-07', prochaineRelance:'2026-10-14', validePar:'Sophie',
+    historique:[{d:'2026-09-30',e:'Devis créé depuis la démonstration du 28 sept.'},{d:'2026-09-30',e:'Validé par Sophie'},{d:'2026-09-30',e:'Envoyé au prospect'},{d:'2026-10-01',e:'Consulté par le prospect'},{d:'2026-10-07',e:'Relance 1 envoyée'}] },
+
+  { id:'q2', prospectId:'p9', repId:'rep2', meetingId:'m4', offerId:'business', users:6, options:['opt_import','opt_form'],
+    remise:5, engagement:12, date:'2026-09-25', validite:'2026-10-25', statut:'Accepté',
+    montantMensuel:176, montantAnnuel:2110, vu:'2026-09-26', derniereActivite:'2026-10-04',
+    relances:1, derniereRelance:'2026-10-02', prochaineRelance:null, validePar:'Sophie',
+    historique:[{d:'2026-09-25',e:'Devis créé depuis la démonstration du 22 sept.'},{d:'2026-09-25',e:'Envoyé'},{d:'2026-09-26',e:'Consulté'},{d:'2026-10-02',e:'Relance 1'},{d:'2026-10-04',e:'Accepté par le prospect'}] },
+
+  { id:'q3', prospectId:'p4', repId:'rep2', meetingId:null, offerId:'pro', users:3, options:[],
+    remise:0, engagement:12, date:'2026-09-10', validite:'2026-10-10', statut:'Accepté',
+    montantMensuel:98, montantAnnuel:1180, vu:'2026-09-11', derniereActivite:'2026-09-12',
+    relances:0, derniereRelance:null, prochaineRelance:null, validePar:'Sophie',
+    historique:[{d:'2026-09-10',e:'Devis créé'},{d:'2026-09-10',e:'Envoyé'},{d:'2026-09-11',e:'Consulté'},{d:'2026-09-12',e:'Accepté'}] },
+
+  { id:'q4', prospectId:'p2', repId:'rep2', meetingId:'m1', offerId:'business', users:8, options:['opt_import'],
+    remise:0, engagement:12, date:'2026-10-05', validite:'2026-11-05', statut:'Brouillon',
+    montantMensuel:195, montantAnnuel:2340, vu:null, derniereActivite:'2026-10-05',
+    relances:0, derniereRelance:null, prochaineRelance:null, validePar:null,
+    historique:[{d:'2026-10-05',e:'Brouillon créé'}] },
+
+  { id:'q5', prospectId:'p3', repId:'rep3', meetingId:null, offerId:'pro', users:5, options:['opt_form'],
+    remise:10, engagement:12, date:'2026-10-06', validite:'2026-11-06', statut:'À valider',
+    montantMensuel:156, montantAnnuel:1870, vu:null, derniereActivite:'2026-10-06',
+    relances:0, derniereRelance:null, prochaineRelance:null, validePar:null,
+    historique:[{d:'2026-10-06',e:'Devis préparé par Camille Ferrand'},{d:'2026-10-06',e:'Remise de 10% — validation Owner requise'}] },
 ];
 
 /* Contrats */
@@ -8395,31 +8432,549 @@ function renderSalesMeetings(){
   if(detailMeetId) renderMeetDetail();
 }
 
-/* ---------- 6. DEVIS ---------- */
+/* ---------- 6. DEVIS ----------
+   Suivi COMMERCIAL des devis envoyés aux prospects.
+   Ne remplace pas les devis opérationnels de TigerFlow : l'architecture
+   prévoit un rattachement futur via refDevisTigerFlow, sans doublon. */
+
+let quoteView = 'liste';
+let openQuoteId = null;
+let qFilterRep = 'Tous';
+let qFilterStatut = 'Tous';
+let qFilterOrigine = 'Toutes';
+let qFilterOffre = 'Toutes';
+let qFilterRelance = false;
+let qSearch = '';
+
+function setQ(kind, v){
+  if(kind==='rep') qFilterRep = v;
+  else if(kind==='statut') qFilterStatut = v;
+  else if(kind==='origine') qFilterOrigine = v;
+  else if(kind==='offre') qFilterOffre = v;
+  else if(kind==='search') qSearch = v.toLowerCase();
+  renderSalesQuotes();
+}
+function toggleQRelance(){ qFilterRelance = !qFilterRelance; renderSalesQuotes(); }
+function openQuote(id){ openQuoteId = id; renderSalesQuotes(); }
+function closeQuote(){ openQuoteId = null; renderSalesQuotes(); }
+
+function quoteProspect(q){ return prospectById(q.prospectId); }
+function quoteOffer(q){ return offerById(q.offerId); }
+function joursDepuisEnvoi(q){
+  if(!q.date || ['Brouillon','À valider','Validé'].includes(q.statut)) return null;
+  return daysSince(q.date);
+}
+/* Un devis sans réponse dépasse le seuil : relance nécessaire */
+function needsRelance(q){
+  if(!['Envoyé','Consulté','Relance nécessaire'].includes(q.statut)) return false;
+  const j = joursDepuisEnvoi(q);
+  if(j === null) return false;
+  const ref = q.derniereRelance ? daysSince(q.derniereRelance) : j;
+  return ref >= QUOTE_RELANCE.premier;
+}
+function relanceNiveau(q){
+  const j = joursDepuisEnvoi(q);
+  if(j === null) return null;
+  if(j >= QUOTE_RELANCE.dernier) return { k:'red', lab:`Sans réponse depuis ${j} j`, urgence:3 };
+  if(j >= QUOTE_RELANCE.second) return { k:'red', lab:`Sans réponse depuis ${j} j`, urgence:2 };
+  if(j >= QUOTE_RELANCE.premier) return { k:'orange', lab:`Sans réponse depuis ${j} j`, urgence:1 };
+  return null;
+}
+/* Commission potentielle — lue depuis les règles, jamais codée ici */
+function quoteCommission(q){
+  const p = quoteProspect(q); if(!p) return null;
+  const type = acquisitionType(p);
+  const montant = commissionAmount(type, q.montantAnnuel, q.montantMensuel);
+  if(!montant) return null;
+  const client = clientOf(p.id);
+  const com = client ? COMMISSIONS.find(c=>c.clientId===client.id) : null;
+  return { type, montant, statut: com ? com.statut : (q.statut==='Accepté' ? 'En attente' : 'Potentielle'),
+           moisPayes: com ? com.moisPayes : 0, moisRequis: COMMISSION_SETTINGS.moisAcquisition };
+}
+
+/* --- Actions --- */
+function sendQuote(id){
+  const q = quoteById(id); if(!q) return;
+  if(q.statut==='À valider' && !can('modifierRegles')){
+    alert("Ce devis attend la validation de l'Owner.\n\nUne remise ou un tarif non standard nécessite un accord avant envoi.");
+    return;
+  }
+  if(!confirm(`Envoyer le devis à ${quoteProspect(q).entreprise} ?\n\nL'envoi réel par email sera disponible une fois l'intégration connectée. Le statut passera à Envoyé.`)) return;
+  q.statut = 'Envoyé'; q.date = todayISO(); q.derniereActivite = todayISO();
+  q.validite = new Date(Date.now()+30*86400000).toISOString().slice(0,10);
+  q.historique.push({ d:todayISO(), e:'Envoyé au prospect' });
+  const p = quoteProspect(q);
+  if(p && ['Démonstration','RDV obtenu','Qualifié'].includes(p.stage)){
+    p.stage = 'Devis envoyé'; p.stageDepuis = todayISO();
+    if(!p.stageHistory) p.stageHistory = [];
+    p.stageHistory.push({ stage:'Devis envoyé', date:todayISO(), par:CURRENT_USER.nom });
+    p.prochaineAction = 'Relancer le devis';
+    p.prochainContact = new Date(Date.now()+QUOTE_RELANCE.premier*86400000).toISOString().slice(0,10);
+  }
+  logAudit(`Devis envoyé — ${p.entreprise} (${q.montantAnnuel} € / an)`, p.id, 'devis');
+  renderSalesAll();
+}
+function validateQuote(id){
+  const q = quoteById(id); if(!q) return;
+  if(!can('modifierRegles')){ alert("Seul l'Owner peut valider un devis."); return; }
+  q.statut = 'Validé'; q.validePar = CURRENT_USER.nom;
+  q.historique.push({ d:todayISO(), e:`Validé par ${CURRENT_USER.nom}` });
+  logAudit(`Devis validé — ${quoteProspect(q).entreprise}`, q.prospectId, 'devis');
+  renderSalesAll();
+}
+function relanceQuote(id){
+  const q = quoteById(id); if(!q) return;
+  const note = prompt(`Relancer ${quoteProspect(q).entreprise}\n\nNote de relance (facultative) :`);
+  if(note === null) return;
+  q.relances = (q.relances||0)+1;
+  q.derniereRelance = todayISO(); q.derniereActivite = todayISO();
+  q.prochaineRelance = new Date(Date.now()+QUOTE_RELANCE.premier*86400000).toISOString().slice(0,10);
+  if(q.statut==='Relance nécessaire') q.statut = 'Envoyé';
+  q.historique.push({ d:todayISO(), e:`Relance ${q.relances}${note.trim()?` — ${note.trim()}`:''}` });
+  const p = quoteProspect(q);
+  if(p){ p.dernierContact = todayISO(); p.prochaineAction = 'Relancer le devis'; p.prochainContact = q.prochaineRelance; }
+  logAudit(`Devis relancé (${q.relances}) — ${p.entreprise}`, p.id, 'devis');
+  renderSalesAll();
+}
+function acceptQuote(id){
+  const q = quoteById(id); if(!q) return;
+  if(!confirm(`Le prospect a accepté le devis de ${quoteProspect(q).entreprise} ?\n\nVous pourrez ensuite créer le contrat, prérempli depuis ce devis.`)) return;
+  q.statut = 'Accepté'; q.derniereActivite = todayISO(); q.prochaineRelance = null;
+  q.historique.push({ d:todayISO(), e:'Accepté par le prospect' });
+  const p = quoteProspect(q);
+  if(p){ p.prochaineAction = 'Créer le contrat'; p.prochainContact = todayISO(); p.dernierContact = todayISO(); }
+  logAudit(`Devis accepté — ${p.entreprise} (${q.montantAnnuel} € / an)`, p.id, 'devis');
+  renderSalesAll();
+}
+function refuseQuote(id){
+  const q = quoteById(id); if(!q) return;
+  const choix = prompt(`Devis refusé par ${quoteProspect(q).entreprise}\n\nRaison :\n${LOSS_REASONS.map((r,i)=>`${i+1}. ${r}`).join('\n')}\n\nNuméro :`);
+  const i = parseInt(choix,10)-1;
+  if(isNaN(i) || !LOSS_REASONS[i]) return;
+  q.statut = 'Refusé'; q.motifRefus = LOSS_REASONS[i]; q.derniereActivite = todayISO();
+  q.historique.push({ d:todayISO(), e:`Refusé — ${LOSS_REASONS[i]}` });
+  logAudit(`Devis refusé — ${quoteProspect(q).entreprise} (${LOSS_REASONS[i]})`, q.prospectId, 'devis');
+  renderSalesAll();
+}
+function duplicateQuote(id){
+  const q = quoteById(id); if(!q) return;
+  const copie = { ...q, id:'q_'+Date.now(), statut:'Brouillon', date:todayISO(),
+    validite:new Date(Date.now()+30*86400000).toISOString().slice(0,10),
+    vu:null, relances:0, derniereRelance:null, prochaineRelance:null, validePar:null,
+    derniereActivite:todayISO(), motifRefus:null,
+    historique:[{ d:todayISO(), e:`Dupliqué depuis le devis du ${fmtDate(q.date)}` }] };
+  QUOTES.unshift(copie);
+  logAudit(`Devis dupliqué — ${quoteProspect(q).entreprise}`, q.prospectId, 'devis');
+  openQuoteId = copie.id;
+  renderSalesAll();
+}
+function quoteToContract(id){
+  const q = quoteById(id); if(!q) return;
+  if(q.statut !== 'Accepté'){ alert("Le contrat se crée depuis un devis accepté."); return; }
+  if(prospectContracts(q.prospectId).length){ gotoSales('contracts'); return; }
+  const p = quoteProspect(q);
+  if(!confirm(`Créer le contrat pour ${p.entreprise} ?\n\nOffre, montant, remise et durée sont repris du devis — aucune ressaisie.`)) return;
+  CONTRACTS.unshift({ id:'ct_'+Date.now(), prospectId:q.prospectId, quoteId:q.id, repId:q.repId,
+    statut: can('envoyerContrat') ? 'À préparer' : 'À valider',
+    envoye:null, ouvert:null, signe:null,
+    debut:new Date(Date.now()+15*86400000).toISOString().slice(0,10),
+    duree:`${q.engagement} mois`, montantAnnuel:q.montantAnnuel,
+    validationRequise:true, valide:can('envoyerContrat') });
+  if(p){ p.prochaineAction = 'Envoyer le contrat'; p.prochainContact = todayISO(); }
+  logAudit(`Contrat créé depuis le devis — ${p.entreprise}`, p.id, 'contrat');
+  renderSalesAll();
+  gotoSales('contracts');
+}
+/* Création : depuis un prospect, une opportunité ou un rendez-vous réalisé */
+let nqDraft = null;
+function openNewQuote(prospectId, meetingId){
+  const p = prospectId ? prospectById(prospectId) : null;
+  const m = meetingId ? MEETINGS.find(x=>x.id===meetingId) : null;
+  nqDraft = { prospectId: prospectId||'', meetingId: meetingId||null,
+    offerId:'pro', users: p && p.techniciens ? p.techniciens+1 : 3, options:[], remise:0, engagement:12 };
+  document.getElementById('nq-overlay').classList.add('open');
+  renderNewQuote();
+}
+function closeNewQuote(){ document.getElementById('nq-overlay').classList.remove('open'); }
+function setNQ(f,v){
+  nqDraft[f] = (['users','remise','engagement'].includes(f)) ? Number(v)||0 : v;
+  renderNewQuote();
+}
+function toggleNQOption(id){
+  const i = nqDraft.options.indexOf(id);
+  if(i>=0) nqDraft.options.splice(i,1); else nqDraft.options.push(id);
+  renderNewQuote();
+}
+function nqMontants(){
+  const o = offerById(nqDraft.offerId) || TF_OFFERS[0];
+  let mensuel = o.prixUser * nqDraft.users;
+  let ponctuel = 0;
+  nqDraft.options.forEach(id=>{ const opt = TF_OPTIONS.find(x=>x.id===id); if(!opt) return;
+    if(opt.recurrent) mensuel += opt.prix; else ponctuel += opt.prix; });
+  const remise = Math.round(mensuel * nqDraft.remise/100);
+  mensuel -= remise;
+  return { mensuel, ponctuel, annuel: mensuel*12 + ponctuel, remise };
+}
+function renderNewQuote(){
+  const el = document.getElementById('nq-body'); if(!el) return;
+  const d = nqDraft;
+  const p = d.prospectId ? prospectById(d.prospectId) : null;
+  const m = d.meetingId ? MEETINGS.find(x=>x.id===d.meetingId) : null;
+  const mt = nqMontants();
+  const dispo = scopedProspects().filter(x=>!['Perdu'].includes(x.stage));
+  const besoinValidation = d.remise > 0;
+
+  el.innerHTML = `
+    <p class="wiz-q">Nouveau devis</p>
+    <label class="wiz-lab" style="margin-top:0">Prospect</label>
+    <select class="wiz-input" onchange="setNQ('prospectId',this.value)">
+      <option value="">— Sélectionner —</option>
+      ${dispo.map(x=>`<option value="${x.id}" ${d.prospectId===x.id?'selected':''}>${esc(x.entreprise)} · ${esc(x.ville)}</option>`).join('')}
+    </select>
+
+    ${p?`<div class="nm-recap">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:5px">
+          ${origineBadge(p.origine||'Autre')}<span class="badge">${esc(p.source)}</span>${stageBadge(p.stage)}${sectorBadge(p.sectorId)}</div>
+        <div style="font-size:12.5px;color:var(--th-text-2)">${esc(p.contact)} · ${esc(p.fonction)}${p.techniciens?` · ${p.techniciens} techniciens`:''}</div>
+        ${m&&m.compteRendu?`<div style="font-size:11.5px;color:var(--th-orange);font-weight:600;margin-top:4px">
+          ${ic('ti-notebook',11)} Démo du ${fmtDate(m.date)} — ${esc(m.compteRendu.interet)}</div>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span class="pc-avatar" style="background:${repColor(p.repId)};width:26px;height:26px;font-size:10px">${esc(repInitials(p.repId))}</span>
+        <div><div style="font-size:11.5px;font-weight:700">${esc(repName(p.repId))}</div>
+          <div style="font-size:10px;color:var(--th-text-3)">Récupéré du prospect</div></div>
+      </div>
+    </div>`:`<div class="hint-bar" style="margin-top:12px">${ic('ti-bulb',15)}<span>Contact, commercial, secteur et origine sont <b>repris du prospect</b>.</span></div>`}
+
+    <label class="wiz-lab">Offre</label>
+    <div class="call-results">
+      ${TF_OFFERS.map(o=>`<div class="call-res ${d.offerId===o.id?'sel':''}" onclick="setNQ('offerId','${o.id}')">
+        <div style="font-weight:700">${esc(o.nom.replace('TigerFlow ',''))}</div>
+        <div style="font-size:10.5px;color:var(--th-text-3);margin-top:2px">${o.prixUser} € / utilisateur</div></div>`).join('')}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div><label class="wiz-lab">Utilisateurs</label>
+        <input type="number" class="wiz-input" value="${d.users}" min="1" onchange="setNQ('users',this.value)"></div>
+      <div><label class="wiz-lab">Remise</label>
+        <div style="display:flex;align-items:center;gap:7px">
+          <input type="number" class="wiz-input" value="${d.remise}" min="0" max="30" onchange="setNQ('remise',this.value)"><span>%</span></div></div>
+      <div><label class="wiz-lab">Engagement</label>
+        <select class="wiz-input" onchange="setNQ('engagement',this.value)">
+          ${[12,24,36].map(x=>`<option value="${x}" ${d.engagement===x?'selected':''}>${x} mois</option>`).join('')}</select></div>
+    </div>
+
+    <label class="wiz-lab">Options</label>
+    <div style="display:flex;flex-wrap:wrap;gap:7px">
+      ${TF_OPTIONS.map(o=>`<div class="feat-chip ${d.options.includes(o.id)?'sel':''}" onclick="toggleNQOption('${o.id}')">
+        ${esc(o.nom)} · ${o.prix} €${o.recurrent?'/mois':''}</div>`).join('')}
+    </div>
+
+    <div class="nq-total">
+      <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase">Mensuel</div>
+        <div style="font-size:22px;font-weight:800">${mt.mensuel} €</div></div>
+      <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase">Annuel</div>
+        <div style="font-size:22px;font-weight:800;color:var(--th-green)">${mt.annuel} €</div></div>
+      ${mt.remise?`<div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase">Remise</div>
+        <div style="font-size:16px;font-weight:800;color:var(--th-orange)">−${mt.remise} €/mois</div></div>`:''}
+      ${mt.ponctuel?`<div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase">Ponctuel</div>
+        <div style="font-size:16px;font-weight:800">${mt.ponctuel} €</div></div>`:''}
+    </div>
+
+    ${besoinValidation && !can('modifierRegles')?`<div class="alert warn" style="margin-top:12px">
+      <div class="alert-icon">${ic('ti-lock',14)}</div>
+      <div class="alert-text">Une remise nécessite la <b>validation de l'Owner</b>. Le devis sera créé au statut « À valider ».</div></div>`:''}
+
+    <div class="wiz-foot">
+      <button class="btn-ghost" onclick="closeNewQuote()">Annuler</button>
+      <button class="add-btn" onclick="saveNewQuote()" ${!d.prospectId?'disabled style="opacity:.4;cursor:not-allowed"':''}>Créer le devis</button>
+    </div>`;
+}
+function saveNewQuote(){
+  const d = nqDraft;
+  if(!d.prospectId){ alert('Sélectionnez un prospect.'); return; }
+  const p = prospectById(d.prospectId);
+  const mt = nqMontants();
+  const besoinValidation = d.remise > 0 && !can('modifierRegles');
+  const q = { id:'q_'+Date.now(), prospectId:d.prospectId, repId:p.repId, meetingId:d.meetingId,
+    offerId:d.offerId, users:d.users, options:[...d.options], remise:d.remise, engagement:d.engagement,
+    date:todayISO(), validite:new Date(Date.now()+30*86400000).toISOString().slice(0,10),
+    statut: besoinValidation ? 'À valider' : 'Brouillon',
+    montantMensuel:mt.mensuel, montantAnnuel:mt.annuel,
+    vu:null, derniereActivite:todayISO(), relances:0, derniereRelance:null, prochaineRelance:null,
+    validePar:null, refDevisTigerFlow:null,
+    historique:[{ d:todayISO(), e: d.meetingId ? `Devis créé depuis le rendez-vous du ${fmtDate((MEETINGS.find(m=>m.id===d.meetingId)||{}).date)}` : 'Devis créé' }] };
+  if(besoinValidation) q.historique.push({ d:todayISO(), e:`Remise de ${d.remise}% — validation Owner requise` });
+  QUOTES.unshift(q);
+  logAudit(`Devis créé — ${p.entreprise} (${mt.annuel} € / an)`, p.id, 'devis');
+  closeNewQuote();
+  openQuoteId = q.id;
+  renderSalesAll();
+}
+
 function renderSalesQuotes(){
   const el = document.getElementById('sales-quotesContent'); if(!el) return;
+
+  /* ===== FICHE DEVIS ===== */
+  if(openQuoteId){
+    const q = quoteById(openQuoteId);
+    if(!q){ openQuoteId=null; return renderSalesQuotes(); }
+    const p = quoteProspect(q); const o = quoteOffer(q);
+    const m = q.meetingId ? MEETINGS.find(x=>x.id===q.meetingId) : null;
+    const rel = relanceNiveau(q);
+    const com = quoteCommission(q);
+    const contrat = prospectContracts(q.prospectId)[0];
+    const os = ORIGINE_STYLE[p.origine] || ORIGINE_STYLE['Autre'];
+    const expire = q.validite && daysFromToday(q.validite);
+
+    el.innerHTML = `
+      <div class="btn-back" onclick="closeQuote()" style="display:inline-flex;align-items:center;gap:6px;color:var(--th-text-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:16px">${ic('ti-arrow-left',14)} Retour aux devis</div>
+      <div class="pros-hero">
+        <div style="flex:1;min-width:260px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+            <h1 style="margin-bottom:0">${esc(p.entreprise)}</h1>${quoteStatusBadge(q.statut)}
+            <span class="badge" style="background:${os.bg};color:${os.c}">${ic(os.icon,11)} ${esc(p.source)}</span>${sectorBadge(p.sectorId)}</div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
+            <span>${ic('ti-user-check',13)} ${esc(p.contact)}</span>
+            <span>${ic('ti-file-invoice',13)} ${esc(o?o.nom:'—')} · ${q.users} utilisateurs</span>
+            <span>${ic('ti-calendar',13)} ${q.date?fmtDate(q.date):'—'}</span>
+          </div>
+        </div>
+        <div class="pros-hero-metrics">
+          <div class="phm-item"><div class="phm-val">${q.montantMensuel} €</div><div class="phm-lab">MRR</div>
+            <div class="phm-sub">${q.montantAnnuel} € / an</div></div>
+          <div class="phm-sep"></div>
+          <div class="phm-item" style="text-align:left">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span class="pc-avatar" style="background:${repColor(q.repId)};width:30px;height:30px;font-size:11px">${esc(repInitials(q.repId))}</span>
+              <div><div style="font-size:13px;font-weight:800">${esc(repName(q.repId))}</div>
+                <div class="phm-lab" style="text-align:left">Commercial</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      ${q.statut==='À valider'?`<div class="alert warn" style="margin-bottom:16px">
+        <div class="alert-icon">${ic('ti-lock',14)}</div>
+        <div class="alert-text"><b>Validation requise.</b> Remise de ${q.remise}% — ${can('modifierRegles')?'à valider avant envoi.':"en attente de l'accord de l'Owner."}</div></div>`
+      : rel?`<div class="alert ${rel.k==='red'?'warn':'warn'}" style="margin-bottom:16px">
+        <div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+        <div class="alert-text"><b>${esc(rel.lab)}.</b> ${q.relances?`${q.relances} relance${q.relances>1?'s':''} déjà envoyée${q.relances>1?'s':''}.`:'Aucune relance envoyée.'}
+        ${q.vu?` Le prospect a consulté le devis le ${fmtDate(q.vu)}.`:" Le devis n'a pas encore été consulté."}</div></div>`
+      : q.statut==='Accepté'?`<div class="alert opp" style="margin-bottom:16px">
+        <div class="alert-icon">${ic('ti-circle-check',14)}</div>
+        <div class="alert-text"><b>Devis accepté.</b> ${contrat?'Le contrat a été créé.':'Prochaine étape : créer le contrat, prérempli depuis ce devis.'}</div></div>`:''}
+
+      <div class="quick-actions">
+        ${['Brouillon','Validé'].includes(q.statut)?`<button class="add-btn" onclick="sendQuote('${q.id}')">${ic('ti-mail',15)} Envoyer</button>`:''}
+        ${q.statut==='À valider'&&can('modifierRegles')?`<button class="add-btn" onclick="validateQuote('${q.id}')">${ic('ti-circle-check',15)} Valider</button>`:''}
+        ${['Envoyé','Consulté','Relance nécessaire'].includes(q.statut)?`<button class="add-btn" onclick="relanceQuote('${q.id}')">${ic('ti-repeat',15)} Relancer</button>`:''}
+        ${['Envoyé','Consulté','Relance nécessaire'].includes(q.statut)?`<button class="qa-btn" onclick="acceptQuote('${q.id}')">${ic('ti-circle-check',15)} Marquer accepté</button>`:''}
+        ${['Envoyé','Consulté','Relance nécessaire'].includes(q.statut)?`<button class="qa-btn" onclick="refuseQuote('${q.id}')">Refusé</button>`:''}
+        ${q.statut==='Accepté'&&!contrat?`<button class="add-btn" onclick="quoteToContract('${q.id}')">${ic('ti-file-certificate',15)} Créer le contrat</button>`:''}
+        <button class="qa-btn" onclick="duplicateQuote('${q.id}')">${ic('ti-versions',15)} Dupliquer</button>
+        <button class="qa-btn" onclick="openProspect('${p.id}')">${ic('ti-user-plus',15)} Ouvrir le prospect</button>
+        <button class="qa-btn" onclick="gotoSales('pipeline')">${ic('ti-timeline',15)} Pipeline</button>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-file-invoice',17)}<span>Détail de l'offre</span></div></div>
+            <table class="data-table" style="margin:0"><tbody>
+              <tr><td class="dt-title">${esc(o?o.nom:'—')}</td><td style="text-align:right">${q.users} × ${o?o.prixUser:0} €</td>
+                <td style="text-align:right;font-weight:700;white-space:nowrap">${o?o.prixUser*q.users:0} €/mois</td></tr>
+              ${q.options.map(id=>{ const opt = TF_OPTIONS.find(x=>x.id===id); if(!opt) return '';
+                return `<tr><td>${esc(opt.nom)}</td><td style="text-align:right">${opt.recurrent?'récurrent':'une fois'}</td>
+                  <td style="text-align:right;font-weight:700;white-space:nowrap">${opt.prix} €${opt.recurrent?'/mois':''}</td></tr>`; }).join('')}
+              ${q.remise?`<tr><td style="color:var(--th-orange)">Remise commerciale</td><td style="text-align:right">${q.remise}%</td>
+                <td style="text-align:right;font-weight:700;color:var(--th-orange);white-space:nowrap">−${Math.round(q.montantMensuel*q.remise/(100-q.remise))} €/mois</td></tr>`:''}
+            </tbody></table>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:14px;margin-top:14px;border-top:2px solid var(--th-border)">
+              <div><div style="font-size:11px;color:var(--th-text-3);font-weight:800;text-transform:uppercase">Engagement ${q.engagement} mois</div></div>
+              <div style="text-align:right"><div style="font-size:20px;font-weight:800">${q.montantMensuel} € <span style="font-size:12px;color:var(--th-text-3);font-weight:600">/mois</span></div>
+                <div style="font-size:13px;color:var(--th-green);font-weight:700">${q.montantAnnuel} € / an</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">${ic('ti-history',17)}<span>Historique</span></div></div>
+            ${q.historique.map(h=>`<div class="hist-row">
+              <div class="hist-icon">${ic('ti-circle-check',13)}</div>
+              <div style="flex:1;font-size:12.5px;font-weight:600">${esc(h.e)}</div>
+              <span style="font-size:11.5px;color:var(--th-text-3)">${fmtDate(h.d)}</span></div>`).join('')}
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-repeat',17)}<span>Suivi</span></div></div>
+            <div style="font-size:12.5px;line-height:2.1">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Envoyé le</span><b>${q.date&&!['Brouillon','À valider'].includes(q.statut)?fmtDate(q.date):'—'}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Consulté le</span>
+                <b style="${q.vu?'color:var(--th-green)':''}">${q.vu?fmtDate(q.vu):'Pas encore'}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Dernière activité</span><b>${q.derniereActivite?fmtDate(q.derniereActivite):'—'}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Relances</span><b>${q.relances||0}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Prochaine relance</span><b>${q.prochaineRelance?fmtDate(q.prochaineRelance):'—'}</b></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Validité</span>
+                <b style="${expire!==null&&expire<0?'color:var(--th-red)':expire!==null&&expire<=5?'color:var(--th-orange)':''}">${q.validite?fmtDate(q.validite):'—'}${expire!==null&&expire<0?' · expiré':expire!==null&&expire<=5?` · J-${expire}`:''}</b></div>
+            </div>
+            <div class="hint-bar" style="margin-top:14px">${ic('ti-alert-triangle',15)}<span>Le suivi de consultation nécessite un lien tracé — <b>intégration à connecter</b>.</span></div>
+          </div>
+
+          ${com?`<div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">${ic('ti-coin',17)}<span>Commission</span></div>
+              <span class="badge ${com.statut==='Acquise'||com.statut==='Payée'?'green':com.statut==='En attente'?'orange':'gray'}" style="${com.statut==='En attente'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${esc(com.statut)}</span></div>
+            <div style="font-size:24px;font-weight:800;margin-bottom:4px">${com.montant} €</div>
+            <div style="font-size:12px;color:var(--th-text-2);margin-bottom:14px">${esc(com.type)}</div>
+            ${com.statut==='En attente'?`<div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+              <div style="flex:1;background:var(--th-bg-alt);border-radius:5px;height:6px;overflow:hidden">
+                <div style="height:100%;width:${Math.min(100,com.moisPayes/com.moisRequis*100)}%;background:var(--th-orange);border-radius:5px"></div></div>
+              <span style="font-size:11.5px;font-weight:700">${com.moisPayes}/${com.moisRequis} mois</span></div>`:''}
+            <div class="hint-bar">${ic('ti-bulb',15)}<span>${com.statut==='Potentielle'
+              ? `Estimée selon les règles en vigueur. Elle ne sera <b>en attente</b> qu'après signature.`
+              : `Acquise après <b>${com.moisRequis} mois d'abonnement payé</b>. Si le client résilie avant, elle est annulée.`}</span></div>
+          </div>`:''}
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">${ic('ti-link',17)}<span>Connexions</span></div></div>
+            <div class="mp-links">
+              <div class="mp-link" onclick="openProspect('${p.id}')">${ic('ti-user-plus',15)}
+                <div style="flex:1"><div style="font-size:12.5px;font-weight:700">${esc(p.entreprise)}</div>
+                  <div style="font-size:11px;color:var(--th-text-2)">${esc(p.stage)}</div></div>${ic('ti-arrow-left',13)}</div>
+              ${m?`<div class="mp-link" onclick="gotoSales('meetings')">${ic('ti-presentation',15)}
+                <div style="flex:1"><div style="font-size:12.5px;font-weight:700">${esc(m.type)}</div>
+                  <div style="font-size:11px;color:var(--th-text-2)">${fmtDate(m.date)}${m.compteRendu?` · ${esc(m.compteRendu.interet)}`:''}</div></div>${ic('ti-arrow-left',13)}</div>`:''}
+              ${contrat?`<div class="mp-link" onclick="gotoSales('contracts')">${ic('ti-file-certificate',15)}
+                <div style="flex:1"><div style="font-size:12.5px;font-weight:700">Contrat</div>
+                  <div style="font-size:11px;color:var(--th-text-2)">${esc(contrat.statut)}</div></div>${ic('ti-arrow-left',13)}</div>`:''}
+            </div>
+            <div class="hint-bar" style="margin-top:12px">${ic('ti-bulb',15)}<span>Ce devis est un <b>suivi commercial</b>. Le rattachement au devis opérationnel TigerFlow se fera sans doublon.</span></div>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  /* ===== LISTE ===== */
+  let list = QUOTES.filter(q=>{ const p = quoteProspect(q); return p && matchSector(p.sectorId); });
+  if(!canSeeAllReps()) list = list.filter(q=>q.repId===CURRENT_USER.id);
+  else if(qFilterRep!=='Tous') list = list.filter(q=>q.repId===qFilterRep);
+  if(qFilterStatut!=='Tous') list = list.filter(q=>q.statut===qFilterStatut);
+  if(qFilterOrigine!=='Toutes') list = list.filter(q=>{ const p=quoteProspect(q); return p.origine===qFilterOrigine; });
+  if(qFilterOffre!=='Toutes') list = list.filter(q=>q.offerId===qFilterOffre);
+  if(qFilterRelance) list = list.filter(needsRelance);
+  if(qSearch) list = list.filter(q=>quoteProspect(q).entreprise.toLowerCase().includes(qSearch));
+
+  const tous = QUOTES.filter(q=>{ const p = quoteProspect(q); return p && matchSector(p.sectorId); });
+  const brouillons = tous.filter(q=>q.statut==='Brouillon');
+  const aValider = tous.filter(q=>q.statut==='À valider');
+  const envoyes = tous.filter(q=>['Envoyé','Consulté','Relance nécessaire'].includes(q.statut));
+  const consultes = tous.filter(q=>q.vu && ['Envoyé','Consulté','Relance nécessaire'].includes(q.statut));
+  const aRelancer = tous.filter(needsRelance);
+  const acceptes = tous.filter(q=>q.statut==='Accepté');
+  const enCours = tous.filter(q=>!['Refusé','Expiré'].includes(q.statut));
+  const mrrPotentiel = envoyes.reduce((s,q)=>s+q.montantMensuel,0);
+  const arrPotentiel = envoyes.reduce((s,q)=>s+q.montantAnnuel,0);
+  const mrrAccepte = acceptes.reduce((s,q)=>s+q.montantMensuel,0);
+  const comPotentielle = envoyes.reduce((s,q)=>{ const c=quoteCommission(q); return s+(c?c.montant:0); },0);
+
   el.innerHTML = sectorSelector() + `
-    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-      <div class="stat-card"><div class="val">${QUOTES.length}</div><div class="label">Devis créés</div></div>
-      <div class="stat-card blue"><div class="val">${QUOTES.filter(q=>['Envoyé','Vu'].includes(q.statut)).length}</div><div class="label">En attente</div></div>
-      <div class="stat-card green"><div class="val">${QUOTES.filter(q=>q.statut==='Accepté').length}</div><div class="label">Acceptés</div></div>
-      <div class="stat-card purple"><div class="val">${QUOTES.filter(q=>q.statut==='Accepté').reduce((s,q)=>s+q.montantAnnuel,0)} €</div><div class="label">Montant accepté</div></div>
+    <div class="ana-filters" style="margin-bottom:16px">
+      ${canSeeAllReps()?`<div class="ana-filter-group"><span class="ana-filter-lab">Commercial</span>
+        <select class="status-select" onchange="setQ('rep',this.value)">
+          <option value="Tous" ${qFilterRep==='Tous'?'selected':''}>Tous</option>
+          ${SALES_REPS.map(r=>`<option value="${r.id}" ${qFilterRep===r.id?'selected':''}>${esc(r.nom)}</option>`).join('')}</select></div>`
+        :`<div class="ana-filter-group"><span class="ana-filter-lab">Portefeuille</span>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 0">
+            <span class="pc-avatar" style="background:${repColor(CURRENT_USER.id)};width:22px;height:22px;font-size:9.5px">${esc(repInitials(CURRENT_USER.id))}</span>
+            <span style="font-size:12.5px;font-weight:600">Mes devis</span></div></div>`}
+      <div class="ana-filter-group"><span class="ana-filter-lab">Statut</span>
+        <select class="status-select" onchange="setQ('statut',this.value)">
+          <option value="Tous" ${qFilterStatut==='Tous'?'selected':''}>Tous</option>
+          ${QUOTE_STATUSES.map(s=>`<option ${qFilterStatut===s?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Origine</span>
+        <select class="status-select" onchange="setQ('origine',this.value)">
+          <option value="Toutes" ${qFilterOrigine==='Toutes'?'selected':''}>Toutes</option>
+          ${ORIGINES.map(o=>`<option ${qFilterOrigine===o?'selected':''}>${esc(o)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Offre</span>
+        <select class="status-select" onchange="setQ('offre',this.value)">
+          <option value="Toutes" ${qFilterOffre==='Toutes'?'selected':''}>Toutes</option>
+          ${TF_OFFERS.map(o=>`<option value="${o.id}" ${qFilterOffre===o.id?'selected':''}>${esc(o.nom)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Relance</span>
+        <button class="filter-chip${qFilterRelance?' active':''}" onclick="toggleQRelance()" style="${aRelancer.length&&!qFilterRelance?'border-color:var(--th-red);color:var(--th-red)':''}">
+          ${ic('ti-alert-triangle',12)} À relancer${aRelancer.length?` · ${aRelancer.length}`:''}</button></div>
+      <div style="margin-left:auto;align-self:flex-end;padding-bottom:6px">
+        <button class="add-btn" onclick="openNewQuote()">${ic('ti-plus',14)} Nouveau devis</button></div>
     </div>
-    <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="add-btn">${ic('ti-plus',14)} Nouveau devis</button></div>
-    <table class="data-table"><thead><tr><th>Prospect</th><th>Offre</th><th>Utilisateurs</th><th>Options</th><th>Montant annuel</th><th>Envoyé</th><th>Statut</th><th></th></tr></thead><tbody>
-      ${QUOTES.map(q=>{ const p = prospectById(q.prospectId); const o = offerById(q.offerId);
-        const sc = q.statut==='Accepté'?'green':q.statut==='Refusé'?'red':q.statut==='Brouillon'?'gray':'blue';
-        return `<tr onclick="openProspect('${q.prospectId}')" style="cursor:pointer">
-          <td><div class="dt-title">${esc(p?p.entreprise:'—')}</div><div class="dt-sub">${esc(repName(q.repId))}</div></td>
-          <td>${esc(o?o.nom:'—')}</td><td>${q.users}</td>
-          <td style="font-size:12px;color:var(--th-text-2)">${q.options.length?q.options.map(oid=>{const opt=TF_OPTIONS.find(x=>x.id===oid);return opt?esc(opt.nom):'';}).join(', '):'—'}</td>
-          <td style="font-weight:700">${q.montantAnnuel} €</td>
-          <td style="font-size:12px">${q.statut==='Brouillon'?'—':fmtDate(q.date)}</td>
-          <td><span class="badge ${sc}">${esc(q.statut)}</span></td>
-          <td class="dt-actions">${q.statut==='Accepté'&&!prospectContracts(q.prospectId).length?`<button class="qa-btn" style="padding:6px 11px" onclick="event.stopPropagation();gotoSales('contracts')">Créer le contrat →</button>`:''}</td>
-        </tr>`; }).join('')}
+
+    <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-card ${aValider.length?'purple':''}"><div class="stat-card-icon">${ic('ti-lock')}</div>
+        <div class="val">${aValider.length}</div><div class="label">À valider</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-file-invoice')}</div>
+        <div class="val">${brouillons.length}</div><div class="label">Brouillons</div></div>
+      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-mail')}</div>
+        <div class="val">${envoyes.length}</div><div class="label">Envoyés · ${consultes.length} consulté${consultes.length>1?'s':''}</div></div>
+      <div class="stat-card ${aRelancer.length?'red':''}"><div class="stat-card-icon">${ic('ti-repeat')}</div>
+        <div class="val">${aRelancer.length}</div><div class="label">À relancer</div></div>
+      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-timeline')}</div>
+        <div class="val">${mrrPotentiel} €</div><div class="label">MRR potentiel · ${arrPotentiel} € ARR</div></div>
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-circle-check')}</div>
+        <div class="val">${acceptes.length}</div><div class="label">Acceptés · ${mrrAccepte} € MRR</div></div>
+    </div>
+
+    ${comPotentielle?`<div class="hint-bar" style="margin-bottom:16px">${ic('ti-coin',16)}<span>
+      <b>${comPotentielle} €</b> de commission potentielle sur les devis en cours. Elle ne devient <b>en attente</b> qu'à la signature, puis <b>acquise</b> après ${COMMISSION_SETTINGS.moisAcquisition} mois d'abonnement payé.</span></div>`:''}
+
+    ${aValider.length && can('modifierRegles') ? `<div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">${ic('ti-lock',17)}<span>En attente de votre validation</span></div>
+        <span class="badge purple" style="color:var(--th-purple);background:var(--th-purple-bg)">${aValider.length}</span></div>
+      ${aValider.map(q=>{ const p=quoteProspect(q);
+        return `<div class="todo-row" onclick="openQuote('${q.id}')">
+          <span class="todo-dot" style="background:var(--th-purple)"></span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13.5px;font-weight:700;margin-bottom:2px">${esc(p.entreprise)}</div>
+            <div style="font-size:12px;color:var(--th-text-2)">${q.montantAnnuel} € / an${q.remise?` · remise de ${q.remise}%`:''} · ${esc(repName(q.repId))}</div></div>
+          <button class="add-btn" style="padding:6px 12px" onclick="event.stopPropagation();validateQuote('${q.id}')">Valider</button></div>`;
+      }).join('')}</div>` : ''}
+
+    ${aRelancer.length && !qFilterRelance ? `<div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">${ic('ti-repeat',17)}<span>Devis à relancer</span></div>
+        <span class="badge red">${aRelancer.length}</span></div>
+      ${aRelancer.sort((a,b)=>relanceNiveau(b).urgence-relanceNiveau(a).urgence).map(q=>{ const p=quoteProspect(q); const rel=relanceNiveau(q);
+        return `<div class="todo-row" onclick="openQuote('${q.id}')">
+          <span class="todo-dot" style="background:var(--th-${rel.k})"></span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13.5px;font-weight:700;margin-bottom:2px">${esc(p.entreprise)}</div>
+            <div style="font-size:12px;color:var(--th-${rel.k});font-weight:600">${esc(rel.lab)} · ${q.montantAnnuel} € / an</div>
+            <div style="font-size:11.5px;color:var(--th-text-3);margin-top:2px">${q.relances?`${q.relances} relance${q.relances>1?'s':''}`:'Aucune relance'} · ${q.vu?`consulté le ${fmtDate(q.vu)}`:'non consulté'} · ${esc(repName(q.repId))}</div></div>
+          <button class="add-btn" style="padding:6px 12px" onclick="event.stopPropagation();relanceQuote('${q.id}')">Relancer</button></div>`;
+      }).join('')}</div>` : ''}
+
+    <table class="data-table"><thead><tr>
+      <th>Prospect</th><th>Origine</th><th>Offre</th><th>Commercial</th><th>MRR / ARR</th>
+      <th>Envoyé</th><th>Suivi</th><th>Statut</th></tr></thead><tbody>
+      ${list.sort((a,b)=>new Date(b.derniereActivite||b.date)-new Date(a.derniereActivite||a.date)).map(q=>{
+        const p = quoteProspect(q); const o = quoteOffer(q); const rel = relanceNiveau(q);
+        const os = ORIGINE_STYLE[p.origine]||ORIGINE_STYLE['Autre'];
+        return `<tr onclick="openQuote('${q.id}')" style="cursor:pointer">
+          <td><div class="dt-title">${esc(p.entreprise)}</div><div class="dt-sub">${esc(p.contact)}</div></td>
+          <td><span class="badge" style="background:${os.bg};color:${os.c};font-size:10px">${esc(p.source)}</span></td>
+          <td style="font-size:12px">${esc(o?o.nom.replace('TigerFlow ',''):'—')}<div class="dt-sub">${q.users} util.${q.remise?` · −${q.remise}%`:''}</div></td>
+          <td><div style="display:flex;align-items:center;gap:7px">
+            <span class="pc-avatar" style="background:${repColor(q.repId)};width:22px;height:22px;font-size:9.5px">${esc(repInitials(q.repId))}</span>
+            <span style="font-size:12px">${esc(repName(q.repId).split(' ')[0])}</span></div></td>
+          <td style="white-space:nowrap"><b>${q.montantMensuel} €</b><div class="dt-sub">${q.montantAnnuel} € / an</div></td>
+          <td style="font-size:12px;white-space:nowrap">${q.date&&!['Brouillon','À valider'].includes(q.statut)?fmtDate(q.date):'—'}</td>
+          <td style="font-size:11.5px">
+            ${rel?`<span style="color:var(--th-${rel.k});font-weight:700">${esc(rel.lab)}</span>`
+              :q.vu?`<span style="color:var(--th-green)">Consulté ${fmtDate(q.vu)}</span>`:'<span style="color:var(--th-text-3)">—</span>'}
+            ${q.relances?`<div class="dt-sub">${q.relances} relance${q.relances>1?'s':''}</div>`:''}</td>
+          <td>${quoteStatusBadge(q.statut)}</td></tr>`;
+      }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun devis pour ces filtres.</td></tr>`}
     </tbody></table>
-    <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Un devis accepté propose directement de <b>créer le contrat</b>, prérempli avec l'offre, le nombre d'utilisateurs et les options.</span></div>`;
+
+    <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Ce sous-module suit les devis <b>commerciaux</b>. Les devis opérationnels facturés aux clients restent dans TigerFlow — le rattachement se fera par référence, sans créer de doublon.</span></div>`;
 }
 
 /* ---------- 7. CONTRATS ---------- */
