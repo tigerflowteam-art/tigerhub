@@ -407,6 +407,19 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .tour-icon{width:38px;height:38px;border-radius:12px;background:var(--th-orange-bg);color:var(--th-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .tour-stop{display:flex;align-items:flex-start;gap:14px;background:var(--th-card);border:1px solid var(--th-border);border-radius:14px;padding:15px 17px;margin-bottom:10px;box-shadow:var(--th-shadow-sm)}
 .tour-num{width:28px;height:28px;border-radius:9px;background:var(--th-orange);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.lead-toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.lead-card{display:flex;align-items:center;gap:14px;background:var(--th-card);border:1px solid var(--th-border);border-radius:15px;padding:16px 18px;margin-bottom:11px;box-shadow:var(--th-shadow-sm);flex-wrap:wrap;transition:all .12s}
+.lead-card:hover{box-shadow:var(--th-shadow)}
+.lead-card.sel{border-color:var(--th-orange);background:var(--th-orange-bg)}
+.lead-card.late{border-left:3px solid var(--th-red)}
+.lead-check{width:22px;height:22px;border-radius:7px;border:1.6px solid var(--th-border);background:var(--th-card);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#fff}
+.lead-check.on{background:var(--th-orange);border-color:var(--th-orange)}
+.pc-origine{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;border-radius:5px;padding:2px 6px;margin-bottom:7px}
+.pc-value{display:flex;align-items:baseline;gap:4px;margin-bottom:7px}
+.pc-proba{display:flex;align-items:center;gap:7px;margin-bottom:7px;cursor:pointer;font-size:10px;color:var(--th-text-2);font-weight:700}
+.pc-proba-bar{flex:1;background:var(--th-bg-alt);border-radius:4px;height:4px;overflow:hidden}
+.pc-proba-bar div{height:100%;background:var(--th-orange);border-radius:4px}
+.pipe-col-won{background:var(--th-green-bg)}
 .pipe-board{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;align-items:flex-start}
 .pipe-col{min-width:200px;flex:1;background:var(--th-bg-alt);border-radius:14px;padding:12px;border:2px solid transparent;transition:all .12s}
 .pipe-col.drop{border-color:var(--th-orange);background:var(--th-orange-bg)}
@@ -702,6 +715,7 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 </aside>
 <div id="app"></div>
 <div class="modal-overlay" id="wizard-overlay"><div class="wiz-modal"><div id="wizard-body"></div></div></div>
+<div class="modal-overlay" id="imp-overlay"><div class="wiz-modal"><div id="imp-body"></div></div></div>
 <div class="modal-overlay" id="call-overlay"><div class="wiz-modal" style="max-width:560px"><div id="call-body"></div></div></div>
 <div class="modal-overlay" id="visit-overlay"><div class="wiz-modal" style="max-width:560px"><div id="visit-body"></div></div></div>
 <div class="modal-overlay" id="import-overlay"><div class="wiz-modal" style="max-width:560px"><div id="import-body"></div></div></div>
@@ -825,6 +839,7 @@ const ICONS = {
 'users':'<circle cx="8" cy="8" r="3.2"/><path d="M2 20c0-3.5 2.5-5.5 6-5.5s6 2 6 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M14.5 14.5c3-0.5 5.5 1.5 6 5.5"/>',
 'video':'<rect x="2" y="5" width="14" height="14" rx="2"/><polygon points="16,9 22,6 22,18 16,15"/>',
 'versions':'<rect x="5" y="8" width="12" height="10" rx="1"/><path d="M8 8V6a1 1 0 011-1h10a1 1 0 011 1v10a1 1 0 01-1 1h-2"/>',
+'writing':'<path d="M4 20h16"/><path d="M12 16l7-7-3-3-7 7v3h3z"/>',
 'wallet':'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14" r="1.3" fill="currentColor" stroke="none"/>',
 };
 function ic(name, size){
@@ -895,6 +910,7 @@ const MODULES = [
   ]},
   { id:'sales', label:'Prospection commerciale', icon:'ti-briefcase', sections:[
     { id:'sales-dashboard', label:'Tableau de bord', icon:'ti-chart-donut-3', kind:'salesDashboard' },
+    { id:'leads', label:'Leads entrants', icon:'ti-bell', kind:'salesLeads' },
     { id:'prospects', label:'Prospects', icon:'ti-user-plus', kind:'salesProspects' },
     { id:'prospection', label:'Prospection', icon:'ti-phone', kind:'salesProspection' },
     { id:'pipeline', label:'Pipeline', icon:'ti-timeline', kind:'salesPipeline' },
@@ -906,6 +922,7 @@ const MODULES = [
     { id:'reps', label:'Commerciaux', icon:'ti-users', kind:'salesReps' },
     { id:'perf', label:'Performances', icon:'ti-chart-line', kind:'salesPerf' },
     { id:'docs', label:'Documents & scripts', icon:'ti-books', kind:'salesDocs' },
+    { id:'audit', label:"Journal d'audit", icon:'ti-history', kind:'salesAudit' },
     { id:'settings', label:'Paramètres', icon:'ti-settings', kind:'salesSettings' },
   ]},
 
@@ -1166,6 +1183,8 @@ function panelTemplate(moduleId, s){
     case 'mktgIntelligence': return `<div class="page-head"><div><h1>Intelligence marketing</h1><p class="subtitle">Qu'est-ce que je retiens ?</p></div></div><div id="${p}-intelligenceContent"></div>`;
     case 'mktgSettings': return `<div class="page-head"><div><h1>Paramètres Marketing</h1><p class="subtitle">Les règles communes utilisées par tous les sous-modules</p></div></div><div id="${p}-settingsContent"></div>`;
     case 'salesDashboard': return `<div class="page-head"><div><h1>Tableau de bord</h1><p class="subtitle">Où en est ma prospection et qu'est-ce qui mérite mon attention ?</p></div></div><div id="${p}-dashboardContent"></div>`;
+    case 'salesLeads': return `<div class="page-head"><div><h1>Leads entrants</h1><p class="subtitle">Leads générés par le Marketing, en attente d'attribution</p></div><button class="add-btn" onclick="openImportWizard()">${ic('ti-plus',14)} Importer une liste</button></div><div id="${p}-leadsContent"></div>`;
+    case 'salesAudit': return `<div class="page-head"><div><h1>Journal d'audit</h1><p class="subtitle">Qui a fait quoi, quand — historique complet et non modifiable</p></div></div><div id="${p}-auditContent"></div>`;
     case 'salesProspects': return `<div class="page-head"><div><h1>Prospects</h1><p class="subtitle">Toutes les entreprises à contacter ou déjà contactées</p></div></div><div id="${p}-prospectsContent"></div>`;
     case 'salesProspection': return `<div class="page-head"><div><h1>Prospection</h1><p class="subtitle">Appels sortants et tournées terrain</p></div></div><div id="${p}-prospectionContent"></div>`;
     case 'salesPipeline': return `<div class="page-head"><div><h1>Pipeline</h1><p class="subtitle">Où se trouve chaque prospect dans le parcours commercial</p></div></div><div id="${p}-pipelineContent"></div>`;
@@ -5512,7 +5531,183 @@ function stageBadge(s){
   return `<span class="badge" style="color:${st.c};background:${st.bg}">${esc(s)}</span>`;
 }
 
-const PROSPECT_SOURCES = ['Prospection téléphonique','Prospection terrain','Google Maps','Annuaire','Recommandation','Partenaire','Événement','LinkedIn','Réseau personnel','Campagne marketing','Formulaire','Import CSV','Ajout manuel'];
+/* ========== ORIGINE ≠ SOURCE ==========
+   L'origine dit QUI a produit l'affaire (Marketing ou le commercial).
+   La source dit PAR QUEL MOYEN. Les deux sont indépendants et servent
+   à calculer des performances et des commissions différentes. */
+const ORIGINES = ['Marketing TigerFlow','Prospection commerciale','Partenaire','Recommandation','Autre'];
+const ORIGINE_STYLE = {
+  'Marketing TigerFlow':    { c:'var(--th-orange)', bg:'var(--th-orange-bg)', icon:'ti-target-arrow' },
+  'Prospection commerciale':{ c:'var(--th-blue)',   bg:'var(--th-blue-bg)',   icon:'ti-phone' },
+  'Partenaire':             { c:'var(--th-purple)', bg:'var(--th-purple-bg)', icon:'ti-handshake' },
+  'Recommandation':         { c:'var(--th-green)',  bg:'var(--th-green-bg)',  icon:'ti-users' },
+  'Autre':                  { c:'var(--th-text-2)', bg:'var(--th-bg-alt)',    icon:'ti-share' },
+};
+/* Sources possibles par origine — évite les combinaisons incohérentes */
+const SOURCES_BY_ORIGINE = {
+  'Marketing TigerFlow':    ['Google Ads','LinkedIn Ads','Meta Ads','SEO','Formulaire du site','Landing page','Emailing','Contenu','Événement'],
+  'Prospection commerciale':['Téléphone','Terrain','Liste SIRENE','Google Maps','Annuaire','Réseau personnel','Import CSV'],
+  'Partenaire':             ['Apporteur','Intégrateur','Fédération professionnelle'],
+  'Recommandation':         ['Client existant','Confrère','Réseau personnel'],
+  'Autre':                  ['Ajout manuel','Non renseigné'],
+};
+function origineBadge(o){
+  const s = ORIGINE_STYLE[o] || ORIGINE_STYLE['Autre'];
+  return `<span class="badge" style="color:${s.c};background:${s.bg}">${ic(s.icon,11)} ${esc(o)}</span>`;
+}
+
+/* ========== TYPE D'ACQUISITION ==========
+   Détermine la règle de commission : un lead fourni par TigerFlow ne
+   se rémunère pas comme un prospect que le commercial a trouvé seul. */
+const ACQUISITION_TYPES = ['Lead fourni par TigerFlow','Prospect auto-acquis','Recommandation','Partenaire','Autre'];
+function acquisitionType(p){
+  if(p.origine === 'Marketing TigerFlow') return 'Lead fourni par TigerFlow';
+  if(p.origine === 'Prospection commerciale') return 'Prospect auto-acquis';
+  if(p.origine === 'Recommandation') return 'Recommandation';
+  if(p.origine === 'Partenaire') return 'Partenaire';
+  return 'Autre';
+}
+
+/* ========== MOTEUR DE COMMISSION ==========
+   Rien n'est figé : les taux sont des valeurs de départ à ajuster.
+   Le moteur accepte plusieurs modèles pour ne pas contraindre l'avenir. */
+const COMMISSION_MODES = ['Montant fixe','Pourcentage du 1er an','Pourcentage du MRR','Pourcentage du revenu encaissé'];
+const COMMISSION_RECURRENCE = ['Commission unique','Récurrente pendant X mois'];
+const COMMISSION_SETTINGS = {
+  moisAcquisition: 3,        // mois d'abonnement payé avant acquisition
+  clawbackActif: false,      // modèle principal : pas de commission avant 3 mois
+  clawbackMois: 6,
+  /* Une règle par type d'acquisition — à ajuster avant de recruter */
+  regles: {
+    'Lead fourni par TigerFlow': { mode:'Pourcentage du 1er an', valeur:10, recurrence:'Commission unique', mois:1, actif:true },
+    'Prospect auto-acquis':      { mode:'Pourcentage du 1er an', valeur:20, recurrence:'Commission unique', mois:1, actif:true },
+    'Recommandation':            { mode:'Pourcentage du 1er an', valeur:15, recurrence:'Commission unique', mois:1, actif:true },
+    'Partenaire':                { mode:'Montant fixe',          valeur:100, recurrence:'Commission unique', mois:1, actif:true },
+    'Autre':                     { mode:'Pourcentage du 1er an', valeur:15, recurrence:'Commission unique', mois:1, actif:false },
+  },
+};
+/* Calcule le montant potentiel — jamais une valeur inventée */
+function commissionAmount(type, montantAnnuel, mrr){
+  const r = COMMISSION_SETTINGS.regles[type];
+  if(!r || !r.actif) return 0;
+  if(r.mode === 'Montant fixe') return r.valeur;
+  if(r.mode === 'Pourcentage du MRR') return Math.round(mrr * r.valeur/100);
+  return Math.round(montantAnnuel * r.valeur/100);
+}
+
+/* ========== RÈGLES D'ATTRIBUTION DES LEADS ========== */
+const ATTRIBUTION_METHODS = ['Manuelle','Rotation équilibrée','Par secteur','Par zone géographique','Par capacité'];
+const ATTRIBUTION_SETTINGS = {
+  methode: 'Rotation équilibrée',
+  slaHeures: 2,              // premier contact attendu
+  alerteHeures: 1.5,         // alerte avant échéance
+  reattributionAuto: false,  // à activer plus tard
+  parSecteur: { derat:'rep2' },
+  parZone: { 'Île-de-France':'rep3', 'Auvergne-Rhône-Alpes':'rep2' },
+};
+/* Applique la règle active et renvoie le commercial retenu, avec la raison */
+function suggestAssignee(lead){
+  const M = ATTRIBUTION_SETTINGS.methode;
+  const actifs = SALES_REPS.filter(r=>r.statut==='Actif' && !r.isOwner);
+  if(!actifs.length) return { repId:SALES_REPS[0].id, raison:'Aucun commercial actif' };
+  if(M === 'Par secteur'){
+    const id = ATTRIBUTION_SETTINGS.parSecteur[lead.sectorId];
+    if(id) return { repId:id, raison:`Secteur ${sectorName(lead.sectorId)}` };
+  }
+  if(M === 'Par zone géographique'){
+    const id = ATTRIBUTION_SETTINGS.parZone[lead.zone];
+    if(id) return { repId:id, raison:`Zone ${lead.zone}` };
+  }
+  if(M === 'Par capacité'){
+    const charges = actifs.map(r=>({ r, n:PROSPECTS_DATA.filter(p=>p.repId===r.id && !['Gagné','Perdu'].includes(p.stage)).length }));
+    charges.sort((a,b)=>a.n-b.n);
+    return { repId:charges[0].r.id, raison:`Charge la plus faible (${charges[0].n} en cours)` };
+  }
+  if(M === 'Rotation équilibrée'){
+    const counts = actifs.map(r=>({ r, n:PROSPECTS_DATA.filter(p=>p.repId===r.id).length }));
+    counts.sort((a,b)=>a.n-b.n);
+    return { repId:counts[0].r.id, raison:'Rotation — moins de prospects attribués' };
+  }
+  return { repId:null, raison:'Attribution manuelle' };
+}
+
+/* ========== LEADS ENTRANTS ==========
+   Produits par le Marketing, en attente d'attribution.
+   Aucune intégration réelle : ces leads sont des données de démonstration.
+   L'architecture est prête à recevoir un flux Google Ads / formulaire. */
+const LEADS = [
+  { id:'ld1', entreprise:'Deratis Pro Lyon', contact:'Hélène Vasseur', fonction:'Gérante',
+    tel:'04 78 xx xx 34', email:'h.vasseur@deratispro.fr', ville:'Lyon', zone:'Auvergne-Rhône-Alpes',
+    sectorId:'derat', taille:'7 salariés',
+    origine:'Marketing TigerFlow', source:'Google Ads', campaignId:'mktg_demo_1', segmentId:'seg1',
+    contenu:'Landing page — Lancement 1er octobre', utm:'google / cpc / google-ads-derat-tpe',
+    recu:new Date(Date.now()-25*60000).toISOString(), repId:null, statut:'À attribuer', signalement:null },
+
+  { id:'ld2', entreprise:'Nuisibles Services 75', contact:'Olivier Tanguy', fonction:'Dirigeant',
+    tel:'01 43 xx xx 61', email:'o.tanguy@ns75.fr', ville:'Paris 12e', zone:'Île-de-France',
+    sectorId:'derat', taille:'12 salariés',
+    origine:'Marketing TigerFlow', source:'LinkedIn Ads', campaignId:'mktg_demo_3', segmentId:'seg2',
+    contenu:'Guide — Obligations réglementaires', utm:'linkedin / paid-social / prospection-contrats-sanitaires',
+    recu:new Date(Date.now()-95*60000).toISOString(), repId:null, statut:'À attribuer', signalement:null },
+
+  { id:'ld3', entreprise:'Hygiène Sud Marseille', contact:'Farid Belkacem', fonction:'Responsable',
+    tel:'04 91 xx xx 88', email:'f.belkacem@hygienesud.fr', ville:'Marseille', zone:"Provence-Alpes-Côte d'Azur",
+    sectorId:'derat', taille:'5 salariés',
+    origine:'Marketing TigerFlow', source:'SEO', campaignId:'mktg_demo_5', segmentId:'seg2',
+    contenu:'Article — Preuve de passage', utm:'seo / organic / contenu-seo-reglementation',
+    recu:new Date(Date.now()-190*60000).toISOString(), repId:null, statut:'À attribuer', signalement:null },
+
+  { id:'ld4', entreprise:'Cabinet Dentaire Voltaire', contact:'—', fonction:'—',
+    tel:'01 47 xx xx 20', email:'contact@cd-voltaire.fr', ville:'Paris 11e', zone:'Île-de-France',
+    sectorId:'derat', taille:'3 salariés',
+    origine:'Marketing TigerFlow', source:'Formulaire du site', campaignId:null, segmentId:'seg3',
+    contenu:'Formulaire de contact', utm:'',
+    recu:new Date(Date.now()-40*60000).toISOString(), repId:null, statut:'À attribuer', signalement:null },
+];
+/* Motifs de signalement — un commercial ne supprime jamais, il signale */
+const SIGNAL_REASONS = ['Hors secteur','Hors zone','Faux numéro','Doublon','Entreprise inactive','Demande non pertinente','Autre'];
+
+/* Délai écoulé et respect du SLA */
+function leadAgeMinutes(l){ return Math.floor((Date.now() - new Date(l.recu))/60000); }
+function leadSLA(l){
+  const m = leadAgeMinutes(l);
+  const sla = ATTRIBUTION_SETTINGS.slaHeures*60;
+  const alerte = ATTRIBUTION_SETTINGS.alerteHeures*60;
+  if(m >= sla) return { k:'red', label:`Hors délai · ${fmtDuree(m)}`, depasse:true };
+  if(m >= alerte) return { k:'orange', label:`Bientôt hors délai · ${fmtDuree(m)}`, depasse:false };
+  return { k:'green', label:`Dans les délais · ${fmtDuree(m)}`, depasse:false };
+}
+function fmtDuree(min){
+  if(min < 60) return min + ' min';
+  const h = Math.floor(min/60), m = min%60;
+  return h + ' h' + (m?' '+m:'');
+}
+
+/* ========== PERMISSIONS ==========
+   Règle absolue : un commercial ne supprime jamais rien.
+   Les statuts remplacent la suppression, l'historique est conservé. */
+const PERMISSIONS = {
+  'Owner':      { voirTout:true,  attribuer:true,  supprimer:false, archiver:true,  modifierRegles:true,  envoyerContrat:true },
+  'Commercial freelance': { voirTout:false, attribuer:false, supprimer:false, archiver:false, modifierRegles:false, envoyerContrat:false },
+};
+function can(action){
+  const role = CURRENT_USER.isOwner ? 'Owner' : 'Commercial freelance';
+  return !!(PERMISSIONS[role] && PERMISSIONS[role][action]);
+}
+
+/* ========== JOURNAL D'AUDIT ==========
+   Qui a fait quoi, quand. Alimenté automatiquement par les actions. */
+const AUDIT_LOG = [
+  { id:'a1', date:'2026-09-14T10:22:00', qui:'Thomas Rivière', quoi:"Contrat signé — Dératik Plus", objet:'p4', type:'contrat' },
+  { id:'a2', date:'2026-09-12T09:05:00', qui:'Thomas Rivière', quoi:"Contrat envoyé — Dératik Plus", objet:'p4', type:'contrat' },
+  { id:'a3', date:'2026-09-10T16:40:00', qui:'Thomas Rivière', quoi:"Devis créé — 1 180 € / an", objet:'p4', type:'devis' },
+  { id:'a4', date:'2026-10-05T11:15:00', qui:'Thomas Rivière', quoi:"Contrat envoyé — Nuisistop Sud", objet:'p9', type:'contrat' },
+  { id:'a5', date:'2026-10-04T14:30:00', qui:'Camille Ferrand', quoi:"Appel — RDV obtenu chez Bio Nuisibles 92", objet:'p7', type:'appel' },
+  { id:'a6', date:'2026-10-03T09:50:00', qui:'Camille Ferrand', quoi:"Appel — À rappeler chez Pest Control Grenoble", objet:'p5', type:'appel' },
+];
+function logAudit(quoi, objet, type){
+  AUDIT_LOG.unshift({ id:'a_'+Date.now(), date:new Date().toISOString(), qui:CURRENT_USER.nom, quoi, objet, type });
+}
 const CALL_RESULTS = ['Pas de réponse','Répondeur','Mauvais numéro','À rappeler','Intéressé','Pas intéressé',"Demande d'informations",'RDV obtenu','Refus définitif','Hors cible'];
 const VISIT_RESULTS = ['À visiter','Visité','Personne rencontrée','Contact obtenu','Intéressé','RDV obtenu','À rappeler','Refus','Hors cible'];
 const RDV_STATUSES = ['Planifié','Confirmé','Réalisé','Reporté','Annulé','No-show'];
@@ -5532,15 +5727,7 @@ const TF_OPTIONS = [
   { id:'opt_api', nom:'Accès API', prix:15, recurrent:true },
 ];
 
-/* Règles de commission — configurables, rien n'est figé */
-const COMMISSION_SETTINGS = {
-  type: 'Pourcentage du premier an',   // ou 'Montant fixe'
-  montantFixe: 150,
-  pourcentage: 15,
-  moisAcquisition: 3,                   // mois d'abonnement payé avant acquisition
-  clawbackActif: true,
-  clawbackMois: 6,                      // reprise possible si résiliation avant X mois
-};
+
 
 /* Commerciaux freelances */
 const SALES_REPS = [
@@ -5561,7 +5748,7 @@ const PROSPECTS_DATA = [
   { id:'p1', entreprise:'ABC Dératisation', contact:'Marc Ferrand', fonction:'Gérant',
     tel:'04 78 xx xx 12', email:'contact@abc-deratisation.fr', site:'abc-deratisation.fr',
     ville:'Lyon', zone:'Auvergne-Rhône-Alpes', sectorId:'derat', taille:'6 salariés', techniciens:4,
-    source:'Prospection terrain', repId:'rep2', stage:'Devis envoyé',
+    origine:'Prospection commerciale', source:'Terrain', repId:'rep2', stage:'Devis envoyé',
     cree:'2026-08-12', dernierContact:'2026-09-28', prochainContact:'2026-10-14',
     prochaineAction:'Relancer le devis', valeur:1490, campaignId:null,
     notes:"Utilise Excel et un agenda papier. Très intéressé par la traçabilité des passages." },
@@ -5569,7 +5756,7 @@ const PROSPECTS_DATA = [
   { id:'p2', entreprise:'Nuisibles Contrôle 69', contact:'Sylvie Marchand', fonction:'Responsable exploitation',
     tel:'04 72 xx xx 45', email:'s.marchand@nc69.fr', site:'nc69.fr',
     ville:'Villeurbanne', zone:'Auvergne-Rhône-Alpes', sectorId:'derat', taille:'14 salariés', techniciens:9,
-    source:'Campagne marketing', repId:'rep2', stage:'Démonstration',
+    origine:'Marketing TigerFlow', source:'LinkedIn Ads', repId:'rep2', stage:'Démonstration',
     cree:'2026-09-02', dernierContact:'2026-10-02', prochainContact:'2026-10-09',
     prochaineAction:'Faire la démonstration', valeur:2340, campaignId:'mktg_demo_3',
     notes:"Vient de la campagne LinkedIn conformité. Sous contrat avec 3 chaînes de restauration." },
@@ -5577,7 +5764,7 @@ const PROSPECTS_DATA = [
   { id:'p3', entreprise:'Hygiène 3D Paris', contact:'Karim Benali', fonction:'Dirigeant',
     tel:'01 44 xx xx 78', email:'k.benali@hygiene3d.fr', site:'hygiene3d.fr',
     ville:'Paris 11e', zone:'Île-de-France', sectorId:'derat', taille:'8 salariés', techniciens:5,
-    source:'LinkedIn', repId:'rep3', stage:'Qualifié',
+    origine:'Marketing TigerFlow', source:'LinkedIn Ads', repId:'rep3', stage:'Qualifié',
     cree:'2026-09-15', dernierContact:'2026-10-01', prochainContact:'2026-10-08',
     prochaineAction:'Proposer un créneau de démonstration', valeur:1870, campaignId:'mktg_demo_1',
     notes:"A répondu à un post LinkedIn. Cherche à remplacer un logiciel généraliste." },
@@ -5585,7 +5772,7 @@ const PROSPECTS_DATA = [
   { id:'p4', entreprise:'Dératik Plus', contact:'Julie Rousseau', fonction:'Gérante',
     tel:'04 91 xx xx 33', email:'contact@deratikplus.fr', site:'deratikplus.fr',
     ville:'Marseille', zone:"Provence-Alpes-Côte d'Azur", sectorId:'derat', taille:'4 salariés', techniciens:3,
-    source:'Recommandation', repId:'rep2', stage:'Gagné',
+    origine:'Recommandation', source:'Confrère', repId:'rep2', stage:'Gagné',
     cree:'2026-07-20', dernierContact:'2026-09-30', prochainContact:null,
     prochaineAction:null, valeur:1180, campaignId:null,
     notes:"Recommandée par un confrère. Signature rapide, très motivée." },
@@ -5593,7 +5780,7 @@ const PROSPECTS_DATA = [
   { id:'p5', entreprise:'Pest Control Grenoble', contact:'Antoine Devaux', fonction:'Responsable technique',
     tel:'04 76 xx xx 91', email:'a.devaux@pcg.fr', site:'',
     ville:'Grenoble', zone:'Auvergne-Rhône-Alpes', sectorId:'derat', taille:'11 salariés', techniciens:7,
-    source:'Prospection téléphonique', repId:'rep3', stage:'À rappeler',
+    origine:'Prospection commerciale', source:'Téléphone', repId:'rep3', stage:'À rappeler',
     cree:'2026-09-25', dernierContact:'2026-10-03', prochainContact:'2026-10-10',
     prochaineAction:'Rappeler pour qualifier le besoin', valeur:0, campaignId:null,
     notes:"Premier contact positif mais peu de temps à consacrer. Rappeler en fin de journée." },
@@ -5601,14 +5788,14 @@ const PROSPECTS_DATA = [
   { id:'p6', entreprise:'SOS Nuisibles Lyon', contact:'Patrick Meunier', fonction:'Gérant',
     tel:'04 78 xx xx 60', email:'', site:'sos-nuisibles-lyon.fr',
     ville:'Lyon', zone:'Auvergne-Rhône-Alpes', sectorId:'derat', taille:'3 salariés', techniciens:2,
-    source:'Google Maps', repId:'rep2', stage:'À contacter',
+    origine:'Prospection commerciale', source:'Google Maps', repId:'rep2', stage:'À contacter',
     cree:'2026-10-01', dernierContact:null, prochainContact:'2026-10-08',
     prochaineAction:'Premier appel', valeur:0, campaignId:null, notes:"" },
 
   { id:'p7', entreprise:'Bio Nuisibles 92', contact:'Nadia Cherif', fonction:'Dirigeante',
     tel:'01 46 xx xx 22', email:'n.cherif@bionuisibles92.fr', site:'bionuisibles92.fr',
     ville:'Boulogne', zone:'Île-de-France', sectorId:'derat', taille:'5 salariés', techniciens:3,
-    source:'Prospection téléphonique', repId:'rep3', stage:'RDV obtenu',
+    origine:'Prospection commerciale', source:'Téléphone', repId:'rep3', stage:'RDV obtenu',
     cree:'2026-09-18', dernierContact:'2026-10-04', prochainContact:'2026-10-11',
     prochaineAction:'Rendez-vous téléphonique', valeur:1490, campaignId:null,
     notes:"Approche écologique, sensible aux arguments de traçabilité client." },
@@ -5616,7 +5803,7 @@ const PROSPECTS_DATA = [
   { id:'p8', entreprise:'Rhône Hygiène', contact:'Luc Ferrière', fonction:'Gérant',
     tel:'04 74 xx xx 05', email:'', site:'',
     ville:'Bourg-en-Bresse', zone:'Auvergne-Rhône-Alpes', sectorId:'derat', taille:'2 salariés', techniciens:1,
-    source:'Prospection terrain', repId:'rep2', stage:'Perdu',
+    origine:'Prospection commerciale', source:'Terrain', repId:'rep2', stage:'Perdu',
     cree:'2026-08-28', dernierContact:'2026-09-20', prochainContact:null,
     prochaineAction:null, valeur:0, campaignId:null,
     notes:"Trop petite structure, pas de budget logiciel. Hors cible pour l'instant." },
@@ -5624,7 +5811,7 @@ const PROSPECTS_DATA = [
   { id:'p9', entreprise:'Nuisistop Sud', contact:'Élodie Prat', fonction:'Responsable administrative',
     tel:'04 42 xx xx 17', email:'e.prat@nuisistop.fr', site:'nuisistop.fr',
     ville:'Aix-en-Provence', zone:"Provence-Alpes-Côte d'Azur", sectorId:'derat', taille:'9 salariés', techniciens:6,
-    source:'Campagne marketing', repId:'rep2', stage:'Contrat envoyé',
+    origine:'Marketing TigerFlow', source:'SEO', repId:'rep2', stage:'Contrat envoyé',
     cree:'2026-08-30', dernierContact:'2026-10-05', prochainContact:'2026-10-12',
     prochaineAction:'Relancer la signature', valeur:2110, campaignId:'mktg_demo_5',
     notes:"Vient du guide réglementaire. Contrat envoyé, attente de validation du gérant." },
@@ -5632,7 +5819,7 @@ const PROSPECTS_DATA = [
   { id:'p10', entreprise:'Capitale Dératisation', contact:'Yann Moreau', fonction:'Gérant',
     tel:'01 42 xx xx 88', email:'contact@capitale-derat.fr', site:'',
     ville:'Paris 15e', zone:'Île-de-France', sectorId:'derat', taille:'7 salariés', techniciens:5,
-    source:'Annuaire', repId:'rep3', stage:'À contacter',
+    origine:'Prospection commerciale', source:'Annuaire', repId:'rep3', stage:'À contacter',
     cree:'2026-10-02', dernierContact:null, prochainContact:'2026-10-09',
     prochaineAction:'Premier appel', valeur:0, campaignId:null, notes:"" },
 ];
@@ -5711,7 +5898,7 @@ const WON_CLIENTS = [
 
 /* Commissions — dérivées des clients, avec période d'acquisition */
 const COMMISSIONS = [
-  { id:'cm1', clientId:'cl1', repId:'rep2', base:1180, taux:15, montant:177,
+  { id:'cm1', clientId:'cl1', repId:'rep2', typeAcq:'Recommandation', base:1180, montant:177,
     statut:'En attente', moisPayes:1, moisRequis:3, acquise:null, payee:null, motifAnnulation:null },
 ];
 
@@ -5757,6 +5944,329 @@ function gotoSales(sectionId){
 }
 function comingSoon(what){
   alert(`${what}\n\nIntégration à connecter — cette fonctionnalité nécessite un service externe et sera disponible dans la version réelle.`);
+}
+
+/* ---------- LEADS ENTRANTS ----------
+   Flux Marketing → Lead → Attribution → Commercial → Prospect.
+   Le lead devient un prospect : jamais deux fiches. */
+
+let leadSelection = [];
+let openLeadId = null;
+
+function toggleLeadSel(id){
+  const i = leadSelection.indexOf(id);
+  if(i>=0) leadSelection.splice(i,1); else leadSelection.push(id);
+  renderSalesLeads();
+}
+function selectAllLeads(){
+  const list = LEADS.filter(l=>l.statut==='À attribuer' && matchSector(l.sectorId));
+  leadSelection = leadSelection.length===list.length ? [] : list.map(l=>l.id);
+  renderSalesLeads();
+}
+/* Attribution : le lead se transforme en prospect, avec toute sa traçabilité */
+function assignLeads(repId){
+  if(!leadSelection.length) return;
+  if(!can('attribuer')){ alert("Seul l'Owner peut attribuer des leads."); return; }
+  const rep = SALES_REPS.find(r=>r.id===repId);
+  if(!confirm(`Attribuer ${leadSelection.length} lead${leadSelection.length>1?'s':''} à ${rep.nom} ?\n\nChaque lead devient un prospect dans son portefeuille, avec sa campagne d'origine conservée.`)) return;
+  leadSelection.forEach(id=>{
+    const l = LEADS.find(x=>x.id===id); if(!l) return;
+    PROSPECTS_DATA.unshift({
+      id:'p_'+Date.now()+'_'+id, entreprise:l.entreprise, contact:l.contact, fonction:l.fonction,
+      tel:l.tel, email:l.email, site:'', ville:l.ville, zone:l.zone, sectorId:l.sectorId,
+      taille:l.taille, techniciens:null,
+      origine:l.origine, source:l.source, repId, stage:'À contacter',
+      cree:todayISO(), dernierContact:null, prochainContact:todayISO(),
+      prochaineAction:`Premier contact — lead ${l.source}`, valeur:0,
+      campaignId:l.campaignId, segmentId:l.segmentId, contenuOrigine:l.contenu, utmOrigine:l.utm,
+      leadRecu:l.recu,
+      notes:`Lead reçu le ${new Date(l.recu).toLocaleString('fr-FR')} via ${l.source}.`
+    });
+    l.statut = 'Attribué'; l.repId = repId;
+    logAudit(`Lead attribué à ${rep.nom} — ${l.entreprise}`, l.id, 'lead');
+  });
+  leadSelection = [];
+  renderSalesAll();
+}
+function autoAssignLeads(){
+  if(!can('attribuer')){ alert("Seul l'Owner peut attribuer des leads."); return; }
+  const list = LEADS.filter(l=>l.statut==='À attribuer' && matchSector(l.sectorId));
+  if(!list.length) return;
+  const plan = list.map(l=>({ l, s:suggestAssignee(l) }));
+  const resume = plan.map(x=>`• ${x.l.entreprise} → ${repName(x.s.repId)} (${x.s.raison})`).join('\n');
+  if(!confirm(`Attribution automatique — règle « ${ATTRIBUTION_SETTINGS.methode} »\n\n${resume}\n\nConfirmer ?`)) return;
+  plan.forEach(x=>{ leadSelection = [x.l.id]; assignLeadsSilent(x.s.repId, x.l); });
+  leadSelection = [];
+  renderSalesAll();
+}
+function assignLeadsSilent(repId, l){
+  PROSPECTS_DATA.unshift({
+    id:'p_'+Date.now()+'_'+l.id, entreprise:l.entreprise, contact:l.contact, fonction:l.fonction,
+    tel:l.tel, email:l.email, site:'', ville:l.ville, zone:l.zone, sectorId:l.sectorId,
+    taille:l.taille, techniciens:null, origine:l.origine, source:l.source, repId, stage:'À contacter',
+    cree:todayISO(), dernierContact:null, prochainContact:todayISO(),
+    prochaineAction:`Premier contact — lead ${l.source}`, valeur:0,
+    campaignId:l.campaignId, segmentId:l.segmentId, contenuOrigine:l.contenu, utmOrigine:l.utm,
+    leadRecu:l.recu, notes:`Lead reçu le ${new Date(l.recu).toLocaleString('fr-FR')} via ${l.source}.`
+  });
+  l.statut = 'Attribué'; l.repId = repId;
+  logAudit(`Lead attribué automatiquement à ${repName(repId)} — ${l.entreprise}`, l.id, 'lead');
+}
+/* Signaler : la seule alternative à la suppression, interdite */
+function signalLead(id){
+  const l = LEADS.find(x=>x.id===id); if(!l) return;
+  const choix = prompt(`Signaler « ${l.entreprise} »\n\nMotif :\n${SIGNAL_REASONS.map((r,i)=>`${i+1}. ${r}`).join('\n')}\n\nNuméro :`);
+  const i = parseInt(choix,10)-1;
+  if(isNaN(i) || !SIGNAL_REASONS[i]) return;
+  const detail = prompt('Précision (facultative) :') || '';
+  l.signalement = { motif:SIGNAL_REASONS[i], detail, par:CURRENT_USER.nom, date:todayISO() };
+  l.statut = 'Signalé';
+  logAudit(`Lead signalé — ${l.entreprise} (${SIGNAL_REASONS[i]})`, l.id, 'signalement');
+  alert("Lead signalé.\n\nIl n'est pas supprimé : l'Owner décidera de le réattribuer, corriger ou archiver.");
+  renderSalesAll();
+}
+function resolveSignal(id, action){
+  const l = LEADS.find(x=>x.id===id); if(!l) return;
+  if(!can('attribuer')){ alert("Action réservée à l'Owner."); return; }
+  if(action==='rendre'){ l.statut='À attribuer'; l.signalement=null; logAudit(`Signalement levé — ${l.entreprise}`, l.id, 'lead'); }
+  else { l.statut='Archivé'; logAudit(`Lead archivé — ${l.entreprise}`, l.id, 'lead'); }
+  renderSalesAll();
+}
+
+function renderSalesLeads(){
+  const el = document.getElementById('sales-leadsContent'); if(!el) return;
+  const all = LEADS.filter(l=>matchSector(l.sectorId));
+  const aAttribuer = all.filter(l=>l.statut==='À attribuer');
+  const signales = all.filter(l=>l.statut==='Signalé');
+  const attribues = all.filter(l=>l.statut==='Attribué');
+  const horsDelai = aAttribuer.filter(l=>leadSLA(l).depasse);
+
+  /* Leads déjà attribués mais pas encore contactés — SLA côté commercial */
+  const nonTraites = PROSPECTS_DATA.filter(p=>matchSector(p.sectorId) && p.leadRecu && !p.dernierContact);
+
+  el.innerHTML = sectorSelector() + `
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card ${aAttribuer.length?'orange':''}" style="${aAttribuer.length?'':''}"><div class="stat-card-icon">${ic('ti-bell')}</div>
+        <div class="val">${aAttribuer.length}</div><div class="label">À attribuer</div></div>
+      <div class="stat-card ${horsDelai.length?'red':''}"><div class="stat-card-icon">${ic('ti-history')}</div>
+        <div class="val">${horsDelai.length}</div><div class="label">Hors délai (${ATTRIBUTION_SETTINGS.slaHeures} h)</div></div>
+      <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-user-check')}</div>
+        <div class="val">${nonTraites.length}</div><div class="label">Attribués, non contactés</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-alert-triangle')}</div>
+        <div class="val">${signales.length}</div><div class="label">Signalés</div></div>
+    </div>
+
+    <div class="alert opp" style="margin-bottom:18px">
+      <div class="alert-icon">${ic('ti-link',14)}</div>
+      <div class="alert-text">Ces leads viennent du <b>Marketing</b>. Aucune intégration n'est active en V1 — ce sont des données de démonstration. L'architecture est prête à recevoir un flux réel Google Ads, LinkedIn ou formulaire.</div></div>
+
+    ${aAttribuer.length ? `
+      <div class="lead-toolbar">
+        <button class="filter-chip${leadSelection.length?' active':''}" onclick="selectAllLeads()">
+          ${leadSelection.length?`${leadSelection.length} sélectionné${leadSelection.length>1?'s':''}`:'Tout sélectionner'}</button>
+        ${leadSelection.length && can('attribuer') ? SALES_REPS.filter(r=>!r.isOwner).map(r=>`
+          <button class="add-btn" onclick="assignLeads('${r.id}')">${ic('ti-user-check',13)} Attribuer à ${esc(r.nom.split(' ')[0])}</button>`).join('') : ''}
+        ${can('attribuer')?`<button class="btn-ghost" style="margin-left:auto" onclick="autoAssignLeads()">${ic('ti-repeat',14)} Attribution automatique · ${esc(ATTRIBUTION_SETTINGS.methode)}</button>`:''}
+      </div>
+
+      ${aAttribuer.map(l=>{
+        const sla = leadSLA(l);
+        const sugg = suggestAssignee(l);
+        const camp = l.campaignId ? campaigns.find(c=>c.id===l.campaignId) : null;
+        const sel = leadSelection.includes(l.id);
+        return `<div class="lead-card ${sel?'sel':''} ${sla.depasse?'late':''}">
+          ${can('attribuer')?`<div class="lead-check ${sel?'on':''}" onclick="toggleLeadSel('${l.id}')">${sel?ic('ti-circle-check',12):''}</div>`:''}
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:5px">
+              <span style="font-size:14.5px;font-weight:700">${esc(l.entreprise)}</span>
+              ${origineBadge(l.origine)}
+              <span class="badge">${esc(l.source)}</span>
+              <span class="badge ${sla.k}" style="${sla.k==='orange'?'color:var(--th-orange);background:var(--th-orange-bg)':''}">${sla.label}</span>
+            </div>
+            <div style="font-size:12.5px;color:var(--th-text-2);margin-bottom:5px">
+              ${esc(l.contact)}${l.fonction!=='—'?` · ${esc(l.fonction)}`:''} · ${esc(l.tel)} · ${esc(l.ville)}</div>
+            <div style="font-size:11.5px;color:var(--th-text-3)">
+              ${camp?`Campagne : ${esc(camp.title)} · `:''}${l.contenu?`${esc(l.contenu)} · `:''}${esc(l.taille)}</div>
+            ${sugg.repId?`<div style="font-size:11.5px;color:var(--th-orange);font-weight:600;margin-top:5px">
+              ${ic('ti-bulb',11)} Suggéré : ${esc(repName(sugg.repId))} — ${esc(sugg.raison)}</div>`:''}
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0;align-items:center">
+            ${can('attribuer')?`<button class="qa-btn" onclick="leadSelection=['${l.id}'];assignLeads('${sugg.repId}')">Attribuer</button>`:''}
+            <button class="qa-btn" onclick="signalLead('${l.id}')">${ic('ti-alert-triangle',13)} Signaler</button>
+          </div>
+        </div>`;
+      }).join('')}`
+      : `<div class="alert opp"><div class="alert-icon">${ic('ti-circle-check',14)}</div>
+          <div class="alert-text"><b>Aucun lead en attente.</b> Tous les leads reçus ont été attribués.</div></div>`}
+
+    ${signales.length ? `<p class="section-label" style="margin-top:24px">Leads signalés</p>
+      ${signales.map(l=>`<div class="lead-card" style="border-left:3px solid var(--th-orange)">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px">${esc(l.entreprise)}</div>
+          <div style="font-size:12.5px;color:var(--th-orange);font-weight:600">${esc(l.signalement.motif)}${l.signalement.detail?` — ${esc(l.signalement.detail)}`:''}</div>
+          <div style="font-size:11.5px;color:var(--th-text-3);margin-top:3px">Signalé par ${esc(l.signalement.par)} le ${fmtDate(l.signalement.date)}</div>
+        </div>
+        ${can('attribuer')?`<div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="qa-btn" onclick="resolveSignal('${l.id}','rendre')">Remettre en file</button>
+          <button class="qa-btn" onclick="resolveSignal('${l.id}','archiver')">Archiver</button></div>`:''}
+      </div>`).join('')}` : ''}
+
+    ${nonTraites.length ? `<p class="section-label" style="margin-top:24px">Attribués mais pas encore contactés</p>
+      ${nonTraites.map(p=>{
+        const min = Math.floor((Date.now()-new Date(p.leadRecu))/60000);
+        const depasse = min >= ATTRIBUTION_SETTINGS.slaHeures*60;
+        return `<div class="lead-card ${depasse?'late':''}" onclick="openProspect('${p.id}')" style="cursor:pointer">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:4px">
+              <span style="font-size:14px;font-weight:700">${esc(p.entreprise)}</span>
+              ${origineBadge(p.origine)}
+              <span class="badge ${depasse?'red':'orange'}" style="${depasse?'':'color:var(--th-orange);background:var(--th-orange-bg)'}">${fmtDuree(min)} sans contact</span></div>
+            <div style="font-size:12px;color:var(--th-text-2)">${esc(repName(p.repId))} · ${esc(p.tel)}</div></div>
+          <button class="add-btn" style="flex-shrink:0" onclick="event.stopPropagation();openCallForm('${p.id}')">${ic('ti-phone',13)} Appeler</button>
+        </div>`;
+      }).join('')}` : ''}
+
+    <div class="hint-bar" style="margin-top:20px">${ic('ti-lock',16)}<span>Un lead ne se supprime jamais. Un commercial peut uniquement le <b>signaler</b> — l'Owner décide ensuite de réattribuer, corriger ou archiver.</span></div>`;
+}
+
+/* ---------- ASSISTANT D'IMPORT DE LISTES ---------- */
+let impStep = 0;
+let impData = null;
+function openImportWizard(){
+  impStep = 0;
+  impData = { source:'', secteur:ACTIVE_SECTOR.id, naf:'', region:'', dept:'', ville:'', effectif:'', actives:true,
+              nom:'', repartition:'auto', reps:[], resultats:null };
+  document.getElementById('imp-overlay').classList.add('open');
+  renderImportWizard();
+}
+function closeImportWizard(){ document.getElementById('imp-overlay').classList.remove('open'); }
+function impNext(){
+  if(impStep===1) computeImportResults();
+  if(impStep<4){ impStep++; renderImportWizard(); }
+}
+function impPrev(){ if(impStep>0){ impStep--; renderImportWizard(); } }
+function impSet(f,v){ impData[f]=v; renderImportWizard(); }
+/* Simulation de ciblage — aucune connexion réelle à SIRENE en V1 */
+function computeImportResults(){
+  const base = 327;
+  const dejaPresents = PROSPECTS_DATA.filter(p=>p.sectorId===impData.secteur).length;
+  impData.resultats = { trouvees:base, dejaPresents, doublons:12, nouvelles:base-dejaPresents-12 };
+}
+function doImport(){
+  const n = impData.resultats ? impData.resultats.nouvelles : 0;
+  const repartition = impData.repartition==='auto'
+    ? SALES_REPS.filter(r=>!r.isOwner).map(r=>`${r.nom} : ${Math.floor(n/SALES_REPS.filter(x=>!x.isOwner).length)}`).join(' · ')
+    : 'Attribution manuelle à faire';
+  logAudit(`Import de liste — ${impData.nom || 'sans nom'} (${n} prospects, source ${impData.source})`, null, 'import');
+  alert(`Import simulé — aucune donnée réelle n'est créée.\n\nListe : ${impData.nom||'sans nom'}\nSource : ${impData.source}\nProspects : ${n}\nRépartition : ${repartition}\n\nLa connexion aux bases publiques sera développée dans la version réelle.`);
+  closeImportWizard();
+  renderSalesAll();
+}
+function renderImportWizard(){
+  const el = document.getElementById('imp-body'); if(!el) return;
+  const steps = ['Source','Ciblage','Vérification','Attribution','Import'];
+  let body = '';
+
+  if(impStep===0){
+    body = `<p class="wiz-q">D'où vient cette liste ?</p>
+      <div class="wiz-grid">
+        ${['Fichier CSV','Fichier Excel','SIRENE / Annuaire des Entreprises','Autre base autorisée','Liste créée manuellement'].map(s=>`
+          <div class="wiz-opt ${impData.source===s?'sel':''}" onclick="impSet('source','${s}')">${esc(s)}</div>`).join('')}
+      </div>
+      ${impData.source.includes('SIRENE') ? `<div class="alert warn" style="margin-top:16px">
+        <div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+        <div class="alert-text"><b>Données d'entreprise uniquement.</b> Les bases publiques fournissent raison sociale, SIREN, SIRET, code NAF, adresse et effectif — <b>pas</b> le téléphone ou l'email personnel du dirigeant. Les coordonnées de contact devront être recherchées séparément.</div></div>` : ''}
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',15)}<span>Aucune connexion réelle n'est active en V1. Cet assistant construit le parcours pour l'intégration future.</span></div>`;
+  }
+  else if(impStep===1){
+    body = `<p class="wiz-q">Qui cibler ?</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div><label class="wiz-lab">Secteur TigerFlow</label>
+          <select class="wiz-input" onchange="impSet('secteur',this.value)">
+            ${SECTORS.filter(s=>s.actif).map(s=>`<option value="${s.id}" ${impData.secteur===s.id?'selected':''}>${esc(s.nom)}</option>`).join('')}</select></div>
+        <div><label class="wiz-lab">Code NAF / activité</label>
+          <input type="text" class="wiz-input" placeholder="Ex : 81.29Z" value="${esc(impData.naf)}" oninput="impData.naf=this.value"></div>
+        <div><label class="wiz-lab">Département</label>
+          <input type="text" class="wiz-input" placeholder="Ex : 69" value="${esc(impData.dept)}" oninput="impData.dept=this.value"></div>
+        <div><label class="wiz-lab">Ville</label>
+          <input type="text" class="wiz-input" placeholder="Ex : Lyon" value="${esc(impData.ville)}" oninput="impData.ville=this.value"></div>
+        <div><label class="wiz-lab">Tranche d'effectif</label>
+          <select class="wiz-input" onchange="impData.effectif=this.value">
+            <option>Toutes</option><option>1 à 2 salariés</option><option>3 à 5 salariés</option>
+            <option>6 à 9 salariés</option><option>10 à 19 salariés</option><option>20 salariés et plus</option></select></div>
+        <div><label class="wiz-lab">Statut</label>
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 0">
+            <div class="param-toggle ${impData.actives?'on':''}" onclick="impSet('actives',!impData.actives)" style="cursor:pointer"><div class="param-knob"></div></div>
+            <span style="font-size:12.5px">Entreprises actives uniquement</span></div></div>
+      </div>`;
+  }
+  else if(impStep===2){
+    const r = impData.resultats || {trouvees:0,dejaPresents:0,doublons:0,nouvelles:0};
+    body = `<p class="wiz-q">Vérification avant import</p>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px">
+        <div class="seuil-card"><div style="font-size:22px;font-weight:800">${r.trouvees}</div><div style="font-size:12px;color:var(--th-text-2)">entreprises trouvées</div></div>
+        <div class="seuil-card"><div style="font-size:22px;font-weight:800;color:var(--th-text-3)">${r.dejaPresents}</div><div style="font-size:12px;color:var(--th-text-2)">déjà présentes dans TigerHub</div></div>
+        <div class="seuil-card"><div style="font-size:22px;font-weight:800;color:var(--th-orange)">${r.doublons}</div><div style="font-size:12px;color:var(--th-text-2)">doublons potentiels</div></div>
+        <div class="seuil-card" style="background:var(--th-green-bg)"><div style="font-size:22px;font-weight:800;color:var(--th-green)">${r.nouvelles}</div><div style="font-size:12px;color:var(--th-text-2)">nouvelles entreprises</div></div>
+      </div>
+      <div class="hint-bar">${ic('ti-bulb',15)}<span>Les doublons ne créent <b>jamais</b> une seconde fiche : ils sont rattachés au prospect existant en conservant son origine initiale.</span></div>`;
+  }
+  else if(impStep===3){
+    const n = impData.resultats ? impData.resultats.nouvelles : 0;
+    const actifs = SALES_REPS.filter(r=>!r.isOwner);
+    body = `<p class="wiz-q">Attribuer à qui ?</p>
+      <label class="wiz-lab">Nom de la campagne de prospection</label>
+      <input type="text" class="wiz-input" placeholder="Ex : Dératisation — Lyon — 2 à 10 salariés — Octobre 2026" value="${esc(impData.nom)}" oninput="impData.nom=this.value">
+      <label class="wiz-lab">Répartition</label>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        ${[['auto',`Automatique · règle « ${ATTRIBUTION_SETTINGS.methode} »`],['equal',`Répartition égale entre ${actifs.length} commerciaux`],['manuel','Attribution manuelle après import']].map(x=>`
+          <div class="param-radio ${impData.repartition===x[0]?'sel':''}" onclick="impSet('repartition','${x[0]}')">
+            <div class="param-radio-dot"></div><div style="flex:1;font-size:13px;font-weight:600">${esc(x[1])}</div></div>`).join('')}
+      </div>
+      ${impData.repartition==='equal'?`<div class="hint-bar" style="margin-top:14px">${ic('ti-users',15)}<span>${actifs.map(r=>`${esc(r.nom)} : ${Math.floor(n/actifs.length)}`).join(' · ')}</span></div>`:''}`;
+  }
+  else {
+    const n = impData.resultats ? impData.resultats.nouvelles : 0;
+    body = `<p class="wiz-q">Prêt à importer</p>
+      <div style="font-size:13px;line-height:2.1;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Source</span><b>${esc(impData.source||'—')}</b></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Secteur</span><b>${esc(sectorName(impData.secteur))}</b></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Campagne</span><b>${esc(impData.nom||'Sans nom')}</b></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--th-text-2)">Prospects à créer</span><b style="color:var(--th-green)">${n}</b></div>
+      </div>
+      <div class="alert warn"><div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+        <div class="alert-text">Chaque prospect conservera : <b>source de la liste, date d'import, campagne de prospection et commercial attribué</b>. L'origine ne se perd jamais.</div></div>`;
+  }
+
+  el.innerHTML = `
+    <div class="wiz-steps">${steps.map((s,i)=>`<div class="wiz-step ${i===impStep?'cur':i<impStep?'done':''}">
+      <div class="wiz-num">${i<impStep?ic('ti-circle-check',12):i+1}</div><span>${s}</span></div>`).join('')}</div>
+    <div class="wiz-body">${body}</div>
+    <div class="wiz-foot">
+      <button class="btn-ghost" onclick="${impStep===0?'closeImportWizard()':'impPrev()'}">${impStep===0?'Annuler':'← Retour'}</button>
+      ${impStep<4 ? `<button class="add-btn" onclick="impNext()" ${impStep===0&&!impData.source?'disabled style="opacity:.4"':''}>Continuer →</button>`
+                  : `<button class="add-btn" onclick="doImport()">Importer</button>`}
+    </div>`;
+}
+
+/* ---------- JOURNAL D'AUDIT ---------- */
+function renderSalesAudit(){
+  const el = document.getElementById('sales-auditContent'); if(!el) return;
+  const icons = { lead:'ti-bell', appel:'ti-phone', devis:'ti-file-invoice', contrat:'ti-file-certificate',
+                  signalement:'ti-alert-triangle', import:'ti-arrow-left', commission:'ti-coin' };
+  el.innerHTML = `
+    <div class="alert opp" style="margin-bottom:18px"><div class="alert-icon">${ic('ti-lock',14)}</div>
+      <div class="alert-text">Rien n'est jamais supprimé dans TigerHub. Ce journal conserve <b>qui a fait quoi, quand</b> — y compris les signalements et les attributions.</div></div>
+    <div class="card">
+      ${AUDIT_LOG.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(a=>`
+        <div class="hist-row" ${a.objet&&a.objet.startsWith('p')?`onclick="openProspect('${a.objet}')" style="cursor:pointer"`:''}>
+          <div class="hist-icon">${ic(icons[a.type]||'ti-history',14)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;margin-bottom:2px">${esc(a.quoi)}</div>
+            <div style="font-size:11.5px;color:var(--th-text-3)">${esc(a.qui)}</div></div>
+          <span style="font-size:11.5px;color:var(--th-text-3);white-space:nowrap">${new Date(a.date).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+        </div>`).join('')}
+    </div>`;
 }
 
 /* ---------- 1. TABLEAU DE BORD ----------
@@ -6011,6 +6521,7 @@ function renderSalesDashboard(){
 let prosFilterStage = 'Tous';
 let prosFilterRep = 'Tous';
 let prosFilterSource = 'Toutes';
+let prosFilterOrigine = 'Toutes';
 let prosFilterMode = 'Tous';
 let prosFilterPeriod = 'all';
 let prosNoAction = false;
@@ -6019,6 +6530,7 @@ let prospectSearch = '';
 const PROS_PERIODS = { 'all':'Tout', '7d':'7 jours', '30d':'30 jours', 'quarter':'Trimestre' };
 function setPros(kind, v){
   if(kind==='stage') prosFilterStage = v;
+  else if(kind==='origine') prosFilterOrigine = v;
   else if(kind==='rep') prosFilterRep = v;
   else if(kind==='source') prosFilterSource = v;
   else if(kind==='mode') prosFilterMode = v;
@@ -6053,6 +6565,17 @@ function pipeIndex(stage){
   return i;
 }
 
+function signalProspect(id){
+  const p = prospectById(id); if(!p) return;
+  const choix = prompt(`Signaler « ${p.entreprise} »\n\nMotif :\n${SIGNAL_REASONS.map((r,i)=>`${i+1}. ${r}`).join('\n')}\n\nNuméro :`);
+  const i = parseInt(choix,10)-1;
+  if(isNaN(i) || !SIGNAL_REASONS[i]) return;
+  const detail = prompt('Précision (facultative) :') || '';
+  p.signalement = { motif:SIGNAL_REASONS[i], detail, par:CURRENT_USER.nom, date:todayISO() };
+  logAudit(`Prospect signalé — ${p.entreprise} (${SIGNAL_REASONS[i]})`, p.id, 'signalement');
+  alert("Prospect signalé.\n\nLa fiche est conservée. L'Owner décidera de la réattribuer, corriger ou archiver.");
+  renderSalesAll();
+}
 function renderProspects(){
   const el = document.getElementById('sales-prospectsContent'); if(!el) return;
 
@@ -6088,13 +6611,14 @@ function renderProspects(){
       <div class="pros-hero">
         <div style="flex:1;min-width:260px">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-            <h1 style="margin-bottom:0">${esc(p.entreprise)}</h1>${stageBadge(p.stage)}${sectorBadge(p.sectorId)}
+            <h1 style="margin-bottom:0">${esc(p.entreprise)}</h1>${stageBadge(p.stage)}${origineBadge(p.origine||'Autre')}${sectorBadge(p.sectorId)}
           </div>
           <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--th-text-2)">
             <span>${ic('ti-user-check',13)} ${esc(p.contact)} · ${esc(p.fonction)}</span>
             <span>${ic('ti-map',13)} ${esc(p.ville)}</span>
             <span>${ic('ti-briefcase',13)} ${esc(repName(p.repId))}</span>
             <span>${ic('ti-share',13)} ${esc(p.source)}</span>
+            <span class="badge" style="font-size:10.5px">${esc(acquisitionType(p))}</span>
           </div>
         </div>
         <div class="pros-hero-metrics">
@@ -6163,7 +6687,9 @@ function renderProspects(){
         <button class="qa-btn" onclick="gotoSales('meetings')">${ic('ti-presentation',15)} Programmer démo</button>
         <button class="qa-btn" onclick="gotoSales('quotes')">${ic('ti-file-invoice',15)} Créer devis</button>
         <button class="qa-btn" onclick="gotoSales('contracts')">${ic('ti-file-certificate',15)} Créer contrat</button>
+        <button class="qa-btn" onclick="signalProspect('${p.id}')" style="margin-left:auto">${ic('ti-alert-triangle',15)} Signaler</button>
       </div>
+      <div class="hint-bar" style="margin-bottom:18px">${ic('ti-lock',15)}<span>Une fiche ne se supprime jamais. Pour écarter un prospect, utilisez <b>Signaler</b> ou passez son étape à Perdu — l'historique reste intact.</span></div>
 
       <div class="grid-2">
         <!-- HISTORIQUE -->
@@ -6238,6 +6764,7 @@ function renderProspects(){
   let list = all;
   if(prosFilterStage!=='Tous') list = list.filter(p=>p.stage===prosFilterStage);
   if(prosFilterRep!=='Tous') list = list.filter(p=>p.repId===prosFilterRep);
+  if(prosFilterOrigine!=='Toutes') list = list.filter(p=>p.origine===prosFilterOrigine);
   if(prosFilterSource!=='Toutes') list = list.filter(p=>p.source===prosFilterSource);
   if(prosFilterMode!=='Tous') list = list.filter(p=>prospectingMode(p)===prosFilterMode);
   list = list.filter(prosInPeriod);
@@ -6254,6 +6781,10 @@ function renderProspects(){
         <select class="status-select" onchange="setPros('rep',this.value)">
           <option value="Tous" ${prosFilterRep==='Tous'?'selected':''}>Tous</option>
           ${SALES_REPS.map(r=>`<option value="${r.id}" ${prosFilterRep===r.id?'selected':''}>${esc(r.nom)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Origine</span>
+        <select class="status-select" onchange="setPros('origine',this.value)">
+          <option value="Toutes" ${prosFilterOrigine==='Toutes'?'selected':''}>Toutes</option>
+          ${ORIGINES.map(o=>`<option ${prosFilterOrigine===o?'selected':''}>${esc(o)}</option>`).join('')}</select></div>
       <div class="ana-filter-group"><span class="ana-filter-lab">Source</span>
         <select class="status-select" onchange="setPros('source',this.value)">
           <option value="Toutes" ${prosFilterSource==='Toutes'?'selected':''}>Toutes</option>
@@ -6279,7 +6810,7 @@ function renderProspects(){
     <div class="search-bar" style="max-width:320px">${ic('ti-search')}<input type="text" placeholder="Rechercher une entreprise..." oninput="setProspectSearch(this.value)"></div>
 
     <table class="data-table"><thead><tr>
-      <th>Entreprise</th><th>Contact</th><th>Ville</th><th>Source</th><th>Commercial</th>
+      <th>Entreprise</th><th>Contact</th><th>Ville</th><th>Origine</th><th>Source</th><th>Commercial</th>
       <th>Dernier contact</th><th>Prochaine action</th><th>Valeur potentielle</th><th>Étape</th>
     </tr></thead><tbody>
       ${list.map(p=>{
@@ -6290,7 +6821,8 @@ function renderProspects(){
           <td><div class="dt-title">${esc(p.entreprise)}</div><div class="dt-sub">${esc(p.taille)}${cl?' · client':''}</div></td>
           <td style="font-size:12.5px">${esc(p.contact)}<div class="dt-sub">${esc(p.fonction)}</div></td>
           <td style="font-size:12px;color:var(--th-text-2)">${esc(p.ville)}</td>
-          <td><span class="badge">${esc(p.source)}</span>${prospectingMode(p)==='Marketing'?`<div class="dt-sub" style="color:var(--th-orange);font-weight:600">Marketing</div>`:''}</td>
+          <td>${origineBadge(p.origine||'Autre')}</td>
+          <td><span class="badge">${esc(p.source)}</span></td>
           <td style="font-size:12px;color:var(--th-text-2)">${esc(repName(p.repId))}</td>
           <td style="font-size:12px;white-space:nowrap">${p.dernierContact?fmtDate(p.dernierContact):'<span style="color:var(--th-text-3)">Jamais</span>'}</td>
           <td style="font-size:12px">${p.prochaineAction
@@ -6298,7 +6830,7 @@ function renderProspects(){
             : noAct ? `<span class="badge red">${ic('ti-alert-triangle',11)} Aucune</span>` : '<span style="color:var(--th-text-3)">—</span>'}</td>
           <td style="white-space:nowrap">${p.valeur?`<b>${prospectMRR(p)} € MRR</b><div class="dt-sub">${p.valeur} € / an</div>`:'<span style="color:var(--th-text-3)">—</span>'}</td>
           <td>${stageBadge(p.stage)}</td></tr>`;
-      }).join('') || `<tr><td colspan="9" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun prospect pour ces filtres.</td></tr>`}
+      }).join('') || `<tr><td colspan="10" style="text-align:center;color:var(--th-text-2);padding:26px">Aucun prospect pour ces filtres.</td></tr>`}
     </tbody></table>
 
     ${sansAction && !prosNoAction ? `<div class="alert warn" style="margin-top:16px;cursor:pointer" onclick="toggleNoAction()">
@@ -6641,111 +7173,159 @@ function renderProspection(){
 }
 
 /* ---------- 4. PIPELINE ----------
-   Cockpit du closing : où en est chaque affaire, laquelle bloque,
-   et combien de MRR est réellement en jeu.
-   Les colonnes regroupent les étapes du prospect — aucune donnée propre. */
+   Vue dynamique des prospects existants — jamais une base parallèle.
+   Chaque déplacement met à jour la fiche prospect et le journal d'audit. */
 
-/* 6 colonnes, chacune couvrant une ou plusieurs étapes du parcours */
-const PIPE_COLS = [
-  { id:'contact',  lab:'Contact',       icon:'ti-phone',            stages:['Nouveau','À contacter','Contacté','À rappeler'], c:'var(--th-text-2)', bg:'var(--th-bg-alt)' },
-  { id:'qualifie', lab:'Qualifié',      icon:'ti-user-check',       stages:['Qualifié'],          c:'var(--th-blue)',   bg:'var(--th-blue-bg)' },
-  { id:'rdv',      lab:'RDV / Démo',    icon:'ti-calendar',         stages:['RDV obtenu','Démonstration'], c:'var(--th-purple)', bg:'var(--th-purple-bg)' },
-  { id:'devis',    lab:'Devis',         icon:'ti-file-invoice',     stages:['Devis envoyé'],      c:'var(--th-orange)', bg:'var(--th-orange-bg)' },
-  { id:'contrat',  lab:'Contrat',       icon:'ti-file-certificate', stages:['Contrat envoyé','Signature en attente'], c:'var(--th-orange)', bg:'var(--th-orange-bg)' },
-  { id:'gagne',    lab:'Gagné',         icon:'ti-trophy',           stages:['Gagné'],             c:'var(--th-green)',  bg:'var(--th-green-bg)' },
-];
-/* Étape par défaut quand on dépose une carte dans une colonne */
-const COL_DEFAULT_STAGE = { contact:'Contacté', qualifie:'Qualifié', rdv:'RDV obtenu', devis:'Devis envoyé', contrat:'Contrat envoyé', gagne:'Gagné' };
-/* Seuils d'inactivité par colonne — au-delà, l'affaire est signalée */
-const PIPE_STALE_DAYS = { contact:7, qualifie:10, rdv:7, devis:10, contrat:5, gagne:null };
+/* Probabilités par étape : valeurs de départ, réglables dans Paramètres */
+const STAGE_PROBABILITY = {
+  'À contacter':5, 'Contacté':10, 'À rappeler':15, 'Qualifié':25,
+  'RDV obtenu':40, 'Démonstration':60, 'Devis envoyé':70,
+  'Contrat envoyé':85, 'Signature en attente':95, 'Gagné':100, 'Perdu':0,
+};
+/* Colonnes du kanban : une par étape active du parcours */
+const PIPE_STAGES = ['À contacter','Contacté','À rappeler','Qualifié','RDV obtenu','Démonstration','Devis envoyé','Contrat envoyé','Signature en attente'];
+const STAGE_ICONS = {
+  'À contacter':'ti-user-plus','Contacté':'ti-phone','À rappeler':'ti-repeat','Qualifié':'ti-user-check',
+  'RDV obtenu':'ti-calendar','Démonstration':'ti-presentation','Devis envoyé':'ti-file-invoice',
+  'Contrat envoyé':'ti-file-certificate','Signature en attente':'ti-writing','Gagné':'ti-trophy','Perdu':'ti-circle-x',
+};
+/* Seuils d'alerte, réglables */
+const PIPE_THRESHOLDS = {
+  sansActivite: 7,      // jours sans contact
+  devisSansRelance: 5,  // jours depuis envoi du devis
+  contratNonSigne: 7,   // jours depuis envoi du contrat
+  stagnation: 21,       // jours dans la même étape
+};
+const LOSS_REASONS = ['Prix','Concurrent','Pas intéressé','Pas de besoin','Mauvais timing','Budget','Déjà équipé','Hors cible','Impossible à joindre','Autre'];
 
+let pipeView = 'kanban';
 let pipeRep = 'Tous';
+let pipeOrigine = 'Toutes';
 let pipeSource = 'Toutes';
-let pipeMode = 'Tous';
+let pipeAcq = 'Tous';
+let pipeRisk = 'Tous';
+let pipeMrrMin = '';
 let pipeShowLost = false;
 let pipeDragId = null;
 
 function setPipe(kind, v){
   if(kind==='rep') pipeRep = v;
+  else if(kind==='origine') pipeOrigine = v;
   else if(kind==='source') pipeSource = v;
-  else if(kind==='mode') pipeMode = v;
+  else if(kind==='acq') pipeAcq = v;
+  else if(kind==='risk') pipeRisk = v;
+  else if(kind==='mrrmin') pipeMrrMin = v;
+  else if(kind==='view') pipeView = v;
   renderSalesPipeline();
 }
 function togglePipeLost(){ pipeShowLost = !pipeShowLost; renderSalesPipeline(); }
 
-function colOf(stage){ return PIPE_COLS.find(c=>c.stages.includes(stage)); }
 function daysSince(iso){ if(!iso) return null; return Math.floor((new Date()-new Date(iso))/86400000); }
-/* Jours d'inactivité : depuis le dernier contact, sinon depuis la création */
 function inactiveDays(p){ return daysSince(p.dernierContact || p.cree) || 0; }
-function isStale(p){
-  const col = colOf(p.stage); if(!col) return false;
-  const seuil = PIPE_STALE_DAYS[col.id];
-  return seuil !== null && seuil !== undefined && inactiveDays(p) > seuil;
+function stageDays(p){ return daysSince(p.stageDepuis || p.dernierContact || p.cree) || 0; }
+/* Probabilité : manuelle si ajustée, sinon déduite de l'étape */
+function probaOf(p){
+  if(p.probaManuelle !== undefined && p.probaManuelle !== null) return p.probaManuelle;
+  return STAGE_PROBABILITY[p.stage] || 0;
 }
+function isManualProba(p){ return p.probaManuelle !== undefined && p.probaManuelle !== null; }
+
 /* Alertes calculées, jamais inventées */
 function pipeAlerts(p){
   const a = [];
-  if(isStale(p)){
-    const col = colOf(p.stage);
-    a.push({ k:'red', txt:`Sans contact depuis ${inactiveDays(p)} j`, why:`Seuil de ${PIPE_STALE_DAYS[col.id]} j dépassé à cette étape` });
-  }
-  if(!['Gagné','Perdu'].includes(p.stage) && (!p.prochaineAction || !p.prochainContact))
-    a.push({ k:'red', txt:'Aucune action prévue', why:"Cette affaire risque d'être oubliée" });
-  else if(p.prochainContact && p.prochainContact < todayISO())
-    a.push({ k:'orange', txt:`Relance en retard de ${Math.abs(daysFromToday(p.prochainContact))} j`, why:'' });
+  if(['Gagné','Perdu'].includes(p.stage)) return a;
+  if(inactiveDays(p) > PIPE_THRESHOLDS.sansActivite)
+    a.push({ k:'red', txt:`Sans activité depuis ${inactiveDays(p)} j` });
+  if(!p.prochaineAction || !p.prochainContact)
+    a.push({ k:'red', txt:'Aucune action prévue' });
+  else if(p.prochainContact < todayISO())
+    a.push({ k:'orange', txt:`Action en retard de ${Math.abs(daysFromToday(p.prochainContact))} j` });
   const q = prospectQuotes(p.id).find(x=>['Envoyé','Vu'].includes(x.statut));
-  if(q && q.validite){
-    const d = daysFromToday(q.validite);
-    if(d !== null && d < 0) a.push({ k:'red', txt:'Devis expiré', why:`Validité dépassée depuis ${Math.abs(d)} j` });
-    else if(d !== null && d <= 5) a.push({ k:'orange', txt:`Devis expire dans ${d} j`, why:'' });
-  }
+  if(q && q.date && daysSince(q.date) >= PIPE_THRESHOLDS.devisSansRelance)
+    a.push({ k:'red', txt:`Devis sans relance depuis ${daysSince(q.date)} j` });
   const ct = prospectContracts(p.id).find(x=>['Envoyé','Ouvert','Signature en attente'].includes(x.statut));
-  if(ct && ct.envoye){
-    const d = daysSince(ct.envoye);
-    if(d >= 7) a.push({ k:'red', txt:`Contrat non signé depuis ${d} j`, why:'' });
-  }
+  if(ct && ct.envoye && daysSince(ct.envoye) >= PIPE_THRESHOLDS.contratNonSigne)
+    a.push({ k:'red', txt:`Contrat non signé depuis ${daysSince(ct.envoye)} j` });
+  if(stageDays(p) > PIPE_THRESHOLDS.stagnation)
+    a.push({ k:'orange', txt:`Stagne depuis ${stageDays(p)} j à cette étape` });
   return a;
 }
+function riskLevel(p){
+  const a = pipeAlerts(p);
+  if(a.some(x=>x.k==='red')) return 'À surveiller';
+  if(a.length) return 'En retard';
+  return 'Normal';
+}
 
-/* --- Drag & drop : déplacer une carte change l'étape du prospect --- */
-function pipeDragStart(ev, id){ pipeDragId = id; ev.dataTransfer.effectAllowed = 'move'; }
-function pipeDragOver(ev, colId){
-  ev.preventDefault();
-  const el = document.getElementById('pipecol-'+colId);
-  if(el) el.classList.add('drop');
-}
-function pipeDragLeave(colId){
-  const el = document.getElementById('pipecol-'+colId);
-  if(el) el.classList.remove('drop');
-}
-function pipeDrop(ev, colId){
-  ev.preventDefault();
-  pipeDragLeave(colId);
-  const p = prospectById(pipeDragId);
-  if(!p) return;
-  const nouvelle = COL_DEFAULT_STAGE[colId];
-  if(!nouvelle || p.stage === nouvelle){ pipeDragId = null; return renderSalesPipeline(); }
-  const ancienne = p.stage;
-  p.stage = nouvelle;
-  p.dernierContact = todayISO();
-  /* Gagné : la fiche devient client, sans ressaisie */
-  if(nouvelle === 'Gagné' && !clientOf(p.id)){
-    alert(`« ${p.entreprise} » passe en Gagné.\n\nLe client sera créé depuis le contrat signé, dans le sous-module Contrats — aucune fiche à recréer.`);
-    p.prochaineAction = null; p.prochainContact = null;
-  } else if(!p.prochaineAction){
-    p.prochaineAction = 'Définir la prochaine action';
-    p.prochainContact = todayISO();
-  }
+/* --- Drag & drop avec contrôle de cohérence --- */
+function pipeDragStart(ev, id){ pipeDragId = id; ev.dataTransfer.effectAllowed='move'; }
+function pipeDragOver(ev, stage){ ev.preventDefault(); const el=document.getElementById('pipecol-'+stage.replace(/\s/g,'_')); if(el) el.classList.add('drop'); }
+function pipeDragLeave(stage){ const el=document.getElementById('pipecol-'+stage.replace(/\s/g,'_')); if(el) el.classList.remove('drop'); }
+function pipeDrop(ev, stage){
+  ev.preventDefault(); pipeDragLeave(stage);
+  moveOpportunity(pipeDragId, stage);
   pipeDragId = null;
+}
+function moveOpportunity(id, nouvelle){
+  const p = prospectById(id); if(!p || p.stage===nouvelle) return renderSalesPipeline();
+  const iOld = PIPE_STAGES.indexOf(p.stage);
+  const iNew = PIPE_STAGES.indexOf(nouvelle);
+  /* Saut d'étapes : possible, mais confirmé et tracé */
+  if(iOld >= 0 && iNew > iOld + 1){
+    const sautees = PIPE_STAGES.slice(iOld+1, iNew);
+    const raison = prompt(`Vous passez « ${p.entreprise} » de « ${p.stage} » à « ${nouvelle} ».\n\nÉtapes sautées : ${sautees.join(', ')}\n\nRaison (obligatoire) :`);
+    if(!raison || !raison.trim()) return renderSalesPipeline();
+    logAudit(`Saut d'étape — ${p.entreprise} : ${p.stage} → ${nouvelle} (${raison.trim()})`, p.id, 'pipeline');
+  } else {
+    logAudit(`Étape — ${p.entreprise} : ${p.stage} → ${nouvelle}`, p.id, 'pipeline');
+  }
+  if(!p.stageHistory) p.stageHistory = [];
+  p.stageHistory.push({ stage:nouvelle, date:todayISO(), par:CURRENT_USER.nom });
+  p.stage = nouvelle;
+  p.stageDepuis = todayISO();
+  p.dernierContact = todayISO();
+  /* Les étapes avancées attendent un document : on redirige au lieu de ressaisir */
+  if(nouvelle==='Devis envoyé' && !prospectQuotes(p.id).length){
+    if(confirm(`Aucun devis n'existe pour ${p.entreprise}.\n\nOuvrir le sous-module Devis pour le créer ?`)){ renderSalesAll(); return gotoSales('quotes'); }
+  }
+  if(nouvelle==='Contrat envoyé' && !prospectContracts(p.id).length){
+    if(confirm(`Aucun contrat n'existe pour ${p.entreprise}.\n\nOuvrir le sous-module Contrats ?`)){ renderSalesAll(); return gotoSales('contracts'); }
+  }
+  if(!p.prochaineAction){ p.prochaineAction='Définir la prochaine action'; p.prochainContact=todayISO(); }
+  renderSalesAll();
+}
+/* Gagné : la conversion vient du contrat signé, pas d'une saisie */
+function markWon(id){
+  const p = prospectById(id); if(!p) return;
+  const ct = prospectContracts(p.id).find(c=>c.statut==='Signé');
+  if(!ct){
+    alert(`« ${p.entreprise} » ne peut pas être marqué gagné : aucun contrat signé.\n\nLa conversion est automatique dès qu'un contrat passe en Signé — le client, l'abonnement et la commission sont alors créés sans ressaisie.`);
+    return;
+  }
+  p.stage='Gagné'; p.stageDepuis=todayISO(); p.prochaineAction=null; p.prochainContact=null;
+  logAudit(`Opportunité gagnée — ${p.entreprise}`, p.id, 'pipeline');
   renderSalesAll();
 }
 function markLost(id){
   const p = prospectById(id); if(!p) return;
-  const motif = prompt(`Perdre « ${p.entreprise} » ?\n\nMotif :`);
-  if(motif === null) return;
-  p.stage = 'Perdu';
-  p.prochaineAction = null; p.prochainContact = null;
-  if(motif.trim()) p.notes = (p.notes ? p.notes + '\n\n' : '') + 'Perdu : ' + motif.trim();
+  const choix = prompt(`Marquer « ${p.entreprise} » comme perdu.\n\nRaison :\n${LOSS_REASONS.map((r,i)=>`${i+1}. ${r}`).join('\n')}\n\nNuméro :`);
+  const i = parseInt(choix,10)-1;
+  if(isNaN(i) || !LOSS_REASONS[i]) return;
+  const note = prompt('Note (facultative) :') || '';
+  p.stage='Perdu'; p.stageDepuis=todayISO();
+  p.motifPerte = LOSS_REASONS[i];
+  p.notePerte = note;
+  p.prochaineAction=null; p.prochainContact=null;
+  logAudit(`Opportunité perdue — ${p.entreprise} (${LOSS_REASONS[i]})`, p.id, 'pipeline');
+  renderSalesAll();
+}
+function setProba(id){
+  const p = prospectById(id); if(!p) return;
+  const v = prompt(`Probabilité pour « ${p.entreprise} »\n\nAutomatique selon l'étape : ${STAGE_PROBABILITY[p.stage]}%\n\nNouvelle valeur (vide = revenir à l'automatique) :`, probaOf(p));
+  if(v === null) return;
+  if(v.trim()==='') { p.probaManuelle = null; }
+  else { const n = Math.max(0, Math.min(100, Number(v)||0)); p.probaManuelle = n;
+    logAudit(`Probabilité ajustée — ${p.entreprise} : ${n}%`, p.id, 'pipeline'); }
   renderSalesAll();
 }
 
@@ -6754,46 +7334,108 @@ function renderSalesPipeline(){
 
   let list = scopedProspects();
   if(!canSeeAllReps()) list = list.filter(p=>p.repId===CURRENT_USER.id);
-  else if(pipeRep !== 'Tous') list = list.filter(p=>p.repId===pipeRep);
-  if(pipeSource !== 'Toutes') list = list.filter(p=>p.source===pipeSource);
-  if(pipeMode !== 'Tous') list = list.filter(p=>prospectingMode(p)===pipeMode);
+  else if(pipeRep!=='Tous') list = list.filter(p=>p.repId===pipeRep);
+  if(pipeOrigine!=='Toutes') list = list.filter(p=>p.origine===pipeOrigine);
+  if(pipeSource!=='Toutes') list = list.filter(p=>p.source===pipeSource);
+  if(pipeAcq!=='Tous') list = list.filter(p=>acquisitionType(p)===pipeAcq);
+  if(pipeRisk!=='Tous') list = list.filter(p=>riskLevel(p)===pipeRisk);
+  if(pipeMrrMin) list = list.filter(p=>prospectMRR(p) >= Number(pipeMrrMin));
 
   const ouvertes = list.filter(p=>!['Gagné','Perdu'].includes(p.stage));
   const perdus = list.filter(p=>p.stage==='Perdu');
   const gagnes = list.filter(p=>p.stage==='Gagné');
 
-  /* Prévisionnel : seules les affaires ouvertes comptent */
-  const mrrOuvert = ouvertes.reduce((s,p)=>s+prospectMRR(p),0);
-  const annuelOuvert = ouvertes.reduce((s,p)=>s+p.valeur,0);
+  const mrrPotentiel = ouvertes.reduce((s,p)=>s+prospectMRR(p),0);
+  const annuelPotentiel = ouvertes.reduce((s,p)=>s+p.valeur,0);
+  const mrrPondere = Math.round(ouvertes.reduce((s,p)=>s+prospectMRR(p)*probaOf(p)/100,0));
+  const aRisque = ouvertes.filter(p=>riskLevel(p)==='À surveiller').length;
+  const devisEnCours = QUOTES.filter(q=>['Envoyé','Vu'].includes(q.statut) && list.some(p=>p.id===q.prospectId)).length;
+  const contratsAttente = CONTRACTS.filter(c=>['Envoyé','Ouvert','Signature en attente'].includes(c.statut) && list.some(p=>p.id===c.prospectId)).length;
   const mrrGagne = gagnes.reduce((s,p)=>s+prospectMRR(p),0);
-  const bloquees = ouvertes.filter(p=>pipeAlerts(p).some(a=>a.k==='red')).length;
-  const tauxGlobal = (gagnes.length+perdus.length) ? Math.round(gagnes.length/(gagnes.length+perdus.length)*100) : 0;
-
   const sourcesUsed = [...new Set(scopedProspects().map(p=>p.source))];
 
-  /* Carte d'affaire */
+  /* Carte d'opportunité */
   const card = p => {
     const alerts = pipeAlerts(p);
     const rouge = alerts.some(a=>a.k==='red');
     const orange = !rouge && alerts.length>0;
-    const mode = prospectingMode(p);
+    const os = ORIGINE_STYLE[p.origine] || ORIGINE_STYLE['Autre'];
+    const retard = p.prochainContact && p.prochainContact < todayISO();
     return `<div class="pipe-card ${rouge?'alert-red':orange?'alert-orange':''}" draggable="true"
         ondragstart="pipeDragStart(event,'${p.id}')" onclick="openProspect('${p.id}')">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px">
-        <div style="font-size:12.5px;font-weight:700;line-height:1.35">${esc(p.entreprise)}</div>
-        ${mode==='Marketing'?`<span class="pipe-mode" title="Vient du Marketing">${ic('ti-target-arrow',11)}</span>`:''}
-      </div>
+      <div class="pc-origine" style="background:${os.bg};color:${os.c}" title="${esc(p.origine)} · ${esc(p.source)}">
+        ${ic(os.icon,10)} ${esc(p.source)}</div>
+      <div style="font-size:12.5px;font-weight:700;line-height:1.35;margin-bottom:3px">${esc(p.entreprise)}</div>
       <div style="font-size:11px;color:var(--th-text-2);margin-bottom:7px">${esc(p.contact)}</div>
-      ${p.valeur?`<div style="font-size:12.5px;font-weight:800;color:var(--th-green);margin-bottom:6px">${prospectMRR(p)} € MRR<span style="font-size:10.5px;color:var(--th-text-3);font-weight:600"> · ${p.valeur} €/an</span></div>`:''}
+      ${p.valeur?`<div class="pc-value">
+        <span style="font-size:13px;font-weight:800;color:var(--th-green)">${prospectMRR(p)} €</span>
+        <span style="font-size:10px;color:var(--th-text-3)">/mois · ${p.valeur} €/an</span></div>`:''}
+      <div class="pc-proba" onclick="event.stopPropagation();setProba('${p.id}')" title="${isManualProba(p)?"Probabilité ajustée manuellement":"Probabilité automatique selon l\'étape"}">
+        <div class="pc-proba-bar"><div style="width:${probaOf(p)}%"></div></div>
+        <span>${probaOf(p)}%${isManualProba(p)?' ✎':''}</span></div>
       ${alerts.length?`<div class="pipe-alerts">${alerts.slice(0,2).map(a=>`
-        <div class="pipe-alert ${a.k}" title="${esc(a.why||'')}">${ic('ti-alert-triangle',10)}${esc(a.txt)}</div>`).join('')}</div>`:''}
-      <div class="pipe-foot">
-        <span>${esc(repName(p.repId))}</span>
-        <span>${inactiveDays(p)} j</span>
-      </div>
-      ${p.prochaineAction?`<div class="pipe-next">${esc(p.prochaineAction)}${p.prochainContact?` · ${fmtDate(p.prochainContact)}`:''}</div>`:''}
+        <div class="pipe-alert ${a.k}">${ic('ti-alert-triangle',10)}${esc(a.txt)}</div>`).join('')}</div>`:''}
+      ${p.prochaineAction?`<div class="pipe-next" style="${retard?'color:var(--th-red)':''}">${esc(p.prochaineAction)}${p.prochainContact?` · ${fmtDate(p.prochainContact)}`:''}</div>`:''}
+      <div class="pipe-foot"><span>${esc(repName(p.repId))}</span><span>${stageDays(p)} j</span></div>
     </div>`;
   };
+
+  /* ===== VUE KANBAN ===== */
+  const kanban = `<div class="pipe-board">
+    ${PIPE_STAGES.map(stage=>{
+      const items = list.filter(p=>p.stage===stage);
+      const mrr = items.reduce((s,p)=>s+prospectMRR(p),0);
+      const bloq = items.filter(p=>riskLevel(p)==='À surveiller').length;
+      return `<div class="pipe-col" id="pipecol-${stage.replace(/\s/g,'_')}"
+          ondragover="pipeDragOver(event,'${stage}')" ondragleave="pipeDragLeave('${stage}')" ondrop="pipeDrop(event,'${stage}')">
+        <div class="pipe-col-head">
+          <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
+            ${ic(STAGE_ICONS[stage],13)}<span style="font-size:11px;font-weight:800">${esc(stage)}</span></div>
+          <span class="badge">${items.length}</span></div>
+        <div class="pipe-col-meta">
+          <span><b>${mrr} €</b> MRR</span>
+          <span>${STAGE_PROBABILITY[stage]}%</span>
+          ${bloq?`<span style="color:var(--th-red);font-weight:700">${bloq} ⚠</span>`:''}</div>
+        ${items.map(card).join('') || '<div class="pipe-empty">Déposez ici</div>'}
+      </div>`;
+    }).join('')}
+    <div class="pipe-col pipe-col-won" id="pipecol-Gagné"
+        ondragover="pipeDragOver(event,'Gagné')" ondragleave="pipeDragLeave('Gagné')" ondrop="pipeDrop(event,'Gagné')">
+      <div class="pipe-col-head" style="border-bottom-color:var(--th-green)">
+        <div style="display:flex;align-items:center;gap:6px;flex:1;color:var(--th-green)">
+          ${ic('ti-trophy',13)}<span style="font-size:11px;font-weight:800">Gagné</span></div>
+        <span class="badge green">${gagnes.length}</span></div>
+      <div class="pipe-col-meta"><span><b>${mrrGagne} €</b> MRR signé</span></div>
+      ${gagnes.map(card).join('') || '<div class="pipe-empty">—</div>'}
+    </div>
+  </div>`;
+
+  /* ===== VUE LISTE ===== */
+  const liste = `<table class="data-table"><thead><tr>
+    <th>Entreprise</th><th>Origine</th><th>Source</th><th>Commercial</th><th>Étape</th>
+    <th>MRR</th><th>Proba.</th><th>Pondéré</th><th>Prochaine action</th><th>Âge</th><th>Risque</th></tr></thead><tbody>
+    ${(pipeShowLost?list:ouvertes.concat(gagnes)).map(p=>{
+      const r = riskLevel(p);
+      return `<tr onclick="openProspect('${p.id}')" style="cursor:pointer">
+        <td><div class="dt-title">${esc(p.entreprise)}</div><div class="dt-sub">${esc(p.contact)}</div></td>
+        <td>${origineBadge(p.origine||'Autre')}</td>
+        <td style="font-size:12px;color:var(--th-text-2)">${esc(p.source)}</td>
+        <td style="font-size:12px;color:var(--th-text-2)">${esc(repName(p.repId))}</td>
+        <td>${stageBadge(p.stage)}</td>
+        <td style="white-space:nowrap">${p.valeur?`<b>${prospectMRR(p)} €</b><div class="dt-sub">${p.valeur} €/an</div>`:'—'}</td>
+        <td>${probaOf(p)}%${isManualProba(p)?' <span title="Ajustée manuellement">✎</span>':''}</td>
+        <td style="white-space:nowrap"><b>${Math.round(prospectMRR(p)*probaOf(p)/100)} €</b></td>
+        <td style="font-size:12px">${p.prochaineAction?esc(p.prochaineAction):'<span style="color:var(--th-red)">Aucune</span>'}
+          ${p.prochainContact?`<div class="dt-sub">${fmtDate(p.prochainContact)}</div>`:''}</td>
+        <td>${stageDays(p)} j</td>
+        <td>${r==='Normal'?'<span class="badge green">Normal</span>':r==='En retard'?'<span class="badge orange" style="color:var(--th-orange);background:var(--th-orange-bg)">En retard</span>':'<span class="badge red">À surveiller</span>'}</td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>`;
+
+  /* Analyse des pertes */
+  const pertes = {};
+  perdus.forEach(p=>{ const m = p.motifPerte || 'Non renseigné'; pertes[m] = (pertes[m]||0)+1; });
 
   el.innerHTML = sectorSelector() + `
     <div class="ana-filters" style="margin-bottom:16px">
@@ -6801,97 +7443,86 @@ function renderSalesPipeline(){
         <select class="status-select" onchange="setPipe('rep',this.value)">
           <option value="Tous" ${pipeRep==='Tous'?'selected':''}>Tous</option>
           ${SALES_REPS.map(r=>`<option value="${r.id}" ${pipeRep===r.id?'selected':''}>${esc(r.nom)}</option>`).join('')}</select></div>`
-        :`<div class="ana-filter-group"><span class="ana-filter-lab">Commercial</span>
-          <div style="padding:9px 0"><span class="badge">${esc(CURRENT_USER.nom)}</span>
-            <span style="font-size:11px;color:var(--th-text-3);margin-left:6px">${ic('ti-lock',12)} vos affaires</span></div></div>`}
+        :`<div class="ana-filter-group"><span class="ana-filter-lab">Portefeuille</span>
+          <div style="padding:9px 0"><span class="badge">${ic('ti-lock',11)} Mes opportunités</span></div></div>`}
+      <div class="ana-filter-group"><span class="ana-filter-lab">Type d'acquisition</span>
+        <select class="status-select" onchange="setPipe('acq',this.value)">
+          <option value="Tous" ${pipeAcq==='Tous'?'selected':''}>Tous</option>
+          ${ACQUISITION_TYPES.map(t=>`<option ${pipeAcq===t?'selected':''}>${esc(t)}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Origine</span>
+        <select class="status-select" onchange="setPipe('origine',this.value)">
+          <option value="Toutes" ${pipeOrigine==='Toutes'?'selected':''}>Toutes</option>
+          ${ORIGINES.map(o=>`<option ${pipeOrigine===o?'selected':''}>${esc(o)}</option>`).join('')}</select></div>
       <div class="ana-filter-group"><span class="ana-filter-lab">Source</span>
         <select class="status-select" onchange="setPipe('source',this.value)">
           <option value="Toutes" ${pipeSource==='Toutes'?'selected':''}>Toutes</option>
           ${sourcesUsed.map(s=>`<option ${pipeSource===s?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
-      <div class="ana-filter-group"><span class="ana-filter-lab">Mode</span>
-        <select class="status-select" onchange="setPipe('mode',this.value)">
-          <option value="Tous" ${pipeMode==='Tous'?'selected':''}>Tous</option>
-          ${PROSPECTING_MODES.map(m=>`<option ${pipeMode===m?'selected':''}>${esc(m)}</option>`).join('')}</select></div>
-      <div class="ana-filter-group"><span class="ana-filter-lab">Perdus</span>
-        <button class="filter-chip${pipeShowLost?' active':''}" onclick="togglePipeLost()">${pipeShowLost?'Masquer':'Afficher'} · ${perdus.length}</button></div>
-      <div style="margin-left:auto;font-size:11.5px;color:var(--th-text-3);align-self:flex-end;padding-bottom:8px">
-        ${ouvertes.length} affaire${ouvertes.length>1?'s':''} ouverte${ouvertes.length>1?'s':''}</div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Risque</span>
+        <select class="status-select" onchange="setPipe('risk',this.value)">
+          ${['Tous','Normal','En retard','À surveiller'].map(r=>`<option ${pipeRisk===r?'selected':''}>${r}</option>`).join('')}</select></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">MRR minimum</span>
+        <input type="number" class="status-select" style="width:100px" placeholder="0 €" value="${pipeMrrMin}" onchange="setPipe('mrrmin',this.value)"></div>
+      <div class="ana-filter-group"><span class="ana-filter-lab">Vue</span>
+        <div style="display:flex;gap:5px">
+          <button class="filter-chip${pipeView==='kanban'?' active':''}" onclick="setPipe('view','kanban')">Kanban</button>
+          <button class="filter-chip${pipeView==='liste'?' active':''}" onclick="setPipe('view','liste')">Liste</button></div></div>
     </div>
 
-    <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
-      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-timeline')}</div>
-        <div class="val">${mrrOuvert} €</div><div class="label">MRR en jeu · ${annuelOuvert} €/an</div></div>
+    <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
       <div class="stat-card"><div class="stat-card-icon">${ic('ti-briefcase')}</div>
-        <div class="val">${ouvertes.length}</div><div class="label">Affaires ouvertes</div></div>
-      <div class="stat-card ${bloquees?'red':''}"><div class="stat-card-icon">${ic('ti-alert-triangle')}</div>
-        <div class="val">${bloquees}</div><div class="label">Affaires bloquées</div></div>
-      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-trophy')}</div>
-        <div class="val">${mrrGagne} €</div><div class="label">MRR signé · ${gagnes.length} client${gagnes.length>1?'s':''}</div></div>
+        <div class="val">${ouvertes.length}</div><div class="label">Opportunités ouvertes</div></div>
+      <div class="stat-card purple"><div class="stat-card-icon">${ic('ti-timeline')}</div>
+        <div class="val">${mrrPotentiel} €</div><div class="label">MRR potentiel · ${annuelPotentiel} €/an</div></div>
       <div class="stat-card blue"><div class="stat-card-icon">${ic('ti-chart-donut-3')}</div>
-        <div class="val">${tauxGlobal}%</div><div class="label">Taux de closing global</div></div>
+        <div class="val">${mrrPondere} €</div><div class="label">Pipeline pondéré</div></div>
+      <div class="stat-card"><div class="stat-card-icon">${ic('ti-file-invoice')}</div>
+        <div class="val">${devisEnCours}</div><div class="label">Devis en cours</div></div>
+      <div class="stat-card ${aRisque?'red':''}"><div class="stat-card-icon">${ic('ti-alert-triangle')}</div>
+        <div class="val">${aRisque}</div><div class="label">À surveiller</div></div>
+      <div class="stat-card green"><div class="stat-card-icon">${ic('ti-trophy')}</div>
+        <div class="val">${mrrGagne} €</div><div class="label">MRR gagné · ${gagnes.length} client${gagnes.length>1?'s':''}</div></div>
     </div>
 
-    <div class="pipe-board">
-      ${PIPE_COLS.map(col=>{
-        const items = list.filter(p=>col.stages.includes(p.stage));
-        const mrr = items.reduce((s,p)=>s+prospectMRR(p),0);
-        const bloq = items.filter(p=>pipeAlerts(p).some(a=>a.k==='red')).length;
-        /* Taux de passage : combien franchissent cette étape */
-        const idx = PIPE_COLS.indexOf(col);
-        const atteints = list.filter(p=>{
-          const c = colOf(p.stage);
-          return c && PIPE_COLS.indexOf(c) >= idx;
-        }).length;
-        const precedents = idx===0 ? list.length : list.filter(p=>{
-          const c = colOf(p.stage);
-          return c && PIPE_COLS.indexOf(c) >= idx-1;
-        }).length;
-        const passage = precedents ? Math.round(atteints/precedents*100) : 0;
-        return `<div class="pipe-col" id="pipecol-${col.id}"
-            ondragover="pipeDragOver(event,'${col.id}')" ondragleave="pipeDragLeave('${col.id}')" ondrop="pipeDrop(event,'${col.id}')">
-          <div class="pipe-col-head" style="border-bottom:2px solid ${col.c}">
-            <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
-              <span style="color:${col.c}">${ic(col.icon,14)}</span>
-              <span style="font-size:11.5px;font-weight:800">${col.lab}</span></div>
-            <span class="badge" style="color:${col.c};background:${col.bg}">${items.length}</span>
-          </div>
-          <div class="pipe-col-meta">
-            <span>${mrr} € MRR</span>
-            ${idx>0?`<span title="Taux de passage depuis l'étape précédente">${passage}%</span>`:''}
-            ${bloq?`<span style="color:var(--th-red);font-weight:700">${bloq} bloquée${bloq>1?'s':''}</span>`:''}
-          </div>
-          ${items.map(card).join('') || '<div class="pipe-empty">Déposez une affaire ici</div>'}
-        </div>`;
-      }).join('')}
+    ${pipeView==='kanban' ? kanban : liste}
+
+    <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Glissez une carte pour faire avancer l'opportunité. <b>Sauter une étape est possible mais demande une raison</b>, enregistrée dans le journal d'audit. La fiche prospect est la seule source — rien n'est dupliqué ici.</span></div>
+
+    ${aRisque ? `<p class="section-label" style="margin-top:24px">Opportunités à surveiller</p>
+      ${ouvertes.filter(p=>riskLevel(p)==='À surveiller').map(p=>`
+        <div class="blocked-row" onclick="openProspect('${p.id}')">
+          <div class="hist-icon" style="background:var(--th-red-bg);color:var(--th-red)">${ic('ti-alert-triangle',14)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:3px">
+              <span style="font-size:13.5px;font-weight:700">${esc(p.entreprise)}</span>${stageBadge(p.stage)}
+              ${p.valeur?`<span class="badge purple" style="color:var(--th-purple);background:var(--th-purple-bg)">${prospectMRR(p)} € MRR</span>`:''}</div>
+            <div style="font-size:12px;color:var(--th-red);font-weight:600">${pipeAlerts(p).filter(a=>a.k==='red').map(a=>esc(a.txt)).join(' · ')}</div>
+            <div style="font-size:11.5px;color:var(--th-text-3);margin-top:2px">${esc(repName(p.repId))}</div></div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn-ghost" onclick="event.stopPropagation();markLost('${p.id}')">Marquer perdu</button></div>
+        </div>`).join('')}` : ''}
+
+    <div style="display:flex;align-items:center;gap:12px;margin-top:24px;flex-wrap:wrap">
+      <p class="section-label" style="margin:0">Opportunités perdues · ${perdus.length}</p>
+      <button class="filter-chip${pipeShowLost?' active':''}" onclick="togglePipeLost()">${pipeShowLost?'Masquer':'Analyser'}</button>
     </div>
-
-    <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Glissez une carte d'une colonne à l'autre pour <b>faire avancer l'affaire</b>. L'étape et la date de dernier contact du prospect sont mises à jour — rien n'est saisi deux fois.</span></div>
-
-    ${bloquees ? `<p class="section-label" style="margin-top:24px">Affaires bloquées</p>
-    ${ouvertes.filter(p=>pipeAlerts(p).some(a=>a.k==='red')).map(p=>{
-      const alerts = pipeAlerts(p).filter(a=>a.k==='red');
-      return `<div class="blocked-row" onclick="openProspect('${p.id}')">
-        <div class="hist-icon" style="background:var(--th-red-bg);color:var(--th-red)">${ic('ti-alert-triangle',14)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:3px">
-            <span style="font-size:13.5px;font-weight:700">${esc(p.entreprise)}</span>${stageBadge(p.stage)}
-            ${p.valeur?`<span class="badge purple" style="color:var(--th-purple);background:var(--th-purple-bg)">${prospectMRR(p)} € MRR</span>`:''}</div>
-          <div style="font-size:12px;color:var(--th-red);font-weight:600">${alerts.map(a=>esc(a.txt)).join(' · ')}</div>
-          <div style="font-size:11.5px;color:var(--th-text-3);margin-top:2px">${esc(repName(p.repId))}</div>
+    ${pipeShowLost && perdus.length ? `
+      <div class="grid-2">
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-chart-bar',17)}<span>Motifs de perte</span></div></div>
+          ${Object.entries(pertes).sort((a,b)=>b[1]-a[1]).map(([m,n])=>`
+            <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--th-border)">
+              <div style="flex:1;font-size:13px;font-weight:600">${esc(m)}</div>
+              <div style="flex:1;max-width:120px;background:var(--th-bg-alt);border-radius:5px;height:6px;overflow:hidden">
+                <div style="height:100%;width:${Math.round(n/perdus.length*100)}%;background:var(--th-red);border-radius:5px"></div></div>
+              <b style="font-size:13px;min-width:24px;text-align:right">${n}</b></div>`).join('')}
+          <div class="hint-bar" style="margin-top:14px">${ic('ti-bulb',15)}<span>Ces motifs peuvent alimenter <b>Retours clients</b> et <b>Intelligence marketing</b>.</span></div>
         </div>
-        <button class="btn-ghost" onclick="event.stopPropagation();markLost('${p.id}')">Marquer perdu</button>
-      </div>`;
-    }).join('')}` : ''}
-
-    ${pipeShowLost && perdus.length ? `<p class="section-label" style="margin-top:24px">Affaires perdues</p>
-    <table class="data-table"><thead><tr><th>Entreprise</th><th>Étape atteinte</th><th>Valeur</th><th>Commercial</th><th>Motif</th></tr></thead><tbody>
-      ${perdus.map(p=>`<tr onclick="openProspect('${p.id}')" style="cursor:pointer">
-        <td class="dt-title">${esc(p.entreprise)}</td>
-        <td><span class="badge gray">Contact</span></td>
-        <td>${p.valeur?p.valeur+' €/an':'—'}</td>
-        <td style="font-size:12px;color:var(--th-text-2)">${esc(repName(p.repId))}</td>
-        <td style="font-size:12px;color:var(--th-text-2);max-width:320px">${esc(p.notes||'Non renseigné')}</td></tr>`).join('')}
-    </tbody></table>` : ''}`;
+        <div class="card"><div class="card-header"><div class="card-title">${ic('ti-circle-x',17)}<span>Détail</span></div></div>
+          ${perdus.map(p=>`<div class="hist-row" onclick="openProspect('${p.id}')" style="cursor:pointer">
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${esc(p.entreprise)}</div>
+              <div style="font-size:12px;color:var(--th-text-2)">${esc(p.motifPerte||'Non renseigné')}${p.notePerte?` — ${esc(p.notePerte)}`:''}</div></div>
+            <span style="font-size:11.5px;color:var(--th-text-3)">${esc(repName(p.repId))}</span></div>`).join('')}
+        </div>
+      </div>` : ''}`;
 }
 
 /* ---------- 5. RENDEZ-VOUS ---------- */
@@ -7027,16 +7658,19 @@ function renderSalesClients(){
     <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Un client est créé <b>automatiquement</b> quand un contrat est signé. Jamais à la main — tout l'historique du prospect est conservé. L'onboarding se poursuit dans <b>Success client</b>.</span></div>`;
 }
 
-/* ---------- 9. COMMISSIONS ---------- */
+/* ---------- 9. COMMISSIONS ----------
+   Une signature ne rend rien acquis. Le moteur applique une règle par
+   type d'acquisition, et une période d'acquisition configurable. */
 function renderSalesCommissions(){
   const el = document.getElementById('sales-commissionsContent'); if(!el) return;
   const CS = COMMISSION_SETTINGS;
-  const byStatus = s => COMMISSIONS.filter(c=>c.statut===s);
-  const total = s => byStatus(s).reduce((x,c)=>x+c.montant,0);
+  let list = COMMISSIONS;
+  if(!canSeeAllReps()) list = list.filter(c=>c.repId===CURRENT_USER.id);
+  const total = s => list.filter(c=>c.statut===s).reduce((x,c)=>x+c.montant,0);
 
   el.innerHTML = sectorSelector() + `
     <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
-      <div class="stat-card"><div class="val">${total('En attente')} €</div><div class="label">En attente</div></div>
+      <div class="stat-card"><div class="val">${total('En attente')} €</div><div class="label">En attente d'acquisition</div></div>
       <div class="stat-card blue"><div class="val">${total('Acquise')} €</div><div class="label">Acquises</div></div>
       <div class="stat-card purple"><div class="val">${total('À payer')} €</div><div class="label">À payer</div></div>
       <div class="stat-card green"><div class="val">${total('Payée')} €</div><div class="label">Payées</div></div>
@@ -7046,46 +7680,62 @@ function renderSalesCommissions(){
     <div class="card" style="margin-bottom:18px">
       <div class="card-header"><div class="card-title">${ic('ti-repeat',17)}<span>Cycle d'une commission</span></div></div>
       <div class="commission-flow">
-        ${[['Contrat signé','ti-file-certificate'],[`Mois 1 payé`,'ti-coin'],[`Mois 2 payé`,'ti-coin'],[`Mois ${CS.moisAcquisition} payé`,'ti-coin'],['Acquise','ti-circle-check'],['À payer','ti-wallet'],['Payée','ti-check']].map((x,i,arr)=>`
-          <div class="cf-step ${i<2?'done':i===2?'cur':''}"><div class="cf-icon">${ic(x[1],14)}</div><div class="cf-lab">${x[0]}</div></div>
+        ${['Contrat signé','Mois 1 payé','Mois 2 payé',`Mois ${CS.moisAcquisition} payé`,'Acquise','À payer','Payée'].map((lab,i,arr)=>`
+          <div class="cf-step ${i<2?'done':i===2?'cur':''}"><div class="cf-icon">${ic(i===0?'ti-file-certificate':i<4?'ti-coin':i===4?'ti-circle-check':i===5?'ti-wallet':'ti-check',14)}</div>
+            <div class="cf-lab">${lab}</div></div>
           ${i<arr.length-1?`<div class="cf-arrow">${ic('ti-arrow-left',12)}</div>`:''}`).join('')}
       </div>
       <div class="alert warn" style="margin-top:16px"><div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
-        <div class="alert-text">Si le client résilie <b>avant l'acquisition</b>, la commission est <b>annulée</b> — aucun paiement. Si elle a déjà été payée${CS.clawbackActif?` et que la résiliation intervient dans les ${CS.clawbackMois} mois`:''}, un <b>clawback</b> permet de la reprendre.</div></div>
+        <div class="alert-text">Si le client résilie <b>avant l'acquisition</b>, la commission passe à <b>Annulée</b> — aucun paiement, rien à récupérer. C'est le modèle principal retenu.
+        ${CS.clawbackActif?` Le <b>clawback</b> reste activé pour les cas où une commission déjà payée doit être reprise.`:` Le <b>clawback</b> est désactivé mais reste disponible si vous changez de modèle.`}</div></div>
     </div>
 
-    <table class="data-table"><thead><tr><th>Client</th><th>Commercial</th><th>Base</th><th>Taux</th><th>Montant</th><th>Progression</th><th>Statut</th></tr></thead><tbody>
-      ${COMMISSIONS.map(c=>{ const cl = WON_CLIENTS.find(x=>x.id===c.clientId); const p = cl?prospectById(cl.prospectId):null;
+    <table class="data-table"><thead><tr><th>Client</th><th>Commercial</th><th>Type d'acquisition</th><th>Base</th><th>Règle</th><th>Montant</th><th>Progression</th><th>Statut</th></tr></thead><tbody>
+      ${list.map(c=>{ const cl = WON_CLIENTS.find(x=>x.id===c.clientId); const p = cl?prospectById(cl.prospectId):null;
         const pct = Math.round(c.moisPayes/c.moisRequis*100);
+        const r = CS.regles[c.typeAcq] || {};
         const sc = c.statut==='Payée'?'green':c.statut==='Annulée'||c.statut==='Clawback'?'red':c.statut==='En attente'?'gray':'blue';
         return `<tr>
           <td class="dt-title">${esc(p?p.entreprise:'—')}</td>
           <td style="font-size:12.5px">${esc(repName(c.repId))}</td>
-          <td>${c.base} €</td><td>${c.taux}%</td>
+          <td><span class="badge">${esc(c.typeAcq)}</span></td>
+          <td>${c.base} €</td>
+          <td style="font-size:11.5px;color:var(--th-text-2)">${r.mode==='Montant fixe'?`${r.valeur} € fixe`:`${r.valeur}% · ${esc(r.mode||'')}`}</td>
           <td style="font-weight:700">${c.montant} €</td>
           <td style="width:150px"><div style="display:flex;align-items:center;gap:8px">
             <div style="flex:1;background:var(--th-bg-alt);border-radius:5px;height:6px;overflow:hidden">
               <div style="height:100%;width:${Math.min(100,pct)}%;border-radius:5px;background:${pct>=100?'var(--th-green)':'var(--th-orange)'}"></div></div>
             <span style="font-size:11px;color:var(--th-text-2);font-weight:700;white-space:nowrap">${c.moisPayes}/${c.moisRequis} mois</span></div></td>
           <td><span class="badge ${sc}">${esc(c.statut)}</span></td></tr>`; }).join('')
-        || `<tr><td colspan="7" style="text-align:center;color:var(--th-text-2);padding:26px">Aucune commission pour l'instant.</td></tr>`}
+        || `<tr><td colspan="8" style="text-align:center;color:var(--th-text-2);padding:26px">Aucune commission pour l'instant.</td></tr>`}
     </tbody></table>
 
-    <p class="section-label" style="margin-top:24px">Règles de commission</p>
+    ${can('modifierRegles') ? `
+    <p class="section-label" style="margin-top:26px">Règles par type d'acquisition</p>
+    <div class="alert warn" style="margin-bottom:14px"><div class="alert-icon">${ic('ti-alert-triangle',14)}</div>
+      <div class="alert-text"><b>Valeurs de départ, à ajuster avant de recruter.</b> Rien n'est figé : un lead fourni par TigerFlow n'a pas la même valeur qu'un prospect trouvé par le commercial.</div></div>
+    <table class="data-table"><thead><tr><th>Type d'acquisition</th><th>Mode</th><th>Valeur</th><th>Récurrence</th><th>Actif</th></tr></thead><tbody>
+      ${ACQUISITION_TYPES.map(t=>{ const r = CS.regles[t]||{};
+        return `<tr><td class="dt-title">${esc(t)}</td>
+          <td><select class="status-select" style="font-size:12px">${COMMISSION_MODES.map(m=>`<option ${r.mode===m?'selected':''}>${m}</option>`).join('')}</select></td>
+          <td><input class="stat-input" type="number" value="${r.valeur||0}" style="width:70px"> ${r.mode==='Montant fixe'?'€':'%'}</td>
+          <td><select class="status-select" style="font-size:12px">${COMMISSION_RECURRENCE.map(x=>`<option ${r.recurrence===x?'selected':''}>${x}</option>`).join('')}</select></td>
+          <td><div class="param-toggle ${r.actif?'on':''}"><div class="param-knob"></div></div></td></tr>`;
+      }).join('')}
+    </tbody></table>
+
+    <p class="section-label" style="margin-top:24px">Période d'acquisition</p>
     <div class="card">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
-        <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Type</div>
-          <select class="wiz-input"><option ${CS.type.includes('Pourcentage')?'selected':''}>Pourcentage du premier an</option><option>Montant fixe</option></select></div>
-        <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Pourcentage</div>
-          <div style="display:flex;align-items:center;gap:7px"><input type="number" class="stat-input" style="width:70px" value="${CS.pourcentage}"><span>%</span></div></div>
-        <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Mois avant acquisition</div>
-          <div style="display:flex;align-items:center;gap:7px"><input type="number" class="stat-input" style="width:70px" value="${CS.moisAcquisition}"><span>mois payés</span></div></div>
+        <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Mois d'abonnement payé requis</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            ${[2,3,6,12].map(n=>`<button class="filter-chip${CS.moisAcquisition===n?' active':''}" onclick="COMMISSION_SETTINGS.moisAcquisition=${n};renderSalesCommissions()">${n} mois</button>`).join('')}</div></div>
         <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Clawback</div>
-          <div style="display:flex;align-items:center;gap:11px"><div class="param-toggle ${CS.clawbackActif?'on':''}"><div class="param-knob"></div></div>
-            <span style="font-size:12.5px">Reprise possible sous ${CS.clawbackMois} mois</span></div></div>
+          <div style="display:flex;align-items:center;gap:11px"><div class="param-toggle ${CS.clawbackActif?'on':''}" onclick="COMMISSION_SETTINGS.clawbackActif=!COMMISSION_SETTINGS.clawbackActif;renderSalesCommissions()" style="cursor:pointer"><div class="param-knob"></div></div>
+            <span style="font-size:12.5px">${CS.clawbackActif?`Reprise possible sous ${CS.clawbackMois} mois`:'Désactivé — modèle par défaut'}</span></div></div>
       </div>
-      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Ces règles ne sont <b>pas figées</b> : ajustez-les avant de recruter vos premiers commerciaux.</span></div>
-    </div>`;
+      <div class="hint-bar" style="margin-top:16px">${ic('ti-bulb',16)}<span>Le moteur accepte plusieurs modèles : commission unique, mensuelle pendant X mois, ou pourcentage du MRR. <b>Vous déciderez plus tard</b> — l'architecture ne vous enferme pas.</span></div>
+    </div>` : `<div class="hint-bar" style="margin-top:20px">${ic('ti-lock',16)}<span>Les règles de commission sont définies par l'Owner. Vous voyez ici <b>vos</b> commissions uniquement.</span></div>`}`;
 }
 
 /* ---------- 10. COMMERCIAUX ---------- */
@@ -7132,13 +7782,16 @@ function renderSalesPerf(){
   const P = scopedProspects();
 
   if(perfTab===0){
-    body = `<table class="data-table"><thead><tr><th>Commercial</th><th>Prospects</th><th>Appels</th><th>RDV</th><th>Démos</th><th>Devis</th><th>Signés</th><th>Taux</th><th>MRR</th><th>Commissions</th></tr></thead><tbody>
+    body = `<table class="data-table"><thead><tr><th>Commercial</th><th>Leads reçus</th><th>Auto-acquis</th><th>Total</th><th>Appels</th><th>RDV</th><th>Démos</th><th>Devis</th><th>Signés</th><th>Taux</th><th>MRR</th><th>Commissions</th></tr></thead><tbody>
       ${SALES_REPS.map(r=>{
         const ps = PROSPECTS_DATA.filter(p=>p.repId===r.id);
+        const leads = ps.filter(p=>p.origine==='Marketing TigerFlow').length;
+        const auto = ps.filter(p=>p.origine==='Prospection commerciale').length;
         const gagnes = ps.filter(p=>p.stage==='Gagné').length;
         const perdus = ps.filter(p=>p.stage==='Perdu').length;
         const taux = (gagnes+perdus)>0?Math.round(gagnes/(gagnes+perdus)*100):0;
         return `<tr><td class="dt-title">${esc(r.nom)}</td>
+          <td><b style="color:var(--th-orange)">${leads}</b></td><td><b style="color:var(--th-blue)">${auto}</b></td>
           <td>${ps.length}</td>
           <td>${CALLS.filter(c=>c.repId===r.id).length}</td>
           <td>${MEETINGS.filter(m=>m.repId===r.id).length}</td>
@@ -7222,6 +7875,74 @@ function renderSalesSettings(){
           <span style="color:var(--th-text-2)">${esc(o.nom)}</span><b>${o.prix} €${o.recurrent?' / mois':''}</b></div>`).join('')}
       </div>
     </div>
+    <p class="section-label">Attribution des leads</p>
+    <div class="grid-2">
+      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-repeat',17)}<span>Règle d'attribution</span></div></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${ATTRIBUTION_METHODS.map(m=>`<div class="param-radio ${ATTRIBUTION_SETTINGS.methode===m?'sel':''}" onclick="ATTRIBUTION_SETTINGS.methode='${m}';renderSalesSettings();renderSalesLeads()">
+            <div class="param-radio-dot"></div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:${ATTRIBUTION_SETTINGS.methode===m?'700':'600'}">${m}</div>
+              <div style="font-size:11px;color:var(--th-text-3)">${
+                m==='Manuelle'?"L'Owner attribue chaque lead"
+                :m==='Rotation équilibrée'?'À tour de rôle, en équilibrant les portefeuilles'
+                :m==='Par secteur'?'Chaque secteur a son commercial référent'
+                :m==='Par zone géographique'?'Selon la région du prospect'
+                :'Au commercial ayant le moins de leads en cours'}</div></div></div>`).join('')}
+        </div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-history',17)}<span>Délai de traitement</span></div></div>
+        <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.7;margin-bottom:14px">Un lead marketing est bien plus chaud qu'un prospect froid. Ce délai déclenche les alertes dans <b>Leads entrants</b>.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Premier contact attendu</div>
+            <div style="display:flex;align-items:center;gap:7px"><input type="number" class="stat-input" style="width:70px" value="${ATTRIBUTION_SETTINGS.slaHeures}"><span>heures</span></div></div>
+          <div><div style="font-size:10.5px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;margin-bottom:6px">Alerte avant échéance</div>
+            <div style="display:flex;align-items:center;gap:7px"><input type="number" class="stat-input" style="width:70px" value="${ATTRIBUTION_SETTINGS.alerteHeures}" step="0.5"><span>heures</span></div></div>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--th-border);display:flex;align-items:center;gap:11px">
+          <div class="param-toggle ${ATTRIBUTION_SETTINGS.reattributionAuto?'on':''}"><div class="param-knob"></div></div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Réattribution automatique</div>
+            <div style="font-size:11.5px;color:var(--th-text-2)">Si le délai est dépassé, le lead repart en file — <b>à venir</b></div></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-label">Pipeline</p>
+    <div class="grid-2">
+      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-chart-donut-3',17)}<span>Probabilité par étape</span></div></div>
+        <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.7;margin-bottom:14px">Sert à calculer le <b>pipeline pondéré</b>. Valeurs de départ — ajustez-les avec vos premiers résultats réels.</p>
+        ${PIPE_STAGES.map(s=>`<div style="display:flex;align-items:center;gap:11px;padding:7px 0;border-bottom:1px solid var(--th-border)">
+          <span style="flex:1;font-size:12.5px;font-weight:600">${esc(s)}</span>
+          <div style="flex:1;max-width:110px;background:var(--th-bg-alt);border-radius:5px;height:6px;overflow:hidden">
+            <div style="height:100%;width:${STAGE_PROBABILITY[s]}%;background:var(--th-orange);border-radius:5px"></div></div>
+          <input class="stat-input" type="number" style="width:60px" value="${STAGE_PROBABILITY[s]}"
+            onchange="STAGE_PROBABILITY['${s}']=Number(this.value)||0;renderSalesSettings();renderSalesPipeline()"> %</div>`).join('')}
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title">${ic('ti-alert-triangle',17)}<span>Seuils d'alerte</span></div></div>
+        <p style="font-size:12.5px;color:var(--th-text-2);line-height:1.7;margin-bottom:14px">Au-delà de ces délais, une opportunité passe <b>à surveiller</b> dans le Pipeline et remonte au Tableau de bord.</p>
+        ${[['sansActivite','Sans activité'],['devisSansRelance','Devis sans relance'],['contratNonSigne','Contrat non signé'],['stagnation','Stagnation à une étape']].map(x=>`
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--th-border)">
+            <span style="flex:1;font-size:12.5px;font-weight:600">${x[1]}</span>
+            <input class="stat-input" type="number" style="width:66px" value="${PIPE_THRESHOLDS[x[0]]}"
+              onchange="PIPE_THRESHOLDS['${x[0]}']=Number(this.value)||0;renderSalesPipeline()">
+            <span style="font-size:12px;color:var(--th-text-2)">jours</span></div>`).join('')}
+      </div>
+    </div>
+
+    <p class="section-label">Permissions</p>
+    <div class="card" style="margin-bottom:18px">
+      <table class="data-table"><thead><tr><th>Action</th><th>Owner / Admin</th><th>Commercial freelance</th></tr></thead><tbody>
+        ${[['Voir tous les prospects',true,false],['Attribuer et réattribuer les leads',true,false],
+           ['Modifier les règles de commission',true,false],['Envoyer un contrat sans validation',true,false],
+           ['Archiver une fiche',true,false],['Signaler un lead ou un prospect',true,true],
+           ['Supprimer une fiche, un appel, un devis',false,false]].map(x=>`
+          <tr><td class="dt-title">${x[0]}</td>
+            <td>${x[1]?'<span class="badge green">Autorisé</span>':'<span class="badge red">Interdit</span>'}</td>
+            <td>${x[2]?'<span class="badge green">Autorisé</span>':'<span class="badge red">Interdit</span>'}</td></tr>`).join('')}
+      </tbody></table>
+      <div class="alert warn" style="margin-top:14px"><div class="alert-icon">${ic('ti-lock',14)}</div>
+        <div class="alert-text"><b>La suppression est interdite à tous, y compris à l'Owner.</b> Les statuts remplacent la suppression : Perdu, Hors cible, Doublon, Ne plus contacter, Archivé. Les statistiques restent fiables et l'historique intact.</div></div>
+    </div>
+
     <div class="grid-2">
       <div class="card"><div class="card-header"><div class="card-title">${ic('ti-timeline',17)}<span>Étapes du pipeline</span></div></div>
         <div style="display:flex;flex-wrap:wrap;gap:7px">${PROSPECT_STAGES.map(s=>stageBadge(s)).join('')}</div>
@@ -7237,7 +7958,7 @@ function renderSalesSettings(){
 
 /* ---------- Rafraîchissement global ---------- */
 function renderSalesAll(){
-  renderSalesDashboard(); renderProspects(); renderProspection(); renderSalesPipeline();
+  renderSalesLeads(); renderSalesAudit(); renderSalesDashboard(); renderProspects(); renderProspection(); renderSalesPipeline();
   renderSalesMeetings(); renderSalesQuotes(); renderSalesContracts(); renderSalesClients();
   renderSalesCommissions(); renderSalesReps(); renderSalesPerf(); renderSalesDocs(); renderSalesSettings();
 }
