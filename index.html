@@ -418,23 +418,24 @@ select.status-select{border:1px solid var(--th-border);border-radius:9px;padding
 .ag-week{display:grid;grid-template-columns:52px repeat(7,1fr);gap:0;border:1px solid var(--th-border);border-radius:14px;overflow:hidden;background:var(--th-card)}
 .ag-day{display:grid;grid-template-columns:52px 1fr;border:1px solid var(--th-border);border-radius:14px;overflow:hidden;background:var(--th-card)}
 .ag-hours{border-right:1px solid var(--th-border);background:var(--th-bg-alt)}
-.ag-hour{height:34px;font-size:10px;color:var(--th-text-3);font-weight:700;text-align:right;padding-right:7px;line-height:1}
+.ag-hour{height:52px;font-size:10.5px;color:var(--th-text-3);font-weight:700;text-align:right;padding-right:8px;line-height:1;transform:translateY(-5px)}
 .ag-col{border-right:1px solid var(--th-border);min-width:0}
 .ag-col:last-child{border-right:none}
-.ag-daylabel{height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-bottom:1px solid var(--th-border);background:var(--th-bg-alt)}
+.ag-daylabel{height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-bottom:1px solid var(--th-border);background:var(--th-bg-alt)}
 .ag-daylabel.today{background:var(--th-orange-bg)}
 .ag-colbody,.ag-daycol{position:relative}
-.ag-slot{height:34px;border-bottom:1px solid var(--th-border);transition:background .1s}
+.ag-slot{height:52px;border-bottom:1px solid var(--th-border);transition:background .1s}
 .ag-slot:nth-child(2n){border-bottom-style:dashed}
 .ag-slot.drop{background:var(--th-orange-bg)}
 .ag-slot:hover{background:var(--th-bg-alt)}
-.ag-meet{border-radius:8px;padding:5px 7px;cursor:grab;overflow:hidden;z-index:2;box-shadow:var(--th-shadow-sm);transition:box-shadow .12s}
+.ag-meet{border-radius:9px;padding:6px 8px;cursor:grab;overflow:hidden;z-index:2;box-shadow:var(--th-shadow-sm);transition:box-shadow .12s;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.ag-meet.dense{flex-direction:row;align-items:center;gap:5px;padding:4px 7px}
 .ag-meet:hover{box-shadow:var(--th-shadow);z-index:3}
 .ag-meet:active{cursor:grabbing}
 .ag-meet.conflict{outline:2px solid var(--th-red);outline-offset:-2px}
-.ag-meet-top{display:flex;align-items:center;gap:4px;margin-bottom:2px}
-.ag-meet-name{font-size:10.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--th-text)}
-.ag-meet-sub{font-size:9px;color:var(--th-text-2);display:flex;align-items:center;gap:3px;margin-top:1px;overflow:hidden;white-space:nowrap}
+.ag-meet-top{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.ag-meet-name{font-size:11px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--th-text);min-width:0;flex:1}
+.ag-meet-sub{font-size:9.5px;color:var(--th-text-2);display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex-shrink:0}
 .ag-month{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
 .ag-mh{font-size:10px;color:var(--th-text-3);font-weight:800;text-transform:uppercase;text-align:center;padding-bottom:5px}
 .ag-mday{background:var(--th-card);border:1px solid var(--th-border);border-radius:11px;min-height:104px;padding:7px;transition:background .1s}
@@ -7863,7 +7864,8 @@ let newMeetDraft = null;
 
 const AGENDA_START = 8;   // heure de début affichée
 const AGENDA_END = 20;    // heure de fin
-const SLOT_MIN = 30;      // granularité
+const SLOT_MIN = 30;      // granularité en minutes
+const SLOT_PX = 52;       // hauteur d'un créneau de 30 min — doit laisser respirer le bloc
 
 function setAgendaView(v){ agendaView = v; agendaOffset = 0; renderSalesMeetings(); }
 function shiftAgenda(d){ agendaOffset += d; renderSalesMeetings(); }
@@ -8139,21 +8141,36 @@ function saveNewMeeting(){
 }
 
 /* --- Bloc rendez-vous dans l'agenda --- */
-function agendaBlock(m, style){
+function agendaBlock(m, style, hauteur){
   const p = meetProspect(m); if(!p) return '';
   const st = MEETING_STATUS_STYLE[m.statut] || MEETING_STATUS_STYLE['Planifié'];
   const conflit = hasConflict(m);
   const modeIcon = m.mode==='Visio'?'ti-presentation':m.mode==='Téléphone'?'ti-phone':'ti-map';
+  const fin = `${String(Math.floor(meetEnd(m)/60)).padStart(2,'0')}:${String(meetEnd(m)%60).padStart(2,'0')}`;
+  /* Le contenu s'adapte à la place réelle : mieux vaut moins que tronqué */
+  const dense = hauteur < 44;
+  const complet = hauteur >= 62;
+  const titre = `${p.entreprise} · ${m.type} · ${m.heure}–${fin} · ${repName(m.repId)}${conflit?' · CONFLIT':''}`;
+
+  if(dense){
+    return `<div class="ag-meet dense ${conflit?'conflict':''}" style="${style};background:${st.bg};border-left:3px solid ${st.c}"
+        draggable="true" ondragstart="agendaDragStart(event,'${m.id}')" onclick="event.stopPropagation();openMeetDetail('${m.id}')"
+        title="${esc(titre)}">
+      <span style="font-size:9.5px;font-weight:800;color:${st.c};flex-shrink:0">${m.heure}</span>
+      <span class="ag-meet-name">${esc(p.entreprise)}</span>
+      ${conflit?`<span style="color:var(--th-red);flex-shrink:0">${ic('ti-alert-triangle',9)}</span>`:''}
+    </div>`;
+  }
   return `<div class="ag-meet ${conflit?'conflict':''}" style="${style};background:${st.bg};border-left:3px solid ${st.c}"
       draggable="true" ondragstart="agendaDragStart(event,'${m.id}')" onclick="event.stopPropagation();openMeetDetail('${m.id}')"
-      title="${esc(p.entreprise)} · ${esc(m.type)} · ${esc(repName(m.repId))}">
+      title="${esc(titre)}">
     <div class="ag-meet-top">
-      <span class="pc-avatar" style="background:${repColor(m.repId)};width:16px;height:16px;font-size:7.5px">${esc(repInitials(m.repId))}</span>
-      <span style="font-size:9.5px;font-weight:800;color:${st.c}">${m.heure}</span>
-      ${conflit?`<span style="color:var(--th-red);margin-left:auto">${ic('ti-alert-triangle',10)}</span>`:''}
+      <span class="pc-avatar" style="background:${repColor(m.repId)};width:17px;height:17px;font-size:8px">${esc(repInitials(m.repId))}</span>
+      <span style="font-size:10px;font-weight:800;color:${st.c}">${m.heure}${complet?`–${fin}`:''}</span>
+      ${conflit?`<span style="color:var(--th-red);margin-left:auto" title="Conflit d'agenda">${ic('ti-alert-triangle',10)}</span>`:''}
     </div>
     <div class="ag-meet-name">${esc(p.entreprise)}</div>
-    <div class="ag-meet-sub">${ic(modeIcon,9)} ${esc(m.type)}</div>
+    ${complet?`<div class="ag-meet-sub">${ic(modeIcon,9)} ${esc(m.type)}</div>`:''}
   </div>`;
 }
 
@@ -8167,19 +8184,25 @@ function renderAgenda(list){
     const d = new Date(); d.setDate(d.getDate()+agendaOffset);
     const key = d.toISOString().slice(0,10);
     const items = list.filter(m=>m.date===key && m.statut!=='Annulé');
+    const isToday = key===todayISO();
     return `<div class="ag-day">
-      <div class="ag-hours">${slots.map(s=>`<div class="ag-hour">${s%60===0?String(Math.floor(s/60)).padStart(2,'0')+':00':''}</div>`).join('')}</div>
-      <div class="ag-daycol">
+      <div class="ag-hours"><div class="ag-daylabel"></div>
+        ${slots.map(s=>`<div class="ag-hour">${s%60===0?String(Math.floor(s/60)).padStart(2,'0')+':00':''}</div>`).join('')}</div>
+      <div class="ag-col">
+        <div class="ag-daylabel ${isToday?'today':''}">
+          <div style="font-size:10px;text-transform:uppercase;font-weight:800;color:var(--th-text-3)">${d.toLocaleDateString('fr-FR',{weekday:'long'})}</div>
+          <div style="font-size:15px;font-weight:800;color:${isToday?'var(--th-orange)':'var(--th-text)'}">${d.getDate()} ${d.toLocaleDateString('fr-FR',{month:'long'})}</div></div>
+        <div class="ag-colbody">
         ${slots.map(s=>`<div class="ag-slot" id="slot-${key}-${s}"
           ondragover="agendaDragOver(event,'${key}-${s}')" ondragleave="agendaDragLeave('${key}-${s}')"
           ondrop="agendaDrop(event,'${key}',${s})"
           ondblclick="openNewMeeting('', '${key}', '${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}')"></div>`).join('')}
         ${items.map(m=>{
-          const top = (meetStart(m)-AGENDA_START*60)/SLOT_MIN*34;
-          const h = Math.max(30, (m.duree||30)/SLOT_MIN*34-3);
-          return agendaBlock(m, `position:absolute;top:${top}px;height:${h}px;left:6px;right:6px`);
+          const top = (meetStart(m)-AGENDA_START*60)/SLOT_MIN*SLOT_PX;
+          const h = Math.max(38, (m.duree||30)/SLOT_MIN*SLOT_PX-4);
+          return agendaBlock(m, `position:absolute;top:${top}px;height:${h}px;left:7px;right:7px`, h);
         }).join('')}
-      </div></div>`;
+      </div></div></div>`;
   }
 
   if(agendaView==='mois'){
@@ -8227,9 +8250,9 @@ function renderAgenda(list){
             ondrop="agendaDrop(event,'${key}',${s})"
             ondblclick="openNewMeeting('','${key}','${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}')"></div>`).join('')}
           ${items.map(m=>{
-            const top = (meetStart(m)-AGENDA_START*60)/SLOT_MIN*34;
-            const h = Math.max(28, (m.duree||30)/SLOT_MIN*34-3);
-            return agendaBlock(m, `position:absolute;top:${top}px;height:${h}px;left:3px;right:3px`);
+            const top = (meetStart(m)-AGENDA_START*60)/SLOT_MIN*SLOT_PX;
+            const h = Math.max(38, (m.duree||30)/SLOT_MIN*SLOT_PX-4);
+            return agendaBlock(m, `position:absolute;top:${top}px;height:${h}px;left:4px;right:4px`, h);
           }).join('')}
         </div></div>`;
     }).join('')}
